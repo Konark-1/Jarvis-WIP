@@ -71,8 +71,8 @@ class TextToSpeech(BaseModel):
     volume: float = 1.0
     voice_id: Optional[str] = None
     
-    # Background speech queue
-    speech_queue: queue.Queue = None
+    # Note: queue.Queue is not serializable, so it can't be a model field
+    # We'll initialize it in __init__ instead
     
     def __init__(self, **data):
         super().__init__(**data)

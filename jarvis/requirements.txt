@@ -1,12 +1,35 @@
-pydantic==2.11.1
-pydantic-ai-slim==0.0.49
-SpeechRecognition==3.14.2
-pyttsx3==2.98
-pyautogui
-openai
-langchain
-chromadb
-requests
-beautifulsoup4
-python-dotenv
-pyaudio 
+# Core dependencies
+pydantic>=2.0.0
+python-dotenv>=1.0.0
+openai>=1.0.0
+anthropic>=0.5.0
+groq>=0.3.0
+
+# Voice interaction
+SpeechRecognition>=3.10.0
+pyttsx3>=2.90
+
+# Web interaction
+requests>=2.31.0
+beautifulsoup4>=4.12.0
+
+# File system operations
+pathlib>=1.0.1
+
+# Logging and utilities
+python-json-logger>=2.0.7
+
+# LLM integration
+chromadb>=0.4.6
+sentence-transformers>=2.2.2
+
+# Optional: Speech capabilities
+PyAudio>=0.2.13
+
+# Utilities
+rich>=13.4.2
+tenacity>=8.2.2
+jsonschema>=4.17.3
+pandas>=2.0.0
+
+pyautogui 

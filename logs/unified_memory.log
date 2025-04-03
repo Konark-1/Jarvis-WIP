@@ -1,0 +1,3 @@
+2025-04-04 03:46:07 - unified_memory - ERROR - Error adding memory: MediumTermMemory.create_objective() takes 2 positional arguments but 3 were given
+2025-04-04 03:46:40 - unified_memory - ERROR - Error searching memory: 'Interaction' object is not subscriptable
+2025-04-04 03:52:28 - unified_memory - INFO - Memory consolidation completed
