@@ -211,83 +211,144 @@ class JarvisAgent(BaseModel):
         return reflection_text
     
     def _create_autonomous_objective(self, recent_queries: List[str]) -> Optional[str]:
-        """Create an autonomous objective based on patterns in user interactions"""
+        """Create an autonomous objective based on patterns, memory, and agent state."""
         try:
-            if not recent_queries:
-                return None
-                
-            # Use LLM to analyze patterns and create an objective
+            # 1. Gather Context
+            self.logger.info("Attempting to create autonomous objective...")
+            context = ""
+
+            # Recent queries
+            if recent_queries:
+                context += "Recent User Queries:\n" + "\n".join([f"- {q}" for q in recent_queries]) + "\n\n"
+
+            # Current State / Objective
+            context += "Current Agent State:\n"
+            if self.state.current_objective_id:
+                current_obj = self.memory_system.medium_term.get_objective(self.state.current_objective_id)
+                if current_obj:
+                    context += f"- Current Objective: {current_obj.description} (Status: {current_obj.status})\n"
+                    # Optional: Add plan status if available
+                    # plan_status = self.planning_system.get_plan_status(self.state.current_plan_id)
+                    # context += f"- Plan Status: {plan_status}"
+                else:
+                    context += "- No active objective details found.\n"
+            else:
+                context += "- No active objective.\n"
+            context += f"- Error Count: {self.state.error_count}\n"
+            if self.state.last_error:
+                context += f"- Last Error: {self.state.last_error}\n"
+            context += "\n"
+
+            # Memory Reflection (using the existing reflection method)
+            reflection_query = "overall agent performance and user needs"
+            if recent_queries:
+                reflection_query = f"user needs based on recent queries like: {recent_queries[0]}"
+
+            reflection = None
+            if self.llm: # Ensure LLM client exists before calling reflect
+                try:
+                    reflection = self.memory_system.reflect_on_memories(reflection_query, self.llm)
+                    if reflection and "error" not in reflection:
+                        context += "Memory Reflection Summary:\n"
+                        context += f"- Insights: {reflection.get(\'insights\', [])}\n"
+                        context += f"- Patterns: {reflection.get(\'patterns\', [])}\n"
+                        context += f"- Knowledge: {reflection.get(\'knowledge\', [])}\n"
+                        # context += f"- Suggested Actions: {reflection.get(\'suggested_actions\', [])}\n"
+                        context += "\n"
+                    elif reflection and "error" in reflection:
+                        self.logger.warning(f"Memory reflection failed: {reflection['error']}")
+                except Exception as reflect_err:
+                    self.logger.error(f"Error during memory reflection call: {reflect_err}")
+            else:
+                self.logger.warning("LLM client not available for memory reflection.")
+
+            # 2. Define LLM Prompt for Objective Generation
             system_prompt = """
-            You are Jarvis, an agentic assistant analyzing user queries to identify patterns and create objectives.
-            Based on the user's recent queries, identify a key pattern or need and formulate a specific, actionable objective.
-            The objective should be clear, concise, and directly address an underlying user need.
-            Return ONLY the objective text without any explanation or additional text.
+            You are Jarvis, an advanced agentic assistant. Your task is to analyze the provided context (recent user interactions, current agent state, memory reflection) 
+            and propose a specific, actionable, and relevant **new** objective for the agent to pursue autonomously.
+
+            Consider:
+            - Implicit or explicit user needs revealed in queries.
+            - The agent's current state, errors, and active objective (if any).
+            - Insights and patterns derived from memory.
+            - The overall goal of being a helpful, proactive assistant.
+
+            Requirements for the objective:
+            - Must be a *new* objective, not a restatement of the current one.
+            - Must be actionable and achievable by an AI assistant.
+            - Should ideally address a gap, recurring theme, or opportunity identified in the context.
+            - Be concise and clearly worded.
+
+            Analyze the context and generate **one single best objective** based on your analysis.
+            Return ONLY the objective text, without any explanation, preamble, or markdown formatting.
+            If no suitable new objective can be identified from the context, return the exact string "NULL".
             """
-            
-            # Format recent queries for analysis
-            query_history = "\n".join([f"- {q}" for q in recent_queries])
+
             prompt = f"""
-            Here are the user's recent queries:
-            
-            {query_history}
-            
-            Based on these queries, create a single clear objective that addresses a pattern or need.
+            **Context Analysis for New Objective Generation**
+
+            {context}
+            **Task:**
+            Based *only* on the context provided above, propose one single, new, actionable, and relevant objective for the agent.
+            Remember to return ONLY the objective text or the string "NULL".
             """
-            
-            # Get objective from LLM
+
+            # 3. Get Objective from LLM
             objective_text = None
             if self.llm:
                 try:
-                    objective_text = self.llm.process_with_llm(
+                    raw_response = self.llm.process_with_llm(
                         prompt=prompt,
                         system_prompt=system_prompt,
-                        temperature=0.7
+                        temperature=0.6, # Slightly lower temperature for more focused objective
+                        max_tokens=150 # Objectives should be relatively concise
                     ).strip()
+
+                    if raw_response and raw_response != "NULL":
+                        objective_text = raw_response
+                        self.logger.info(f"LLM proposed new objective: {objective_text}")
+                    else:
+                        self.logger.info("LLM indicated no suitable new objective (NULL response).")
+
                 except Exception as e:
                     self.logger.error(f"Error generating objective with LLM: {e}")
-            
-            # Fall back to simple pattern matching if LLM fails
-            if not objective_text:
-                # Derive an objective based on common themes in recent queries
-                common_themes = []
-                
-                # Look for common coding-related requests
-                if any("code" in q.lower() for q in recent_queries):
-                    common_themes.append("coding")
-                
-                # Look for organization-related requests
-                if any("organize" in q.lower() for q in recent_queries):
-                    common_themes.append("organization")
-                
-                # Look for research-related requests
-                if any("find" in q.lower() or "search" in q.lower() for q in recent_queries):
-                    common_themes.append("research")
-                
-                # Create an objective based on identified themes
-                if common_themes:
-                    theme = common_themes[0]  # Take the most common theme
-                    if theme == "coding":
-                        objective_text = "Improve code organization and implement best practices"
-                    elif theme == "organization":
-                        objective_text = "Create an efficient organization system for user files"
-                    elif theme == "research":
-                        objective_text = "Develop better information retrieval capabilities"
-            
-            # Create the objective if we've determined a valid one
+            else:
+                 self.logger.warning("LLM client not available for objective generation.")
+
+            # 4. Create Objective (No fallback needed if LLM reliably returns NULL)
             if objective_text:
-                objective_id = self.memory_system.medium_term.create_objective(objective_text)
-                self.state.current_objective_id = objective_id
-                self._save_state()
-                
-                # Create a plan for this objective
-                self.planning_system.create_plan(objective_id)
-                
-                return objective_text
-            
+                 # Check if it's substantially different from the current one
+                is_new = True
+                if self.state.current_objective_id:
+                    current_obj_details = self.memory_system.medium_term.get_objective(self.state.current_objective_id)
+                    if current_obj_details and objective_text.lower() == current_obj_details.description.lower():
+                        is_new = False
+                        self.logger.info("Proposed objective is the same as the current one. Skipping creation.")
+
+                if is_new:
+                    self.logger.info(f"Creating and planning for new objective: {objective_text}")
+                    objective_id = self.memory_system.medium_term.create_objective(objective_text)
+                    self.state.current_objective_id = objective_id
+                    self.state.current_plan_id = None # Reset plan ID for the new objective
+                    self._save_state()
+
+                    # Create a plan for this objective
+                    try:
+                        plan = self.planning_system.create_plan(objective_id)
+                        self.state.current_plan_id = plan.plan_id
+                        self._save_state()
+                        self.logger.info(f"Successfully created plan {plan.plan_id} for objective {objective_id}")
+                        return objective_text
+                    except Exception as plan_err:
+                        self.logger.error(f"Error creating plan for new objective {objective_id}: {plan_err}")
+                        # Objective created, but planning failed. Agent state reflects this.
+                        return f"Objective '{objective_text}' created, but planning failed: {plan_err}" # Return text with error
+
+            # Return None if no new objective was created
             return None
-            
+
         except Exception as e:
-            self.logger.error(f"Error creating autonomous objective: {e}")
+            self.logger.error(f"Error creating autonomous objective: {e}", exc_info=True)
             return None
     
     def _handle_objective_command(self, text: str) -> str:

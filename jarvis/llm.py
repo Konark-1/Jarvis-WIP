@@ -11,6 +11,8 @@ import json
 import time
 from pydantic import BaseModel, Field
 import logging
+from tenacity import retry, stop_after_attempt, wait_exponential
+import tiktoken
 
 # Initialize logger
 logger = logging.getLogger("jarvis.llm")
@@ -24,16 +26,22 @@ except ImportError:
 
 try:
     import openai
+    from openai import OpenAI
     OPENAI_AVAILABLE = True
 except ImportError:
     OPENAI_AVAILABLE = False
+    # Keep OpenAI class defined for type hinting even if not available
+    class OpenAI: pass
     logger.warning("OpenAI Python SDK not available")
 
 try:
     import anthropic
+    from anthropic import Anthropic
     ANTHROPIC_AVAILABLE = True
 except ImportError:
     ANTHROPIC_AVAILABLE = False
+    # Keep Anthropic class defined for type hinting even if not available
+    class Anthropic: pass
     logger.warning("Anthropic Python SDK not available")
 
 class Message(BaseModel):
@@ -59,13 +67,16 @@ class LLMClient(BaseModel):
     
     # Default models
     groq_model: str = "llama3-8b-8192"  # Default to Llama 3 8B
-    openai_model: str = "gpt-3.5-turbo"
+    openai_model: str = "gpt-4o-mini"  # Updated default model
     anthropic_model: str = "claude-3-haiku-20240307"
     
     # Clients
-    groq_client: Any = None
-    openai_client: Any = None
-    anthropic_client: Any = None
+    groq_client: Optional[groq.Client] = None
+    openai_client: Optional[OpenAI] = None
+    anthropic_client: Optional[Anthropic] = None
+    
+    # Tokenizer
+    tokenizer: Any = None  # To store the tiktoken tokenizer
     
     # Tracking
     last_response: Optional[LLMResponse] = None
@@ -73,6 +84,12 @@ class LLMClient(BaseModel):
     def __init__(self, **data):
         super().__init__(**data)
         self._initialize_clients()
+        # Initialize tokenizer
+        try:
+            self.tokenizer = tiktoken.get_encoding("cl100k_base")
+        except Exception as e:
+            logger.warning(f"Could not initialize tiktoken tokenizer: {e}. Token estimation will be basic.")
+            self.tokenizer = None
     
     def _initialize_clients(self):
         """Initialize the LLM clients."""
@@ -97,8 +114,7 @@ class LLMClient(BaseModel):
         # Initialize OpenAI
         if self.openai_api_key and OPENAI_AVAILABLE:
             try:
-                openai.api_key = self.openai_api_key
-                self.openai_client = openai
+                self.openai_client = OpenAI(api_key=self.openai_api_key)
                 logger.info("OpenAI client initialized")
             except Exception as e:
                 logger.error(f"Error initializing OpenAI client: {e}")
@@ -106,7 +122,7 @@ class LLMClient(BaseModel):
         # Initialize Anthropic
         if self.anthropic_api_key and ANTHROPIC_AVAILABLE:
             try:
-                self.anthropic_client = anthropic.Anthropic(api_key=self.anthropic_api_key)
+                self.anthropic_client = Anthropic(api_key=self.anthropic_api_key)
                 logger.info("Anthropic client initialized")
             except Exception as e:
                 logger.error(f"Error initializing Anthropic client: {e}")
@@ -132,6 +148,166 @@ class LLMClient(BaseModel):
                 logger.warning(f"Primary provider not available. Switching to {self.primary_provider}")
             else:
                 logger.error("No LLM providers available!")
+    
+    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=1, max=10))
+    def _call_llm(self, 
+                 provider: str, 
+                 model: str, 
+                 messages: List[Message],
+                 max_tokens: int = 1000,
+                 temperature: float = 0.7) -> LLMResponse:
+        """
+        Make the actual API call to the LLM provider with retry logic.
+        
+        Args:
+            provider: The LLM provider to use
+            model: The specific model to use
+            messages: List of messages for the conversation
+            max_tokens: Maximum tokens in the response
+            temperature: Temperature for generation (0-1)
+            
+        Returns:
+            An LLMResponse object
+        """
+        start_time = time.time()
+        logger.debug(f"Calling LLM provider: {provider}, model: {model}")
+        
+        try:
+            if provider == "groq" and self.groq_client:
+                # Convert messages to Groq format
+                groq_messages = [
+                    {"role": msg.role, "content": msg.content}
+                    for msg in messages
+                ]
+                
+                response = self.groq_client.chat.completions.create(
+                    model=model,
+                    messages=groq_messages,
+                    max_tokens=max_tokens,
+                    temperature=temperature
+                )
+                
+                content = response.choices[0].message.content
+                
+                # Prepare usage data
+                usage = {}
+                if hasattr(response, 'usage') and response.usage:
+                    usage = {
+                        "prompt_tokens": response.usage.prompt_tokens,
+                        "completion_tokens": response.usage.completion_tokens,
+                        "total_tokens": response.usage.total_tokens
+                    }
+                
+                # Record response time
+                response_time = time.time() - start_time
+                
+                logger.debug(f"LLM call successful. Provider: {provider}, Time: {response_time:.2f}s")
+                
+                return LLMResponse(
+                    content=content,
+                    model=model,
+                    provider="groq",
+                    usage=usage,
+                    metadata={
+                        "response_time": response_time,
+                        "finish_reason": response.choices[0].finish_reason
+                    }
+                )
+                
+            elif provider == "openai" and self.openai_client:
+                # Convert messages to OpenAI format
+                openai_messages = [
+                    {"role": msg.role, "content": msg.content}
+                    for msg in messages
+                ]
+                
+                response = self.openai_client.chat.completions.create(
+                    model=model,
+                    messages=openai_messages,
+                    max_tokens=max_tokens,
+                    temperature=temperature
+                )
+                
+                content = response.choices[0].message.content
+                
+                # Prepare usage data
+                usage = {}
+                if hasattr(response, 'usage') and response.usage:
+                    usage = {
+                        "prompt_tokens": response.usage.prompt_tokens,
+                        "completion_tokens": response.usage.completion_tokens,
+                        "total_tokens": response.usage.total_tokens
+                    }
+                
+                # Record response time
+                response_time = time.time() - start_time
+                
+                logger.debug(f"LLM call successful. Provider: {provider}, Time: {response_time:.2f}s")
+                
+                return LLMResponse(
+                    content=content,
+                    model=model,
+                    provider="openai",
+                    usage=usage,
+                    metadata={
+                        "response_time": response_time,
+                        "finish_reason": response.choices[0].finish_reason
+                    }
+                )
+                
+            elif provider == "anthropic" and self.anthropic_client:
+                # Convert messages to Anthropic format
+                # Anthropic requires system prompt separately and messages alternate user/assistant
+                system_prompt = None
+                anthropic_messages = []
+                for msg in messages:
+                    if msg.role == "system":
+                        system_prompt = msg.content
+                    else:
+                        # Ensure alternating user/assistant roles if needed,
+                        # though typically input is just system (optional) + user
+                        anthropic_messages.append({"role": msg.role, "content": msg.content})
+                
+                response = self.anthropic_client.messages.create(
+                    model=model,
+                    system=system_prompt,
+                    messages=anthropic_messages,
+                    max_tokens=max_tokens,
+                    temperature=temperature
+                )
+                
+                content = response.content[0].text
+                
+                # Record response time
+                response_time = time.time() - start_time
+                
+                logger.debug(f"LLM call successful. Provider: {provider}, Time: {response_time:.2f}s")
+                
+                return LLMResponse(
+                    content=content,
+                    model=model,
+                    provider="anthropic",
+                    usage={
+                        # Anthropic uses input/output tokens
+                        "prompt_tokens": response.usage.input_tokens,
+                        "completion_tokens": response.usage.output_tokens,
+                        "total_tokens": response.usage.input_tokens + response.usage.output_tokens
+                    },
+                    metadata={
+                        "response_time": response_time,
+                        "finish_reason": response.stop_reason
+                    }
+                )
+                
+            else:
+                logger.error(f"Provider {provider} not supported or client not initialized.")
+                raise ValueError(f"Provider {provider} not supported or client not initialized.")
+                
+        except Exception as e:
+            response_time = time.time() - start_time
+            logger.error(f"LLM call failed after {response_time:.2f}s. Provider: {provider}, Error: {e}")
+            # Re-raise the exception to allow tenacity to handle retries
+            raise ValueError(f"LLM call failed for provider {provider}: {e}") from e
     
     def process_with_llm(self, 
                          prompt: str, 
@@ -186,163 +362,6 @@ class LLMClient(BaseModel):
         # Return just the content
         return response.content
     
-    def _call_llm(self, 
-                 provider: str, 
-                 model: str, 
-                 messages: List[Message],
-                 max_tokens: int = 1000,
-                 temperature: float = 0.7) -> LLMResponse:
-        """
-        Make the actual API call to the LLM provider.
-        
-        Args:
-            provider: The LLM provider to use
-            model: The specific model to use
-            messages: List of messages for the conversation
-            max_tokens: Maximum tokens in the response
-            temperature: Temperature for generation (0-1)
-            
-        Returns:
-            An LLMResponse object
-        """
-        start_time = time.time()
-        
-        try:
-            if provider == "groq" and self.groq_client:
-                # Convert messages to Groq format
-                groq_messages = [
-                    {"role": msg.role, "content": msg.content}
-                    for msg in messages
-                ]
-                
-                response = self.groq_client.chat.completions.create(
-                    model=model,
-                    messages=groq_messages,
-                    max_tokens=max_tokens,
-                    temperature=temperature
-                )
-                
-                content = response.choices[0].message.content
-                
-                # Prepare usage data
-                usage = {}
-                if hasattr(response, 'usage'):
-                    usage = {
-                        "prompt_tokens": response.usage.prompt_tokens,
-                        "completion_tokens": response.usage.completion_tokens,
-                        "total_tokens": response.usage.total_tokens
-                    }
-                
-                # Record response time
-                response_time = time.time() - start_time
-                
-                return LLMResponse(
-                    content=content,
-                    model=model,
-                    provider="groq",
-                    usage=usage,
-                    metadata={
-                        "response_time": response_time,
-                        "finish_reason": response.choices[0].finish_reason
-                    }
-                )
-                
-            elif provider == "openai" and self.openai_client:
-                # Convert messages to OpenAI format
-                openai_messages = [
-                    {"role": msg.role, "content": msg.content}
-                    for msg in messages
-                ]
-                
-                response = self.openai_client.chat.completions.create(
-                    model=model,
-                    messages=openai_messages,
-                    max_tokens=max_tokens,
-                    temperature=temperature
-                )
-                
-                content = response.choices[0].message.content
-                
-                # Prepare usage data
-                usage = {}
-                if hasattr(response, 'usage'):
-                    usage = {
-                        "prompt_tokens": response.usage.prompt_tokens,
-                        "completion_tokens": response.usage.completion_tokens,
-                        "total_tokens": response.usage.total_tokens
-                    }
-                
-                # Record response time
-                response_time = time.time() - start_time
-                
-                return LLMResponse(
-                    content=content,
-                    model=model,
-                    provider="openai",
-                    usage=usage,
-                    metadata={
-                        "response_time": response_time,
-                        "finish_reason": response.choices[0].finish_reason
-                    }
-                )
-                
-            elif provider == "anthropic" and self.anthropic_client:
-                # Format for Anthropic
-                # For Anthropic, combine system prompt with user prompt if needed
-                system_content = None
-                user_content = None
-                
-                for msg in messages:
-                    if msg.role == "system":
-                        system_content = msg.content
-                    elif msg.role == "user":
-                        user_content = msg.content
-                
-                if system_content and user_content:
-                    prompt = f"{system_content}\n\n{user_content}"
-                else:
-                    prompt = user_content or ""
-                
-                response = self.anthropic_client.messages.create(
-                    model=model,
-                    max_tokens=max_tokens,
-                    temperature=temperature,
-                    messages=[{"role": "user", "content": prompt}]
-                )
-                
-                content = response.content[0].text
-                
-                # Record response time
-                response_time = time.time() - start_time
-                
-                return LLMResponse(
-                    content=content,
-                    model=model,
-                    provider="anthropic",
-                    usage={},  # Anthropic doesn't provide token counts in the same way
-                    metadata={
-                        "response_time": response_time
-                    }
-                )
-                
-            else:
-                logger.error(f"Provider {provider} not available or not initialized")
-                return LLMResponse(
-                    content="No LLM provider available. Please check your API keys and dependencies.",
-                    model="none",
-                    provider="none",
-                    metadata={"error": "No provider available"}
-                )
-                
-        except Exception as e:
-            logger.error(f"Error calling LLM: {e}")
-            return LLMResponse(
-                content=f"Error calling LLM: {str(e)}",
-                model=model,
-                provider=provider,
-                metadata={"error": str(e)}
-            )
-    
     def chat(self, 
              messages: List[Dict[str, str]], 
              provider: Optional[str] = None,
@@ -387,8 +406,8 @@ class LLMClient(BaseModel):
     
     def get_token_estimate(self, text: str) -> int:
         """
-        Estimate the number of tokens in a text.
-        This is a very rough estimate - about 4 chars per token for English.
+        Estimate the number of tokens in a given text using tiktoken if available.
+        Falls back to a simple heuristic if tiktoken is not available.
         
         Args:
             text: The text to estimate tokens for
@@ -396,4 +415,13 @@ class LLMClient(BaseModel):
         Returns:
             Estimated token count
         """
-        return len(text) // 4 
+        if self.tokenizer:
+            try:
+                return len(self.tokenizer.encode(text))
+            except Exception as e:
+                logger.warning(f"Tiktoken encoding failed: {e}. Falling back to heuristic.")
+                # Fallback heuristic
+                return len(text) // 4
+        else:
+            # Fallback heuristic
+            return len(text) // 4 
