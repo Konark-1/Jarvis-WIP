@@ -14,6 +14,26 @@ import logging
 from tenacity import retry, stop_after_attempt, wait_exponential
 import tiktoken
 
+# Custom Exceptions
+class LLMError(Exception):
+    """Base exception for LLM related errors."""
+    pass
+
+class LLMConfigurationError(LLMError):
+    """Error related to LLM client configuration."""
+    pass
+
+class LLMCommunicationError(LLMError):
+    """Error during communication with the LLM API."""
+    def __init__(self, provider: str, original_exception: Exception):
+        self.provider = provider
+        self.original_exception = original_exception
+        super().__init__(f"Error communicating with {provider}: {original_exception}")
+
+class LLMTokenLimitError(LLMError):
+    """Error related to exceeding token limits."""
+    pass
+
 # Initialize logger
 logger = logging.getLogger("jarvis.llm")
 
@@ -153,164 +173,182 @@ class LLMClient(BaseModel):
                 logger.error("No LLM providers available!")
     
     @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=1, max=10))
-    def _call_llm(self, 
-                 provider: str, 
-                 model: str, 
+    def _call_llm(self,
+                 provider: str,
+                 model: str,
                  messages: List[Message],
                  max_tokens: int = 1000,
                  temperature: float = 0.7) -> LLMResponse:
         """
         Make the actual API call to the LLM provider with retry logic.
-        
+
         Args:
             provider: The LLM provider to use
             model: The specific model to use
             messages: List of messages for the conversation
             max_tokens: Maximum tokens in the response
             temperature: Temperature for generation (0-1)
-            
+
         Returns:
             An LLMResponse object
+
+        Raises:
+            LLMCommunicationError: If there's an issue communicating with the API.
+            LLMTokenLimitError: If the request exceeds token limits.
+            ValueError: If the provider is not supported or client not initialized.
+            LLMConfigurationError: If the client for the provider is missing.
         """
         start_time = time.time()
         logger.debug(f"Calling LLM provider: {provider}, model: {model}")
-        
+
+        client = None
+        if provider == "groq":
+            client = self.groq_client
+        elif provider == "openai":
+            client = self.openai_client
+        elif provider == "anthropic":
+            client = self.anthropic_client
+
+        if not client:
+            logger.error(f"Client for provider {provider} is not initialized.")
+            raise LLMConfigurationError(f"Client for provider {provider} is not initialized.")
+
         try:
-            if provider == "groq" and self.groq_client:
-                # Convert messages to Groq format
+            if provider == "groq":
                 groq_messages = [
                     {"role": msg.role, "content": msg.content}
                     for msg in messages
                 ]
-                
-                response = self.groq_client.chat.completions.create(
+                response = client.chat.completions.create(
                     model=model,
                     messages=groq_messages,
                     max_tokens=max_tokens,
                     temperature=temperature
                 )
-                
                 content = response.choices[0].message.content
-                
-                # Prepare usage data
-                usage = {}
-                if hasattr(response, 'usage') and response.usage:
-                    usage = {
-                        "prompt_tokens": response.usage.prompt_tokens,
-                        "completion_tokens": response.usage.completion_tokens,
-                        "total_tokens": response.usage.total_tokens
-                    }
-                
-                # Record response time
-                response_time = time.time() - start_time
-                
-                logger.debug(f"LLM call successful. Provider: {provider}, Time: {response_time:.2f}s")
-                
-                return LLMResponse(
-                    content=content,
-                    model=model,
-                    provider="groq",
-                    usage=usage,
-                    metadata={
-                        "response_time": response_time,
-                        "finish_reason": response.choices[0].finish_reason
-                    }
-                )
-                
-            elif provider == "openai" and self.openai_client:
-                # Convert messages to OpenAI format
+                usage = {
+                    "prompt_tokens": getattr(response.usage, 'prompt_tokens', 0),
+                    "completion_tokens": getattr(response.usage, 'completion_tokens', 0),
+                    "total_tokens": getattr(response.usage, 'total_tokens', 0)
+                }
+                finish_reason = response.choices[0].finish_reason
+
+            elif provider == "openai":
                 openai_messages = [
                     {"role": msg.role, "content": msg.content}
                     for msg in messages
                 ]
-                
-                response = self.openai_client.chat.completions.create(
+                response = client.chat.completions.create(
                     model=model,
                     messages=openai_messages,
                     max_tokens=max_tokens,
                     temperature=temperature
                 )
-                
                 content = response.choices[0].message.content
-                
-                # Prepare usage data
-                usage = {}
-                if hasattr(response, 'usage') and response.usage:
-                    usage = {
-                        "prompt_tokens": response.usage.prompt_tokens,
-                        "completion_tokens": response.usage.completion_tokens,
-                        "total_tokens": response.usage.total_tokens
-                    }
-                
-                # Record response time
-                response_time = time.time() - start_time
-                
-                logger.debug(f"LLM call successful. Provider: {provider}, Time: {response_time:.2f}s")
-                
-                return LLMResponse(
-                    content=content,
-                    model=model,
-                    provider="openai",
-                    usage=usage,
-                    metadata={
-                        "response_time": response_time,
-                        "finish_reason": response.choices[0].finish_reason
-                    }
-                )
-                
-            elif provider == "anthropic" and self.anthropic_client:
-                # Convert messages to Anthropic format
-                # Anthropic requires system prompt separately and messages alternate user/assistant
+                usage = {
+                    "prompt_tokens": getattr(response.usage, 'prompt_tokens', 0),
+                    "completion_tokens": getattr(response.usage, 'completion_tokens', 0),
+                    "total_tokens": getattr(response.usage, 'total_tokens', 0)
+                }
+                finish_reason = response.choices[0].finish_reason
+
+            elif provider == "anthropic":
                 system_prompt = None
                 anthropic_messages = []
                 for msg in messages:
                     if msg.role == "system":
                         system_prompt = msg.content
                     else:
-                        # Ensure alternating user/assistant roles if needed,
-                        # though typically input is just system (optional) + user
                         anthropic_messages.append({"role": msg.role, "content": msg.content})
-                
-                response = self.anthropic_client.messages.create(
+
+                response = client.messages.create(
                     model=model,
                     system=system_prompt,
                     messages=anthropic_messages,
                     max_tokens=max_tokens,
                     temperature=temperature
                 )
-                
                 content = response.content[0].text
-                
-                # Record response time
-                response_time = time.time() - start_time
-                
-                logger.debug(f"LLM call successful. Provider: {provider}, Time: {response_time:.2f}s")
-                
-                return LLMResponse(
-                    content=content,
-                    model=model,
-                    provider="anthropic",
-                    usage={
-                        # Anthropic uses input/output tokens
-                        "prompt_tokens": response.usage.input_tokens,
-                        "completion_tokens": response.usage.output_tokens,
-                        "total_tokens": response.usage.input_tokens + response.usage.output_tokens
-                    },
-                    metadata={
-                        "response_time": response_time,
-                        "finish_reason": response.stop_reason
-                    }
-                )
-                
+                usage = {
+                    "prompt_tokens": getattr(response.usage, 'input_tokens', 0),
+                    "completion_tokens": getattr(response.usage, 'output_tokens', 0),
+                    "total_tokens": getattr(response.usage, 'input_tokens', 0) + getattr(response.usage, 'output_tokens', 0)
+                }
+                finish_reason = response.stop_reason
             else:
-                logger.error(f"Provider {provider} not supported or client not initialized.")
-                raise ValueError(f"Provider {provider} not supported or client not initialized.")
-                
+                # This case should theoretically not be reached due to the initial check
+                raise ValueError(f"Provider {provider} not supported.")
+
+            response_time = time.time() - start_time
+            logger.debug(f"LLM call successful. Provider: {provider}, Time: {response_time:.2f}s")
+
+            return LLMResponse(
+                content=content,
+                model=model,
+                provider=provider,
+                usage=usage,
+                metadata={
+                    "response_time": response_time,
+                    "finish_reason": finish_reason
+                }
+            )
+
+        # Specific SDK Error Handling
+        except (groq.APIError if GROQ_AVAILABLE else Exception) as e:
+            response_time = time.time() - start_time
+            if provider == "groq":
+                 logger.error(f"Groq API Error after {response_time:.2f}s: {e}")
+                 # Check for specific Groq error types if needed (e.g., RateLimitError)
+                 if isinstance(e, groq.RateLimitError):
+                     logger.warning("Groq rate limit exceeded. Consider backoff.")
+                 elif isinstance(e, groq.AuthenticationError):
+                     logger.error("Groq authentication failed. Check API key.")
+                 # Re-raise as our custom error for consistent handling
+                 raise LLMCommunicationError(provider, e) from e
+            else: # Should not happen if provider matches
+                logger.error(f"Caught Groq error for non-Groq provider {provider}? Error: {e}")
+                raise LLMCommunicationError(provider, e) from e
+
+        except (openai.APIError if OPENAI_AVAILABLE else Exception) as e:
+            response_time = time.time() - start_time
+            if provider == "openai":
+                logger.error(f"OpenAI API Error after {response_time:.2f}s: {e}")
+                # Example specific OpenAI error checks
+                if isinstance(e, openai.RateLimitError):
+                     logger.warning("OpenAI rate limit exceeded. Consider backoff.")
+                elif isinstance(e, openai.AuthenticationError):
+                     logger.error("OpenAI authentication failed. Check API key.")
+                elif isinstance(e, openai.BadRequestError) and 'context_length_exceeded' in str(e):
+                     logger.error("OpenAI context length exceeded.")
+                     raise LLMTokenLimitError("OpenAI context length exceeded.") from e
+                raise LLMCommunicationError(provider, e) from e
+            else:
+                logger.error(f"Caught OpenAI error for non-OpenAI provider {provider}? Error: {e}")
+                raise LLMCommunicationError(provider, e) from e
+
+        except (anthropic.APIError if ANTHROPIC_AVAILABLE else Exception) as e:
+            response_time = time.time() - start_time
+            if provider == "anthropic":
+                logger.error(f"Anthropic API Error after {response_time:.2f}s: {e}")
+                if isinstance(e, anthropic.RateLimitError):
+                    logger.warning("Anthropic rate limit exceeded. Consider backoff.")
+                elif isinstance(e, anthropic.AuthenticationError):
+                    logger.error("Anthropic authentication failed. Check API key.")
+                elif isinstance(e, anthropic.BadRequestError) and 'max_tokens' in str(e):
+                     logger.error("Anthropic context length potentially exceeded.")
+                     # Anthropic might not have a specific token limit error type easily distinguishable
+                     raise LLMTokenLimitError("Anthropic request potentially exceeded context limits.") from e
+                raise LLMCommunicationError(provider, e) from e
+            else:
+                logger.error(f"Caught Anthropic error for non-Anthropic provider {provider}? Error: {e}")
+                raise LLMCommunicationError(provider, e) from e
+
+        # Catch-all for other unexpected errors during the API call phase
         except Exception as e:
             response_time = time.time() - start_time
-            logger.error(f"LLM call failed after {response_time:.2f}s. Provider: {provider}, Error: {e}")
-            # Re-raise the exception to allow tenacity to handle retries
-            raise ValueError(f"LLM call failed for provider {provider}: {e}") from e
+            logger.error(f"Unexpected LLM call error after {response_time:.2f}s. Provider: {provider}, Error: {type(e).__name__}: {e}")
+            # Re-raise as a generic communication error, but log specifics
+            raise LLMCommunicationError(provider, e) from e
     
     def process_with_llm(self, 
                          prompt: str, 

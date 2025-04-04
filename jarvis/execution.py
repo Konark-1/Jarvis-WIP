@@ -378,70 +378,108 @@ class ExecutionSystem(BaseModel):
             skill_name = task.metadata["skill_name"]
             params = task.metadata.get("parameters", {})
             if isinstance(params, dict):
-                self.logger.info(f"Found skill '{skill_name}' in task metadata.")
-                return skill_name, params
+                # Validate against registry
+                if self.skill_registry and self.skill_registry.get_skill(skill_name):
+                    self.logger.info(f"Using skill '{skill_name}' from task metadata.")
+                    return skill_name, params
+                else:
+                    self.logger.warning(f"Skill '{skill_name}' from metadata not found in registry. Ignoring.")
             else:
-                 self.logger.warning(f"Task metadata has skill_name '{skill_name}' but parameters are not a dict.")
+                 self.logger.warning(f"Task metadata has skill_name '{skill_name}' but parameters are not a dict. Ignoring metadata skill.")
 
-        # Strategy 2: Use LLM to parse description (if LLM available)
+        # Strategy 2: Use LLM to parse description
         if self.llm and self.skill_registry:
             try:
-                # Get available skill definitions for the LLM
                 skill_defs = self.skill_registry.get_skill_definitions()
                 if not skill_defs:
-                    return None, None # No skills to match against
+                    self.logger.warning("Skill registry is empty. Cannot use LLM for skill parsing.")
+                    return None, None
 
                 skill_defs_json = json.dumps(skill_defs, indent=2)
 
-                system_prompt = """
-                You are an expert system analyzing task descriptions to identify the appropriate skill and extract its parameters.
-                Given a task description and a list of available skills (with their descriptions and parameters),
-                determine which single skill is the best match for the task.
-                Extract the necessary parameters for that skill from the task description.
+                system_prompt = f"""
+                You are an expert function calling agent. Your task is to identify the most appropriate skill (function) from the provided list to fulfill the user's request (task description) and extract the necessary parameters accurately.
 
-                Available Skills:
+                Available Skills (Functions):
+                ```json
                 {skill_defs_json}
+                ```
 
-                Respond ONLY with a JSON object with this exact structure:
-                {
-                    "skill_name": "<name_of_the_best_matching_skill_or_null>",
-                    "parameters": { <key_value_pairs_of_extracted_parameters_or_empty_dict> }
-                }
-                If no single skill is a clear match for the task description, return skill_name as null.
-                Ensure parameter keys match the definition exactly.
-                Infer parameter values from the task description.
+                Analyze the following task description:
+                `{task.description}`
+
+                Determine the single best matching skill and its parameters based *only* on the task description and the available skills.
+
+                Respond ONLY with a JSON object matching this exact structure:
+                {{ "skill_name": "<name_of_best_matching_skill_or_null>", "parameters": {{ <extracted_parameters_object_or_empty_object> }} }}
+
+                Rules:
+                - If a skill perfectly matches the task, provide its name and parameters.
+                - If no single skill is a clear and appropriate match, return `skill_name` as `null`.
+                - Extract parameter values directly from the task description where possible.
+                - Ensure parameter keys and value types match the skill definition.
+                - Do not invent parameters or values not present in the description.
+                - Output *only* the JSON object, nothing else.
                 """
-                prompt = f"Task Description: {task.description}"
+                prompt = f"Identify the skill and parameters for the task: {task.description}"
 
-                response = self.llm.process_with_llm(
-                    prompt=prompt,
+                self.logger.debug(f"Sending skill parsing prompt to LLM for task: {task.task_id}")
+                response_content = self.llm.process_with_llm(
+                    prompt=prompt, # Prompt is simple, context is in system prompt
                     system_prompt=system_prompt,
-                    temperature=0.1, # Low temp for precise parsing
-                    max_tokens=300
+                    temperature=0.0, # Zero temperature for deterministic function calling
+                    max_tokens=500 # Allow space for params
                 )
 
-                parsed_data = json.loads(response)
-                skill_name = parsed_data.get("skill_name")
-                params = parsed_data.get("parameters", {})
+                # Attempt to parse the response
+                try:
+                    # Clean potential markdown
+                    if response_content.strip().startswith("```json"):
+                        response_content = response_content.strip()[7:-3].strip()
+                    elif response_content.strip().startswith("```"):
+                         response_content = response_content.strip()[3:-3].strip()
 
-                if skill_name and isinstance(params, dict):
-                    self.logger.info(f"LLM parsed task description to skill: '{skill_name}', params: {params}")
-                    return skill_name, params
-                else:
-                    self.logger.info("LLM could not identify a suitable skill for the task description.")
+                    parsed_data = json.loads(response_content)
+
+                    # Validate response structure
+                    if not isinstance(parsed_data, dict) or "skill_name" not in parsed_data or "parameters" not in parsed_data:
+                         raise ValueError("LLM response does not match the required structure.")
+
+                    skill_name = parsed_data.get("skill_name")
+                    params = parsed_data.get("parameters")
+
+                    # Check if LLM decided no skill fits or params invalid
+                    if not skill_name or not isinstance(params, dict):
+                        self.logger.info(f"LLM indicated no suitable skill for task: {task.task_id} ('{task.description}')")
+                        return None, None
+
+                    # Validate skill name against registry
+                    if self.skill_registry.get_skill(skill_name):
+                        self.logger.info(f"LLM successfully parsed task '{task.task_id}' to skill: '{skill_name}', params: {params}")
+                        return skill_name, params
+                    else:
+                        self.logger.warning(f"LLM identified skill '{skill_name}' which is not in the registry. Ignoring.")
+                        return None, None
+
+                except json.JSONDecodeError as json_err:
+                    self.logger.error(f"Failed to parse LLM response for skill parsing: {json_err}. Raw response:\n{response_content}")
                     return None, None
+                except ValueError as val_err:
+                     self.logger.error(f"LLM response validation failed for skill parsing: {val_err}. Raw response:\n{response_content}")
+                     return None, None
 
-            except json.JSONDecodeError:
-                self.logger.error(f"Failed to parse LLM response for skill parsing. Response: {response[:200]}...")
+            # Catch specific LLM errors
+            except LLMTokenLimitError as token_err:
+                self.logger.error(f"LLM skill parsing failed due to token limit for task {task.task_id}: {token_err}")
+                return None, None
+            except LLMCommunicationError as comm_err:
+                self.logger.error(f"LLM skill parsing failed due to communication error for task {task.task_id}: {comm_err}")
                 return None, None
             except Exception as e:
-                self.logger.error(f"Error using LLM for skill parsing: {e}")
+                self.logger.exception(f"Unexpected error using LLM for skill parsing on task {task.task_id}: {e}")
                 return None, None
 
-        # Strategy 3: Simple keyword matching (optional basic fallback)
-        # Add simple logic here if needed, e.g., if 'search web' in task.description.lower() -> return "web_search", {}
-
-        self.logger.info(f"Could not parse skill from task: {task.task_id}")
+        self.logger.info(f"Could not parse skill from task {task.task_id} ('{task.description}') using metadata or LLM.")
         return None, None
 
     # _store_execution_result and _reflect_on_execution (optional, can be added later)

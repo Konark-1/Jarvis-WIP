@@ -17,10 +17,10 @@ from datetime import datetime
 project_root = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, project_root)
 
-from jarvis.agent import JarvisAgent
-from memory.unified_memory import UnifiedMemorySystem
-from jarvis.planning import PlanningSystem
-from jarvis.execution import ExecutionSystem
+from .agent import JarvisAgent
+from .memory.unified_memory import UnifiedMemorySystem
+from .planning import PlanningSystem
+from .execution import ExecutionSystem
 from utils.logger import setup_logger
 # from utils.speech import SpeechRecognizer, TextToSpeech # Commented out - file missing
 

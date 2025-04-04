@@ -142,57 +142,112 @@ class JarvisAgent(BaseModel):
         
         except Exception as e:
             error_time = datetime.now()
-            self.logger.error(f"Error processing input '{text}': {e}", exc_info=True)
+            error_type_name = type(e).__name__
+            error_message = str(e)
+            self.logger.error(f"Error processing input '{text}': {error_type_name}: {error_message}", exc_info=True)
             self.state.error_count += 1
-            self.state.last_error = f"[{error_time.isoformat()}] {type(e).__name__}: {str(e)}"
+            last_error_str = f"[{error_time.isoformat()}] {error_type_name}: {error_message}"
+            self.state.last_error = last_error_str
             
             # Attempt LLM-based diagnosis
             diagnosis = "Diagnosis unavailable."
+            suggestion = "Please try again or rephrase your request."
             if self.llm:
                 try:
-                    context = self.memory_system.assemble_context(query=f"Error analysis: {text}")
+                    # Use assemble_context for better context gathering
+                    context = self.memory_system.assemble_context(query=f"Error analysis for input: {text}, Error: {last_error_str}")
+                    
                     system_prompt = """
                     You are an error analysis assistant for the Jarvis agent.
-                    An error occurred while processing user input.
-                    Analyze the error message, the user input, and the provided context.
-                    Provide a brief diagnosis of the likely cause (e.g., planning failure, skill error, memory issue, external API problem).
-                    Suggest a potential recovery action if possible (e.g., retry, rephrase input, check API key, report bug).
-                    Format as: "Diagnosis: [Your diagnosis]. Suggestion: [Your suggestion]"
+                    An error occurred while processing user input or executing a task.
+                    Analyze the error type, message, user input, and provided context.
+                    Provide a brief diagnosis of the likely cause (e.g., planning failure, skill error, memory issue, external API problem, LLM hallucination, invalid input).
+                    Suggest a concrete, actionable recovery strategy for the *agent* or the *user*. Examples:
+                    - Agent Actions: retry, retry_with_different_params, use_fallback_skill <skill_name>, replan_objective, reset_context
+                    - User Actions: rephrase_input, check_api_key, provide_more_info, wait_and_retry
+                    - Other: report_bug, none
+                    Format as: "Diagnosis: [Your diagnosis]. Suggestion: [recovery_action_keyword] | [Explanation/Details for user/agent]"
+                    Example: "Diagnosis: Skill parsing failed due to ambiguous input. Suggestion: rephrase_input | Could you please rephrase the request more clearly?"
+                    Example: "Diagnosis: Web browse timed out. Suggestion: retry | Trying to access the URL again."
+                    Example: "Diagnosis: Planning failed for complex objective. Suggestion: replan_objective | Let me try breaking down that objective again."
                     """
                     prompt = f"""
-                    Error Type: {type(e).__name__}
-                    Error Message: {str(e)}
+                    Error Type: {error_type_name}
+                    Error Message: {error_message}
                     User Input: {text}
                     Context:
                     {context}
                     
-                    Analyze the error and provide a diagnosis and suggestion.
+                    Analyze the error and provide diagnosis and suggestion in the specified format.
                     """
-                    diagnosis = self.llm.process_with_llm(prompt, system_prompt, temperature=0.4, max_tokens=150).strip()
-                    self.logger.info(f"LLM Error Diagnosis: {diagnosis}")
-                    # Store diagnosis in long-term memory?
+                    raw_diagnosis = self.llm.process_with_llm(prompt, system_prompt, temperature=0.3, max_tokens=200).strip()
+                    self.logger.info(f"LLM Error Diagnosis: {raw_diagnosis}")
+                    
+                    # Parse diagnosis and suggestion
+                    diagnosis_part = raw_diagnosis.split("Suggestion:")[0].replace("Diagnosis:", "").strip()
+                    suggestion_part = raw_diagnosis.split("Suggestion:")[-1].strip()
+                    suggestion_keyword = suggestion_part.split("|")[0].strip().lower()
+                    suggestion_details = suggestion_part.split("|")[-1].strip() if "|" in suggestion_part else "Please try again."
+                    
+                    diagnosis = diagnosis_part # Store the parsed diagnosis
+                    suggestion = suggestion_details # Store the user-facing message or agent action explanation
+                    
+                    # Store detailed log
                     self.memory_system.add_memory(
-                        content=f"Error processing input '{text}': {type(e).__name__}: {str(e)}",
+                        content=f"Error processing input '{text}': {last_error_str}",
                         memory_type="long_term",
                         metadata={
                             "type": "error_log",
                             "timestamp": error_time.isoformat(),
-                            "error_type": type(e).__name__,
-                            "diagnosis": diagnosis
+                            "error_type": error_type_name,
+                            "diagnosis": diagnosis,
+                            "suggestion_keyword": suggestion_keyword,
+                            "suggestion_details": suggestion_details
                         },
-                        importance=0.6
+                        importance=0.7 # Errors are fairly important
                     )
+
+                    # --- Attempt Automatic Recovery based on keyword ---
+                    if suggestion_keyword == "retry":
+                        self.logger.info("Attempting automatic retry based on LLM suggestion.")
+                        self.state.error_count = max(0, self.state.error_count - 1) # Decrement error count for retry attempt
+                        self._save_state()
+                        # Re-call process_input. Be careful of infinite loops!
+                        # Add a retry counter or mechanism if needed.
+                        # return self.process_input(text) # Potential loop risk!
+                        return f"{suggestion} (Retrying...)" # Safer: Inform user and agent can retry internally next cycle
+                    elif suggestion_keyword == "reset_context":
+                         self.logger.info("Attempting context reset based on LLM suggestion.")
+                         self.reset_context() # Calls consolidate and clears STM
+                         self.state.error_count = 0 # Reset error count after context reset
+                         self._save_state()
+                         return f"{suggestion} I've reset my short-term context. Please try your request again."
+                    elif suggestion_keyword == "replan_objective" and self.state.current_objective_id:
+                         self.logger.info(f"Attempting replan for objective {self.state.current_objective_id} based on LLM suggestion.")
+                         try:
+                              # Invalidate current plan if one exists
+                              if self.state.current_plan_id:
+                                   self.planning_system.update_plan_status(self.state.current_plan_id, "failed", reason="Replanning triggered by error")
+                              # Trigger replanning
+                              plan = self.planning_system.create_plan(self.state.current_objective_id)
+                              self.state.current_plan_id = plan.plan_id
+                              self.state.error_count = 0 # Reset error count after replan
+                              self._save_state()
+                              return f"{suggestion} I've created a new plan for the objective."
+                         except Exception as replan_err:
+                              self.logger.error(f"Replanning failed: {replan_err}")
+                              suggestion = f"I tried to replan, but encountered another error: {replan_err}. Please review the objective or try something else."
+                    # Add other recovery actions here (e.g., use_fallback_skill)
+
                 except Exception as diag_err:
-                    self.logger.error(f"LLM diagnosis failed: {diag_err}")
+                    self.logger.error(f"LLM diagnosis or recovery attempt failed: {diag_err}")
+                    # Fall back to default suggestion if diagnosis fails
+                    suggestion = "Please try again or rephrase your request."
             
+            # Save state after potential modifications
             self._save_state()
-            # Return a user-friendly message, potentially including the suggestion
-            user_message = f"I encountered an error ({type(e).__name__}). "
-            if "Suggestion:" in diagnosis:
-                user_message += diagnosis.split("Suggestion:")[-1].strip()
-            else:
-                 user_message += "Please try again or rephrase your request."
-            return user_message
+            # Return the (potentially updated) user-facing suggestion
+            return f"I encountered an error ({error_type_name}). {suggestion}"
     
     def _is_reflection_command(self, text: str) -> bool:
         """Check if the input is a reflection-related command"""
@@ -457,138 +512,166 @@ class JarvisAgent(BaseModel):
             return "I'm not sure what status information you want. Try 'show status'."
     
     def _execute_task(self, text: str) -> str:
-        """Execute a task based on user input"""
+        """
+        Handles executing the next task of the current plan OR processing general user input.
+        Prioritizes executing the current plan if one is active.
+        """
         try:
-            # If we have a current objective and plan, check if this input relates to them
+            # --- Proactive Plan Execution --- 
             if self.state.current_objective_id and self.state.current_plan_id:
-                # Get the current objective
-                objective = self.memory_system.medium_term.get_objective(self.state.current_objective_id)
-                
-                if objective:
-                    # Get the next task in the plan
-                    next_task = self.planning_system.get_next_task(self.state.current_plan_id)
-                    
-                    if next_task:
-                        # Update task status
-                        self.planning_system.update_task_status(
-                            self.state.current_plan_id,
-                            next_task.task_id,
-                            "in_progress"
-                        )
-                        
-                        # Use LLM to determine if the user input is related to the current task
-                        is_related = False
-                        if self.llm:
-                            try:
-                                # Formulate a prompt to check relevance
-                                prompt = f"""
-                                Current task: {next_task.description}
-                                
-                                User input: "{text}"
-                                
-                                Is the user input related to the current task? Answer with 'yes' or 'no'.
-                                """
-                                
-                                response = self.llm.process_with_llm(
-                                    prompt=prompt,
-                                    temperature=0.2
-                                ).strip().lower()
-                                
-                                is_related = "yes" in response
-                            except Exception as e:
-                                self.logger.error(f"Error checking task relevance with LLM: {e}")
-                        
-                        if is_related:
-                            # Execute the task using the execution system
-                            result = self.execution_system.execute_task(next_task)
-                            
-                            # Update task status based on result
-                            if result.success:
-                                self.planning_system.update_task_status(
-                                    self.state.current_plan_id,
-                                    next_task.task_id,
-                                    "completed"
-                                )
-                                
-                                # Save to memory
-                                self.memory_system.medium_term.add_progress(
-                                    f"Completed task: {next_task.description}",
-                                    metadata={
-                                        "task_id": next_task.task_id,
-                                        "plan_id": self.state.current_plan_id,
-                                        "objective_id": self.state.current_objective_id
-                                    }
-                                )
-                                
-                                return f"Task completed: {result.output}"
-                            else:
-                                self.planning_system.update_task_status(
-                                    self.state.current_plan_id,
-                                    next_task.task_id,
-                                    "failed",
-                                    result.error
-                                )
-                                
-                                # If we've failed too many times, move to the next task
-                                if next_task.error_count >= next_task.max_retries:
-                                    self.memory_system.medium_term.add_progress(
-                                        f"Failed to complete task after {next_task.error_count} attempts: {next_task.description}",
-                                        metadata={
-                                            "task_id": next_task.task_id,
-                                            "plan_id": self.state.current_plan_id,
-                                            "objective_id": self.state.current_objective_id,
-                                            "error": result.error
-                                        }
-                                    )
-                                
-                                return f"Task failed: {result.error}"
-            
-            # If we reach here, either we don't have a current plan or the input isn't related to it
+                self.logger.info(f"Active plan {self.state.current_plan_id} for objective {self.state.current_objective_id}. Checking for next task.")
+                next_task = self.planning_system.get_next_task(self.state.current_plan_id)
+
+                if next_task:
+                    self.logger.info(f"Proceeding with task {next_task.task_id}: '{next_task.description}'")
+                    # Update task status to in_progress
+                    self.planning_system.update_task_status(
+                        self.state.current_plan_id,
+                        next_task.task_id,
+                        "in_progress"
+                    )
+
+                    # Execute the task
+                    # Optional: Provide recent context/user input to the execution system if relevant?
+                    # execution_context = {"user_input": text, "recent_interactions": ...}
+                    result = self.execution_system.execute_task(next_task)
+
+                    # Update task status based on result
+                    final_status = "completed" if result.success else "failed"
+                    self.planning_system.update_task_status(
+                        self.state.current_plan_id,
+                        next_task.task_id,
+                        final_status,
+                        result.error
+                    )
+                    self.memory_system.medium_term.add_progress(
+                        f"{final_status.capitalize()} task: {next_task.description}",
+                        metadata={
+                            "task_id": next_task.task_id,
+                            "plan_id": self.state.current_plan_id,
+                            "objective_id": self.state.current_objective_id,
+                            "success": result.success,
+                            "error": result.error,
+                            "output_summary": str(result.output)[:200] # Store a summary
+                        }
+                    )
+
+                    if result.success:
+                        self.logger.info(f"Task {next_task.task_id} completed successfully.")
+                        # Check if the plan is now complete
+                        plan_status = self.planning_system.get_plan_status(self.state.current_plan_id)
+                        if plan_status["status"] == "completed":
+                            self.logger.info(f"Plan {self.state.current_plan_id} completed for objective {self.state.current_objective_id}.")
+                            # Mark objective as completed in memory
+                            self.memory_system.medium_term.update_objective(
+                                self.state.current_objective_id,
+                                status="completed"
+                            )
+                            # Clear agent state for objective/plan
+                            completed_objective_id = self.state.current_objective_id
+                            self.state.current_objective_id = None
+                            self.state.current_plan_id = None
+                            self._save_state()
+                            return f"Objective '{completed_objective_id}' completed successfully! What should I work on next?"
+                        else:
+                            # Plan not finished, provide task output and indicate readiness for next
+                             return f"Task '{next_task.description}' completed. Output: {str(result.output)[:500]}... Ready for the next step."
+                    else:
+                        # Task failed
+                        self.logger.error(f"Task {next_task.task_id} failed: {result.error}")
+                        # Check if plan should be marked as failed
+                        plan_status = self.planning_system.get_plan_status(self.state.current_plan_id)
+                        if plan_status["status"] == "failed":
+                             self.logger.error(f"Plan {self.state.current_plan_id} failed for objective {self.state.current_objective_id}.")
+                             # Mark objective as failed
+                             self.memory_system.medium_term.update_objective(
+                                 self.state.current_objective_id,
+                                 status="failed"
+                             )
+                             failed_objective_id = self.state.current_objective_id
+                             self.state.current_objective_id = None
+                             self.state.current_plan_id = None
+                             self._save_state()
+                             return f"Objective '{failed_objective_id}' failed due to task error: {result.error}. Please review or set a new objective."
+                        else:
+                             # Plan not failed yet, return task error
+                             return f"Task '{next_task.description}' failed: {result.error}. Trying to proceed or awaiting feedback."
+                else:
+                    # No more tasks in the plan, but it wasn't marked completed? Should not happen ideally.
+                    self.logger.warning(f"Plan {self.state.current_plan_id} has no next task but isn't marked completed. Marking objective complete.")
+                    self.memory_system.medium_term.update_objective(self.state.current_objective_id, status="completed")
+                    self.state.current_objective_id = None
+                    self.state.current_plan_id = None
+                    self._save_state()
+                    return "Current objective completed as no further tasks were found in the plan. Ready for new instructions."
+
+            # --- General Input Processing (No active plan or plan finished) --- 
+            self.logger.info(f"No active plan or current plan step completed. Processing input: '{text}'")
             # Use LLM to process the input and generate a response, using assembled context
             if self.llm:
-                # <<< ADDED CALL TO assemble_context >>>
-                assembled_context = self.memory_system.assemble_context(query=text)
-                # <<< Use assembled_context in the prompt below, replacing the manually built 'context' variable >>>
-
-                # --- Keep old context building for now, replace usage below --- 
-                # context = "\n".join([f"{i.speaker}: {i.text}" for i in recent_interactions]) # Original context
+                # Search memory for context related to the user input
+                memory_results = self.memory_system.search_memory(query=text, memory_types=["short_term", "medium_term", "long_term"])
+                # Format context for LLM
+                assembled_context = "Relevant context for response generation:\n"
+                for i, mem in enumerate(memory_results[:5]): # Limit context size
+                    # Simple formatting, adjust as needed
+                    content_str = str(mem.content)
+                    if len(content_str) > 150:
+                        content_str = content_str[:150] + "..."
+                    assembled_context += f"- [{mem.memory_type} @ {mem.timestamp.isoformat()}] {content_str}\n"
 
                 # Use LLM to generate a response
                 try:
                     system_prompt = """
-                    You are Jarvis, an agentic AI assistant. 
+                    You are Jarvis, an agentic AI assistant.
                     Generate a helpful, accurate, and concise response to the user's input.
-                    Use the provided conversation context and relevant memories to maintain continuity and provide informed answers.
+                    Use the provided conversation history and relevant memories to maintain continuity and provide informed answers.
+                    If the user input seems like a new task or objective, suggest creating one explicitly.
                     """
-                    
+
                     prompt = f"""
-                    Context:
-                    {assembled_context} # Use assembled context here
-                    
+                    Relevant Context:
+                    {assembled_context.strip()}
+
                     User Input: {text}
-                    
+
                     Jarvis Response:
                     """
-                    
+
                     response = self.llm.process_with_llm(
                         prompt=prompt,
                         system_prompt=system_prompt,
                         temperature=0.7
                     )
-                    
+
                     # Add the interaction to memory
-                    self.memory_system.short_term.add_interaction("assistant", response)
-                    
+                    self.memory_system.add_memory(content=response, memory_type="short_term", metadata={"speaker": "assistant"})
+
                     return response
                 except Exception as e:
                     self.logger.error(f"Error generating response with LLM: {e}")
-            
-            # Fallback if LLM is not available or fails
-            return f"I'm processing your request: '{text}'. Let me work on that for you."
-            
+                    # Fallback response if LLM fails
+                    return f"I had trouble processing that request with my language model ({type(e).__name__}). Could you please rephrase or try again?"
+
+            # Fallback if LLM is not available
+            return f"I received your input: '{text}'. My language model is currently unavailable. Please set an objective or check status."
+
         except Exception as e:
-            self.logger.error(f"Error executing task: {e}")
-            return f"I encountered an error while processing your request: {str(e)}"
+            # Catch errors during the task execution/response generation flow
+            error_time = datetime.now()
+            self.logger.error(f"Error during task execution or response generation for input '{text}': {e}", exc_info=True)
+            self.state.error_count += 1
+            last_error_str = f"[{error_time.isoformat()}] {type(e).__name__}: {str(e)}"
+            self.state.last_error = last_error_str
+            self._save_state()
+            # Store error in memory
+            self.memory_system.add_memory(
+                content=f"Agent error processing input '{text}': {last_error_str}",
+                memory_type="long_term",
+                metadata={"type": "error_log", "timestamp": error_time.isoformat(), "error_type": type(e).__name__},
+                importance=0.7
+            )
+            return f"I encountered an internal error ({type(e).__name__}) while processing your request. I've logged the issue. Please try again."
     
     def _format_plan_status(self, status: Dict[str, Any]) -> str:
         """Format plan status for display"""
@@ -772,8 +855,12 @@ class JarvisAgent(BaseModel):
 
     # --- Periodic Review Method ---
     def _review_and_refine_objectives(self):
-        """Periodically review active objectives for relevance and progress."""
+        """Periodically review active objectives using LLM for relevance, progress, and potential refinement."""
         self.logger.info("Starting periodic objective review...")
+        if not self.llm:
+            self.logger.warning("LLM client not available. Skipping objective review.")
+            return
+
         try:
             active_objectives = self.memory_system.medium_term.search_objectives(status="active")
             if not active_objectives:
@@ -782,273 +869,345 @@ class JarvisAgent(BaseModel):
 
             self.logger.info(f"Reviewing {len(active_objectives)} active objectives.")
 
-            # <<< ADDED CALL TO assemble_context >>>
-            assembled_context = self.memory_system.assemble_context(query="Review active objectives for relevance and progress")
-            # <<< Use assembled_context in the prompt below, replacing the manually built 'context' variable >>>
+            # 1. Assemble Context for Review
+            # Combine recent interactions, memory reflection, and current agent state
+            context_query = "Current agent status and recent activity for objective review"
+            assembled_context = self.memory_system.assemble_context(query=context_query, max_tokens=3000) # Limit context size
 
-            # 1. Gather Context (Similar to autonomous creation, but focused on review)
-            context = "Objective Review Context:\n" # Original context building starts here
-            # ... (original context building logic remains) ...
+            # Include basic agent state in the context
+            state_summary = f"Agent State: Errors={self.state.error_count}, Last Error={self.state.last_error or 'None'}, Current Objective ID={self.state.current_objective_id or 'None'}"
+            full_context = f"{state_summary}\n\nRelevant Memory & Interactions:\n{assembled_context}"
 
-            # 2. Prepare Objectives for LLM Review (remains the same)
-            objectives_summary = "\nActive Objectives for Review:\n"
+            # 2. Prepare Objectives Summary for LLM
+            objectives_summary = "\nActive Objectives Under Review:\n"
+            objective_map = {} # Store details for easier lookup after LLM response
             for i, obj_data in enumerate(active_objectives):
-                obj = Objective(**obj_data) # Recreate Objective object for easier access
-                objectives_summary += f"Objective {i+1} (ID: {obj.objective_id}):\n"
-                objectives_summary += f"  Description: {obj.description}\n"
-                objectives_summary += f"  Status: {obj.status}\n"
-                objectives_summary += f"  Created: {obj.created_at}\n"
-                objectives_summary += f"  Priority: {obj.priority}\n"
-                # Add plan status if available and relevant
-                # if obj.objective_id == self.state.current_objective_id and self.state.current_plan_id:
-                #     plan_status = self.planning_system.get_plan_status(self.state.current_plan_id)
-                #     objectives_summary += f"  Plan Progress: ... \n" # Simplified for now
+                # Ensure obj_data is a dict with expected keys
+                if not isinstance(obj_data, dict) or 'objective_id' not in obj_data:
+                    self.logger.warning(f"Skipping invalid objective data during review: {obj_data}")
+                    continue
+                obj_id = obj_data['objective_id']
+                objective_map[obj_id] = obj_data
+                objectives_summary += f"Objective {i+1} (ID: {obj_id}):\n"
+                objectives_summary += f"  Description: {obj_data.get('description', 'N/A')}\n"
+                objectives_summary += f"  Status: {obj_data.get('metadata', {}).get('status', 'unknown')}\n"
+                objectives_summary += f"  Created: {obj_data.get('metadata', {}).get('created_at', 'N/A')}\n"
+                objectives_summary += f"  Priority: {obj_data.get('metadata', {}).get('priority', 'N/A')}\n"
+                # Optionally add plan progress summary here if feasible
                 objectives_summary += "\n"
 
             # 3. Define LLM Prompt for Review
             system_prompt = """
-            You are Jarvis, an AI assistant reviewing its active objectives for relevance, progress, and potential refinement.
-            Analyze the provided context (agent state, recent interactions, memory reflection) and the list of active objectives.
+            You are an AI assistant's strategic review component. Your task is to analyze the agent's current context (state, recent activity, memory) and its list of active objectives.
 
-            For EACH objective listed, provide a concise assessment and recommendation. Consider:
-            - Is the objective still relevant based on recent interactions and insights?
-            - Is progress being made (implicitly, based on context)?
-            - Should the objective be marked completed, failed, paused, or continued?
-            - Should the objective description or priority be refined?
-            - Is there a need for a *new* objective based on the review?
+            For EACH objective listed, provide a concise assessment and a specific recommendation based *only* on the provided context and objective details.
+            Consider:
+            - Relevance: Is the objective still aligned with recent activity or stated goals in the context?
+            - Progress: Does the context suggest progress is being made, stalled, or blocked? (Infer if possible)
+            - Viability: Does the objective still seem achievable?
+            - Need for Change: Should the objective be continued, completed, paused, marked as failed, or refined (description/priority)?
 
-            Format your response as a JSON object containing a list called "objective_reviews".
-            Each item in the list should correspond to an objective reviewed and have the following structure:
+            **Output Format:** Respond ONLY with a JSON object containing a single key "objective_reviews", which is a list. Each item in the list MUST correspond to an objective reviewed and MUST have the following structure:
             {
-                "objective_id": "<original_objective_id>",
-                "assessment": "<your concise assessment>",
-                "recommendation": "<continue|complete|fail|pause|refine|create_new>",
-                "new_description": "<updated description if recommendation is refine, else null>",
-                "new_priority": <new priority 1-5 if recommendation is refine, else null>,
-                "new_objective_proposal": "<text for a new objective if recommendation is create_new, else null>"
+                "objective_id": "<original_objective_id_string>",
+                "assessment": "<your_concise_assessment_string>",
+                "recommendation": "<continue|complete|fail|pause|refine>",
+                "refined_description": "<updated_description_string_if_recommendation_is_refine_else_null>",
+                "refined_priority": <integer_priority_1_to_5_if_recommendation_is_refine_else_null>
             }
-            Return ONLY the JSON object.
+            Ensure the `objective_id` matches exactly one from the input list. Make a recommendation for every objective provided.
+            Do not propose creating new objectives here; focus solely on reviewing the existing active ones.
+            Return ONLY the valid JSON object.
             """
 
             prompt = f"""
             **Objective Review Task**
 
-            Context:
-            {assembled_context} # Use assembled context here
+            **Agent Context & Recent Activity:**
+            {full_context}
 
-            Active Objectives:
+            **Active Objectives for Review:**
             {objectives_summary}
-            
+
             **Instructions:**
-            Review each objective based on the context and provide your assessment and recommendation in the specified JSON format.
+            Review each active objective based on the context. Provide your assessment and recommendation for *every* objective in the specified JSON format.
             """
 
-            # 4. Get Review from LLM (remains the same)
             # 4. Get Review from LLM
-            if not self.llm:
-                self.logger.warning("LLM client not available for objective review.")
-                return
+            self.logger.debug("Sending objective review prompt to LLM...")
+            response_content = self.llm.process_with_llm(
+                prompt=prompt,
+                system_prompt=system_prompt,
+                temperature=0.3, # Low temp for focused analysis
+                max_tokens=1500 # Allow ample space for reviews
+            )
 
+            # 5. Parse and Process Recommendations
             try:
-                response = self.llm.process_with_llm(
-                    prompt=prompt,
-                    system_prompt=system_prompt,
-                    temperature=0.5, # Lower temp for more deterministic review
-                    max_tokens=1000 # Allow for multiple reviews
-                )
-                review_data = json.loads(response)
+                # Clean potential markdown
+                if response_content.strip().startswith("```json"):
+                    response_content = response_content.strip()[7:-3].strip()
+                elif response_content.strip().startswith("```"):
+                     response_content = response_content.strip()[3:-3].strip()
+
+                review_data = json.loads(response_content)
 
                 if "objective_reviews" not in review_data or not isinstance(review_data["objective_reviews"], list):
-                    raise ValueError("LLM response missing 'objective_reviews' list.")
+                    raise ValueError("LLM response missing 'objective_reviews' list or is not a list.")
 
                 self.logger.info(f"Received {len(review_data['objective_reviews'])} objective reviews from LLM.")
 
-                # 5. Process Recommendations
+                processed_ids = set()
                 for review in review_data["objective_reviews"]:
+                    if not isinstance(review, dict):
+                        self.logger.warning(f"Skipping invalid review item (not a dict): {review}")
+                        continue
+
                     obj_id = review.get("objective_id")
                     recommendation = review.get("recommendation")
-                    assessment = review.get("assessment")
-                    self.logger.info(f"Review for {obj_id}: Assessment='{assessment}', Recommendation='{recommendation}'")
+                    assessment = review.get("assessment", "No assessment provided.")
+                    processed_ids.add(obj_id)
+
+                    self.logger.info(f"LLM Review for {obj_id}: Assessment='{assessment}', Recommendation='{recommendation}'")
 
                     if not obj_id or not recommendation:
-                        self.logger.warning(f"Skipping invalid review item: {review}")
+                        self.logger.warning(f"Skipping review item with missing id or recommendation: {review}")
+                        continue
+                    if obj_id not in objective_map:
+                        self.logger.warning(f"Objective {obj_id} from LLM review not found in the initial active list. Skipping.")
                         continue
 
-                    # Find the original objective data
-                    original_obj_data = next((o for o in active_objectives if o['objective_id'] == obj_id), None)
-                    if not original_obj_data:
-                        self.logger.warning(f"Objective {obj_id} from review not found in active objectives.")
-                        continue
-
-                    metadata_update = original_obj_data.get('metadata', {})
+                    original_obj_data = objective_map[obj_id]
+                    metadata_update = original_obj_data.get('metadata', {}).copy() # Make a copy to modify
                     description_update = original_obj_data.get('description')
-
                     needs_update = False
+                    new_status = metadata_update.get('status', 'active') # Default to keeping status
+
                     if recommendation == "complete":
-                        metadata_update['status'] = "completed"
+                        new_status = "completed"
                         metadata_update['completed_at'] = datetime.now().isoformat()
+                        metadata_update['status_reason'] = f"Marked complete by periodic review: {assessment}"
                         needs_update = True
                     elif recommendation == "fail":
-                        metadata_update['status'] = "failed"
-                        metadata_update['reason'] = assessment # Store assessment as reason
+                        new_status = "failed"
+                        metadata_update['status_reason'] = f"Marked failed by periodic review: {assessment}"
                         needs_update = True
                     elif recommendation == "pause":
-                        metadata_update['status'] = "paused"
+                        new_status = "paused"
+                        metadata_update['status_reason'] = f"Paused by periodic review: {assessment}"
                         needs_update = True
                     elif recommendation == "refine":
-                        if review.get("new_description"):
-                            description_update = review["new_description"]
+                        new_desc = review.get("refined_description")
+                        new_priority = review.get("refined_priority")
+                        if new_desc and isinstance(new_desc, str):
+                            self.logger.info(f"Refining description for {obj_id}")
+                            description_update = new_desc
                             needs_update = True
-                        if review.get("new_priority") is not None:
-                            metadata_update['priority'] = review["new_priority"]
+                        if new_priority is not None and isinstance(new_priority, int) and 1 <= new_priority <= 5:
+                            self.logger.info(f"Refining priority for {obj_id} to {new_priority}")
+                            metadata_update['priority'] = new_priority
                             needs_update = True
-                        metadata_update['status'] = "active" # Ensure it remains active after refining
-                        metadata_update['last_refined_at'] = datetime.now().isoformat()
+                        if needs_update:
+                             metadata_update['last_refined_at'] = datetime.now().isoformat()
+                             metadata_update['status_reason'] = f"Refined by periodic review: {assessment}"
+                        # Ensure status remains active or becomes active if refined from paused/etc.
+                        new_status = "active"
+                    elif recommendation == "continue":
+                        # No change needed, but log the assessment
+                        self.logger.info(f"Objective {obj_id} recommended to continue.")
+                        # Optionally update a 'last_reviewed' timestamp
+                        metadata_update['last_reviewed_at'] = datetime.now().isoformat()
+                        metadata_update['status_reason'] = f"Reviewed and continued: {assessment}"
+                        # needs_update = True # Only set if metadata actually changed
+                    else:
+                         self.logger.warning(f"Unknown recommendation '{recommendation}' for objective {obj_id}. Ignoring.")
 
-                    elif recommendation == "create_new":
-                        new_objective_text = review.get("new_objective_proposal")
-                        if new_objective_text:
-                            self.logger.info(f"LLM proposed creating new objective during review: {new_objective_text}")
-                            # Call creation logic (could potentially create duplicates if not careful)
-                            # Consider adding a check or deferring creation
-                            self.memory_system.medium_term.create_objective(new_objective_text)
-                        else:
-                            self.logger.warning("LLM recommended create_new but provided no objective text.")
+                    metadata_update['status'] = new_status # Apply the decided status
 
                     if needs_update:
-                        self.logger.info(f"Updating objective {obj_id} based on review recommendation '{recommendation}'.")
+                        self.logger.info(f"Applying update to objective {obj_id}: Status={new_status}")
                         self.memory_system.medium_term.update_objective(
                             objective_id=obj_id,
                             description=description_update,
-                            metadata=metadata_update
+                            metadata=metadata_update,
+                            status=new_status # Pass status explicitly if update_objective supports it
                         )
-                        # If the currently active objective's status changed, update agent state
-                        if obj_id == self.state.current_objective_id and metadata_update.get('status') != 'active':
-                            self.logger.info(f"Current objective {obj_id} is no longer active. Clearing state.")
+                        # If the *currently active* objective's status changed from active, update agent state
+                        if obj_id == self.state.current_objective_id and new_status != 'active':
+                            self.logger.info(f"Agent's current objective {obj_id} status changed to '{new_status}'. Clearing agent state.")
                             self.state.current_objective_id = None
                             self.state.current_plan_id = None
                             self._save_state()
+                
+                # Check if any objectives were *not* reviewed by the LLM
+                missing_review_ids = set(objective_map.keys()) - processed_ids
+                if missing_review_ids:
+                     self.logger.warning(f"LLM review did not include assessments for objectives: {missing_review_ids}")
 
             except json.JSONDecodeError as json_err:
-                self.logger.error(f"Failed to parse JSON response from LLM during objective review: {json_err}\nResponse: {response[:500]}...")
+                self.logger.error(f"Failed to parse JSON response from LLM during objective review: {json_err}\nResponse: {response_content[:500]}...")
+            except ValueError as val_err:
+                self.logger.error(f"LLM objective review response validation failed: {val_err}\nResponse: {response_content[:500]}...")
             except Exception as review_err:
-                self.logger.error(f"Error processing objective review: {review_err}", exc_info=True)
+                self.logger.error(f"Error processing LLM objective review: {review_err}", exc_info=True)
 
         except Exception as e:
-            self.logger.error(f"Error during periodic objective review: {e}", exc_info=True) 
-
+            self.logger.error(f"General error during periodic objective review: {e}", exc_info=True)
+    
     # --- Self-Assessment Method ---
     def _perform_self_assessment(self):
-        """Periodically assess agent performance and identify improvement areas."""
+        """Periodically assess agent performance using LLM and store insights."""
         self.logger.info("Performing self-assessment...")
         if not self.llm:
-            self.logger.warning("LLM client not available for self-assessment.")
+            self.logger.warning("LLM client not available. Skipping self-assessment.")
             return
+        if not hasattr(self.memory_system, 'reflect_on_memories') or not hasattr(self.memory_system, 'get_memory_stats'):
+             self.logger.warning("Memory system does not support required methods (reflect_on_memories, get_memory_stats) for self-assessment.")
+             return
 
         try:
             # 1. Gather Context for Assessment
-            context = "Agent Self-Assessment Context:\n"
-            # Agent State
-            context += f"- Current Status: {'Active' if self.state.is_active else 'Inactive'}\n"
-            context += f"- Current Objective ID: {self.state.current_objective_id}\n"
-            context += f"- Current Plan ID: {self.state.current_plan_id}\n"
-            context += f"- Recent Error Count: {self.state.error_count}\n"
+            self.logger.debug("Gathering context for self-assessment.")
+            assessment_context = "Agent Self-Assessment Context:\n"
+            
+            # Basic Agent State
+            assessment_context += f"- Agent State: Active={self.state.is_active}, Errors={self.state.error_count}, ObjectiveID={self.state.current_objective_id or 'None'}, PlanID={self.state.current_plan_id or 'None'}\n"
             if self.state.last_error:
-                context += f"- Last Error Message: {self.state.last_error}\n"
-            context += f"- Last Maintenance: {self.state.last_maintenance}\n"
+                assessment_context += f"- Last Error Recorded: {self.state.last_error}\n"
 
-            # Memory Stats
+            # Memory Statistics
             try:
                 mem_stats = self.memory_system.get_memory_stats()
-                context += "\nMemory Statistics:\n"
+                assessment_context += "\nMemory Statistics:\n"
                 for key, value in mem_stats.items():
-                    context += f"- {key.replace('_', ' ').title()}: {value}\n"
+                    assessment_context += f"- {key.replace('_', ' ').title()}: {value}\n"
             except Exception as mem_stat_err:
-                self.logger.warning(f"Could not retrieve memory stats: {mem_stat_err}")
+                self.logger.warning(f"Could not retrieve memory stats during assessment: {mem_stat_err}")
+                assessment_context += "- Memory Statistics: Unavailable\n"
 
-            # Recent Task Performance (Needs Planning/Execution systems to track this)
-            # Placeholder: Assuming we could get recent task results
-            # recent_tasks = self.planning_system.get_recent_task_results(10) 
-            # if recent_tasks:
-            #     context += "\nRecent Task Performance:\n"
-            #     success_count = sum(1 for task in recent_tasks if task.success)
-            #     context += f"- Success Rate (last 10): {success_count * 10}%\n"
+            # Recent Performance Indicators (from Memory Logs/Progress)
+            # Search for recent errors, completed tasks/objectives, and feedback
+            performance_query = "recent errors OR recent task completions OR recent objective status changes OR user feedback"
+            performance_memories = self.memory_system.search_memory(query=performance_query, memory_types=["long_term", "medium_term"])
+            
+            assessment_context += "\nRecent Performance Indicators (from Memory):\n"
+            if performance_memories:
+                 for i, mem in enumerate(performance_memories[:10]): # Limit number of examples
+                    content_str = str(mem.content)
+                    if len(content_str) > 100:
+                         content_str = content_str[:100] + "..."
+                    mem_type = mem.metadata.get('type', mem.memory_type)
+                    assessment_context += f"- [{mem_type} @ {mem.timestamp.isoformat()}] {content_str}\n"
+            else:
+                 assessment_context += "- No specific performance indicators found in recent memory.\n"
 
-            # Recent Objective Progress (Needs MediumTermMemory to track status changes)
-            # completed_objectives = self.memory_system.medium_term.search_objectives(status="completed", n_results=5)
-            # failed_objectives = self.memory_system.medium_term.search_objectives(status="failed", n_results=5)
-            # context += f"- Recently Completed Objectives: {len(completed_objectives)}\n"
-            # context += f"- Recently Failed Objectives: {len(failed_objectives)}\n"
+            # Memory Reflection (Use the dedicated method)
+            # Ensure the llm_client is passed if reflect_on_memories requires it
+            reflection_query = "overall agent performance patterns, successes, and failures"
+            reflection_result = self.memory_system.reflect_on_memories(reflection_query)
+            if reflection_result and "error" not in reflection_result:
+                assessment_context += "\nMemory Reflection Summary:\n"
+                assessment_context += f"- Summary: {reflection_result.get('summary', 'N/A')}\n"
+                assessment_context += f"- Insights: {reflection_result.get('insights', [])}\n"
+                assessment_context += f"- Patterns: {reflection_result.get('patterns', [])}\n"
+            else:
+                self.logger.warning(f"Memory reflection failed or returned error during assessment: {reflection_result.get('error', 'Unknown error')}")
+                assessment_context += "- Memory Reflection: Unavailable or failed\n"
 
-            # Memory Reflection
-            reflection = self.memory_system.reflect_on_memories("overall agent performance and health", self.llm)
-            if reflection and "error" not in reflection:
-                context += "\nMemory Reflection Summary:\n"
-                context += f"- Insights: {reflection.get('insights', [])}\n"
-                context += f"- Patterns: {reflection.get('patterns', [])}\n"
-
-            # 2. Define LLM Prompt
+            # 2. Define LLM Prompt for Assessment
             system_prompt = """
-            You are Jarvis, performing a self-assessment of your own performance and operational health.
-            Analyze the provided context, which includes your current state, memory statistics, 
-            (potentially) recent task/objective performance, and a reflection on your memory contents.
+            You are Jarvis, performing a critical self-assessment of your own performance, reliability, and efficiency.
+            Analyze the provided context, which includes your current state, memory statistics, recent performance indicators (errors, completions, feedback), and a summary reflection on your memory contents.
 
-            Identify:
-            1. Key strengths or areas where you are performing well.
-            2. Key weaknesses, recurring issues, or areas needing improvement.
-            3. Potential causes for any identified issues (e.g., planning failures, skill gaps, memory issues).
-            4. Concrete suggestions for improvement or adjustments (e.g., refine planning, learn new skill, optimize memory).
+            Your goal is to identify concrete strengths, weaknesses, potential root causes for issues, and actionable suggestions for improvement.
 
-            Format your response as a JSON object:
+            Specifically, analyze and report on:
+            1.  **Strengths:** Identify areas or specific instances of successful operation or positive outcomes.
+            2.  **Weaknesses:** Identify recurring errors, failed objectives, negative feedback patterns, or areas of inefficiency.
+            3.  **Potential Causes:** For identified weaknesses, hypothesize the likely root causes (e.g., flawed planning logic, specific skill malfunction, inadequate context retrieval, API issues, unclear objectives).
+            4.  **Improvement Suggestions:** Propose specific, actionable steps the agent system could take to address weaknesses or enhance strengths (e.g., "Refine planning prompt to request dependency checks", "Improve error handling in WebSkill.browse_url", "Increase context retrieved for task execution", "Request user clarification more often for ambiguous goals").
+
+            **Output Format:** Respond ONLY with a JSON object with the following keys:
             {
-                "assessment_summary": "<A brief overall summary of your current state>",
-                "strengths": ["<Identified strength 1>", "<Identified strength 2>", ...],
-                "weaknesses": ["<Identified weakness 1>", "<Identified weakness 2>", ...],
-                "potential_causes": ["<Potential cause 1>", "<Potential cause 2>", ...],
-                "improvement_suggestions": ["<Suggestion 1>", "<Suggestion 2>", ...]
+                "assessment_summary": "<A brief (1-2 sentence) overall summary of the current assessment.>",
+                "strengths": ["<List of identified strengths.>"],
+                "weaknesses": ["<List of identified weaknesses or recurring issues.>"],
+                "potential_causes": ["<List of hypothesized causes for weaknesses.>"],
+                "improvement_suggestions": ["<List of concrete, actionable improvement suggestions.>"],
+                "confidence_score": <A float between 0.0 and 1.0 indicating confidence in this assessment, based on data quality/quantity>
             }
-            Return ONLY the JSON object.
+            Ensure all lists contain string elements. Return ONLY the valid JSON object.
             """
 
             prompt = f"""
             **Agent Self-Assessment Data**
+            Timestamp: {datetime.now().isoformat()}
 
-            {context}
-            
+            {assessment_context}
+
             **Task:**
-            Perform a self-assessment based on the data above and return the results in the specified JSON format.
+            Perform a self-assessment based *only* on the data provided above. Adhere strictly to the required JSON output format.
             """
 
             # 3. Get Assessment from LLM
-            response = self.llm.process_with_llm(
+            self.logger.debug("Sending self-assessment prompt to LLM.")
+            response_content = self.llm.process_with_llm(
                 prompt=prompt,
                 system_prompt=system_prompt,
-                temperature=0.4, # Moderate temp for balanced analysis
-                max_tokens=800 
+                temperature=0.4, # Balanced temperature for analysis
+                max_tokens=1000 # Allow space for detailed analysis
             )
-            assessment_data = json.loads(response)
 
-            # 4. Store Assessment in Long-Term Memory
-            assessment_summary = assessment_data.get("assessment_summary", "Assessment completed.")
-            self.memory_system.add_memory(
-                content=assessment_summary,
-                memory_type="long_term",
-                metadata={
-                    "type": "self_assessment",
-                    "timestamp": datetime.now().isoformat(),
-                    "assessment_details": assessment_data # Store full details in metadata
-                },
-                importance=0.8 # Self-assessments are quite important
-            )
-            self.logger.info(f"Self-assessment complete. Summary: {assessment_summary}")
-            # Optional: Trigger actions based on suggestions?
-            # self._act_on_assessment(assessment_data)
+            # 4. Parse and Store Assessment
+            try:
+                # Clean potential markdown
+                if response_content.strip().startswith("```json"):
+                    response_content = response_content.strip()[7:-3].strip()
+                elif response_content.strip().startswith("```"):
+                     response_content = response_content.strip()[3:-3].strip()
 
-        except json.JSONDecodeError as json_err:
-            self.logger.error(f"Failed to parse JSON response from LLM during self-assessment: {json_err}\nResponse: {response[:500]}...")
+                assessment_data = json.loads(response_content)
+
+                # Basic validation of structure
+                required_keys = {"assessment_summary", "strengths", "weaknesses", "potential_causes", "improvement_suggestions", "confidence_score"}
+                if not required_keys.issubset(assessment_data.keys()):
+                    raise ValueError(f"LLM self-assessment response missing expected keys. Got: {assessment_data.keys()}")
+                
+                assessment_summary = assessment_data.get("assessment_summary", "Assessment completed.")
+                self.logger.info(f"Self-assessment complete. Summary: {assessment_summary}")
+                self.logger.debug(f"Full assessment details: {assessment_data}")
+                
+                # Store the full assessment in Long-Term Memory
+                memory_id = self.memory_system.add_memory(
+                    content=assessment_summary, # Use summary as main content
+                    memory_type="long_term",
+                    metadata={
+                        "type": "self_assessment",
+                        "timestamp": datetime.now().isoformat(),
+                        "assessment_details": json.dumps(assessment_data) # Store full JSON details as string
+                    },
+                    importance=0.8 # Self-assessments are important
+                )
+                self.logger.info(f"Stored self-assessment in long-term memory (ID: {memory_id})")
+
+                # Optional: Automatically create tasks based on high-confidence suggestions?
+                # This requires careful implementation to avoid loops or bad tasks.
+                # Example placeholder:
+                # if assessment_data.get("confidence_score", 0.0) > 0.7:
+                #     for suggestion in assessment_data.get("improvement_suggestions", [])[:1]: # Limit auto-task creation
+                #         if "Refine" in suggestion or "Improve" in suggestion:
+                #              self.memory_system.medium_term.create_objective(f"Implement improvement suggestion: {suggestion}", priority=2, metadata={"source": "self_assessment"})
+
+            except json.JSONDecodeError as json_err:
+                self.logger.error(f"Failed to parse JSON response from LLM during self-assessment: {json_err}. Raw response:\n{response_content}")
+            except ValueError as val_err:
+                self.logger.error(f"LLM self-assessment response validation failed: {val_err}. Raw response:\n{response_content}")
+            except Exception as parse_err:
+                 self.logger.error(f"Error processing self-assessment response: {parse_err}", exc_info=True)
+
         except Exception as e:
-            self.logger.error(f"Error during self-assessment: {e}", exc_info=True) 
-
+            self.logger.error(f"General error during self-assessment: {e}", exc_info=True)
+    
     # --- Feedback Handling ---
     def _handle_feedback_command(self, text: str) -> str:
         """Handles explicit user feedback on the last action/result."""

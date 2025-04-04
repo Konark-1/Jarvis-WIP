@@ -8,10 +8,11 @@ from typing import Dict, Any, List, Optional, Tuple
 from datetime import datetime
 from pydantic import BaseModel, Field
 
-from memory.medium_term import Objective, MediumTermMemory
-from memory.long_term import LongTermMemory
-from memory.short_term import ShortTermMemory
+from .memory.medium_term import Objective, MediumTermMemory
+from .memory.long_term import LongTermMemory
+from .memory.short_term import ShortTermMemory
 from utils.logger import setup_logger
+from .llm import LLMClient, LLMError, LLMCommunicationError, LLMTokenLimitError # Import LLM exceptions
 
 class Task(BaseModel):
     """A single task in a plan"""
@@ -103,14 +104,22 @@ class PlanningSystem(BaseModel):
                 For the given objective, create a comprehensive and logical sequence of tasks needed to accomplish it.
                 Consider dependencies between tasks and different phases like planning, research, execution, and validation.
                 
-                Return the tasks as a JSON array with this structure:
+                Return the tasks as a JSON array of objects. Each object MUST have a "description" (string) and "dependencies" (list of integers, representing the 0-based index of tasks that must precede this one).
+                Optionally include a "phase" (string: planning|research|execution|validation).
+                Example structure:
                 [
                     {
-                        "description": "Task description",
-                        "phase": "planning|research|execution|validation",
-                        "dependencies": []  # List of task indices that must be completed first
+                        "description": "Task 1 description",
+                        "phase": "planning",
+                        "dependencies": []
+                    },
+                    {
+                        "description": "Task 2 description",
+                        "phase": "execution",
+                        "dependencies": [0]
                     }
                 ]
+                Ensure the output is ONLY the JSON array, without any introductory text or markdown formatting.
                 """
                 
                 # Add context from similar objectives if available
@@ -121,58 +130,114 @@ class PlanningSystem(BaseModel):
                         similar_context += f"Example {i+1}: {obj['content']}\n"
                         if "tasks" in obj["metadata"]:
                             similar_context += "Tasks:\n"
-                            for j, task in enumerate(obj["metadata"]["tasks"]):
-                                similar_context += f"- {task['description']}\n"
-                            similar_context += "\n"
+                            # Ensure metadata tasks are dictionaries before accessing
+                            if isinstance(obj["metadata"]["tasks"], list):
+                                for task_meta in obj["metadata"]["tasks"]:
+                                    if isinstance(task_meta, dict) and "description" in task_meta:
+                                        similar_context += f"- {task_meta['description']}\n"
+                            elif isinstance(obj["metadata"]["tasks"], str):
+                                # Handle case where tasks might be stored as a string
+                                similar_context += f" {obj['metadata']['tasks']}\n"
+                        similar_context += "\n"
                 
                 prompt = f"""
                 Objective: {objective_description}
                 
                 {similar_context}
                 
-                Create a logical sequence of tasks to accomplish this objective.
-                Consider what steps would be needed, their dependencies, and different phases of work.
+                Create a logical sequence of tasks to accomplish this objective following the specified JSON format.
+                Output ONLY the JSON array.
                 """
                 
-                response = self.llm.process_with_llm(
+                self.logger.debug(f"Sending decomposition prompt to LLM for objective: {objective_description}")
+                response_content = self.llm.process_with_llm(
                     prompt=prompt,
                     system_prompt=system_prompt,
-                    temperature=0.7
+                    temperature=0.5, # Slightly lower temp for structured output
+                    max_tokens=2000 # Allow for longer plans
                 )
                 
                 # Try to parse the JSON response
                 try:
-                    tasks_data = json.loads(response)
-                    if isinstance(tasks_data, list) and len(tasks_data) > 0:
-                        # Convert to Task objects
+                    # Clean potential markdown code blocks
+                    if response_content.strip().startswith("```json"):
+                        response_content = response_content.strip()[7:-3].strip()
+                    elif response_content.strip().startswith("```"):
+                         response_content = response_content.strip()[3:-3].strip()
+
+                    tasks_data = json.loads(response_content)
+
+                    # Validate structure
+                    if not isinstance(tasks_data, list):
+                        raise ValueError(f"LLM response is not a list. Got: {type(tasks_data)}")
+
+                    if len(tasks_data) == 0:
+                        self.logger.warning("LLM returned an empty list of tasks.")
+                        # Fall through to rule-based
+                    else:
+                        # Convert to Task objects with validation
                         dynamic_tasks = []
                         for i, task_data in enumerate(tasks_data):
+                            if not isinstance(task_data, dict):
+                                self.logger.warning(f"Skipping invalid task data (not a dict) at index {i}: {task_data}")
+                                continue
+                            if "description" not in task_data or not isinstance(task_data["description"], str):
+                                self.logger.warning(f"Skipping task data missing valid 'description' at index {i}: {task_data}")
+                                continue
+
                             # Convert dependencies from indices to task IDs
                             dependencies = []
-                            for dep_idx in task_data.get("dependencies", []):
-                                if 0 <= dep_idx < i:
-                                    dependencies.append(f"{task_id_prefix}_{dep_idx + 1}")
-                            
+                            dep_indices = task_data.get("dependencies", [])
+                            if isinstance(dep_indices, list):
+                                for dep_idx in dep_indices:
+                                    if isinstance(dep_idx, int) and 0 <= dep_idx < i:
+                                        # Map 0-based index to 1-based task ID suffix
+                                        dependencies.append(f"{task_id_prefix}_{dep_idx + 1}")
+                                    else:
+                                         self.logger.warning(f"Invalid dependency index '{dep_idx}' for task {i}. Skipping dependency.")
+                            else:
+                                self.logger.warning(f"Invalid 'dependencies' format for task {i}. Expected list, got {type(dep_indices)}. Ignoring dependencies.")
+
                             dynamic_tasks.append(Task(
                                 task_id=f"{task_id_prefix}_{i + 1}",
                                 description=task_data["description"],
                                 dependencies=dependencies,
                                 metadata={
-                                    "type": task_data.get("type", "task"),
                                     "phase": task_data.get("phase", "execution")
                                 }
                             ))
-                        
-                        # Store this decomposition for future reference
-                        self._store_decomposition(objective_description, dynamic_tasks)
-                        return dynamic_tasks
-                except Exception as e: # Catch other potential errors during parsing/processing
-                    self.logger.error(f"Error processing LLM task decomposition: {e}")
+
+                        if dynamic_tasks:
+                            self.logger.info(f"Successfully decomposed objective into {len(dynamic_tasks)} tasks using LLM.")
+                            # Store this decomposition for future reference
+                            self._store_decomposition(objective_description, dynamic_tasks)
+                            return dynamic_tasks
+                        else:
+                            self.logger.warning("LLM response parsed, but no valid tasks were extracted. Falling back to rule-based.")
+
+                except json.JSONDecodeError as json_err:
+                    self.logger.error(f"Failed to parse LLM task decomposition response as JSON: {json_err}. Raw response:\n{response_content}")
+                    # Fall through to rule-based decomposition
+                except ValueError as val_err:
+                     self.logger.error(f"Error validating LLM task decomposition structure: {val_err}. Raw response:\n{response_content}")
+                     # Fall through to rule-based decomposition
+                except Exception as e:
+                     self.logger.error(f"Unexpected error processing LLM task decomposition: {type(e).__name__}: {e}")
+                     # Fall through to rule-based decomposition
+
+            # Catch specific LLM errors
+            except LLMTokenLimitError as token_err:
+                self.logger.error(f"LLM task decomposition failed due to token limit: {token_err}")
+                # Fall through to rule-based decomposition
+            except LLMCommunicationError as comm_err:
+                self.logger.error(f"LLM task decomposition failed due to communication error: {comm_err}")
+                # Fall through to rule-based decomposition
             except Exception as e:
-                 self.logger.error(f"Error during LLM task decomposition attempt: {e}")
+                 self.logger.exception(f"Unexpected error during LLM task decomposition attempt: {e}")
                  # Fall through to rule-based decomposition
-        
-        # Fall back to rule-based decomposition if LLM fails or is not available
+
+        # Fall back to rule-based decomposition if LLM fails, returns invalid data, or is not available
+        self.logger.info("Falling back to rule-based task decomposition.")
         dynamic_tasks = []
         task_index = 1
         
