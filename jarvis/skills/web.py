@@ -4,11 +4,9 @@ from bs4 import BeautifulSoup
 from typing import Dict, Any, List
 
 from jarvis.skills.base import Skill, SkillResult
-from jarvis.skills.registry import register_skill
 
 logger = logging.getLogger("jarvis.skills.web")
 
-@register_skill
 class WebSkill(Skill):
     """Provides web browsing and search capabilities."""
     name: str = "web"

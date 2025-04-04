@@ -40,28 +40,29 @@ class PlanningSystem(BaseModel):
     """Planning system that creates and manages plans to achieve objectives"""
     
     logger: Any = None
-    long_term_memory: Any = None
-    medium_term_memory: Any = None
-    short_term_memory: Any = None
+    unified_memory: Any = None # Should be UnifiedMemorySystem
     llm: Any = None
     
     class Config:
         arbitrary_types_allowed = True
     
-    def __init__(self, **data):
+    def __init__(self, unified_memory: Any, llm_client: Any, **data):
         super().__init__(**data)
         self.logger = setup_logger("planning_system")
-        self.long_term_memory = LongTermMemory()
-        self.medium_term_memory = MediumTermMemory()
-        self.short_term_memory = ShortTermMemory()
         
-        # Initialize LLM client if not provided
-        if not self.llm:
-            try:
-                from jarvis.llm import LLMClient
-                self.llm = LLMClient()
-            except Exception as e:
-                self.logger.warning(f"Could not initialize LLM client: {e}")
+        if not unified_memory:
+            raise ValueError("UnifiedMemorySystem instance is required for PlanningSystem")
+        self.unified_memory = unified_memory
+        
+        # Use components from unified memory
+        self.medium_term_memory = self.unified_memory.medium_term
+        self.long_term_memory = self.unified_memory.long_term
+        self.short_term_memory = self.unified_memory.short_term
+        
+        # Use provided LLM client
+        if not llm_client:
+             self.logger.warning("LLM client not provided to PlanningSystem. Planning capabilities will be limited.")
+        self.llm = llm_client
     
     def create_plan(self, objective_id: str) -> Plan:
         """Create a plan to achieve an objective"""

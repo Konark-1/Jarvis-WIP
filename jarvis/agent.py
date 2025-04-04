@@ -31,6 +31,7 @@ class JarvisAgent(BaseModel):
     execution_system: Any = None
     state: AgentState = None
     llm: Any = None  # LLMClient
+    skill_registry: Any = None
     
     class Config:
         arbitrary_types_allowed = True
@@ -44,14 +45,23 @@ class JarvisAgent(BaseModel):
             from memory.unified_memory import UnifiedMemorySystem
             self.memory_system = UnifiedMemorySystem()
             
-        self.planning_system = PlanningSystem()
-        self.execution_system = ExecutionSystem()
-        
         # Initialize LLM if not provided
         if not self.llm:
             from jarvis.llm import LLMClient
-            self.llm = LLMClient()
+            self.llm = LLMClient() # Ensure LLM is initialized *before* planning/execution
             
+        # Get the skill registry instance
+        from jarvis.skills import skill_registry
+        self.skill_registry = skill_registry
+
+        # Pass shared memory, llm, and skill registry to planning and execution systems
+        self.planning_system = PlanningSystem(unified_memory=self.memory_system, llm_client=self.llm)
+        self.execution_system = ExecutionSystem(
+            unified_memory=self.memory_system, 
+            llm_client=self.llm, 
+            skill_registry=self.skill_registry
+        )
+        
         # Initialize state
         self.state = AgentState()
         
@@ -609,29 +619,25 @@ class JarvisAgent(BaseModel):
             self.logger.info(f"No active plan or current plan step completed. Processing input: '{text}'")
             # Use LLM to process the input and generate a response, using assembled context
             if self.llm:
-                # Search memory for context related to the user input
-                memory_results = self.memory_system.search_memory(query=text, memory_types=["short_term", "medium_term", "long_term"])
-                # Format context for LLM
-                assembled_context = "Relevant context for response generation:\n"
-                for i, mem in enumerate(memory_results[:5]): # Limit context size
-                    # Simple formatting, adjust as needed
-                    content_str = str(mem.content)
-                    if len(content_str) > 150:
-                        content_str = content_str[:150] + "..."
-                    assembled_context += f"- [{mem.memory_type} @ {mem.timestamp.isoformat()}] {content_str}\n"
+                # Use the more robust assemble_context method
+                assembled_context = self.memory_system.assemble_context(
+                    query=f"User request: {text}", 
+                    max_tokens=3000 # Adjust token limit as needed
+                )
 
                 # Use LLM to generate a response
                 try:
                     system_prompt = """
                     You are Jarvis, an agentic AI assistant.
-                    Generate a helpful, accurate, and concise response to the user's input.
-                    Use the provided conversation history and relevant memories to maintain continuity and provide informed answers.
+                    Generate a helpful, accurate, and concise response to the user's input based on the provided context.
+                    Use the conversation history and relevant memories to maintain continuity and provide informed answers.
+                    Avoid referring to unrelated past events unless directly relevant to the current input.
                     If the user input seems like a new task or objective, suggest creating one explicitly.
+                    If the input is a simple command that can be executed (e.g., based on available skills), confirm understanding or ask for clarification if needed, rather than just chatting.
                     """
 
                     prompt = f"""
-                    Relevant Context:
-                    {assembled_context.strip()}
+                    {assembled_context}
 
                     User Input: {text}
 

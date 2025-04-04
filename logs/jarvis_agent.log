@@ -14,3 +14,5 @@
 2025-04-04 08:05:23 - jarvis_agent - ERROR - Error executing task: 'UnifiedMemorySystem' object has no attribute 'assemble_context'
 2025-04-04 08:06:17 - jarvis_agent - ERROR - Error generating response with LLM: RetryError[<Future at 0x24d826468a0 state=finished raised ValueError>]
 2025-04-04 08:06:27 - jarvis_agent - ERROR - Error generating response with LLM: RetryError[<Future at 0x24d82655bb0 state=finished raised ValueError>]
+2025-04-04 08:25:56 - jarvis_agent - INFO - No active plan or current plan step completed. Processing input: 'Open youtube'
+2025-04-04 08:26:26 - jarvis_agent - ERROR - Error creating plan for objective: Objective obj_20250404082625 not found

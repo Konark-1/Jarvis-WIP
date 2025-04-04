@@ -52,26 +52,27 @@ class ExecutionSystem(BaseModel):
 
     logger: Any = None
     llm: Any = None # LLMClient expected here
+    unified_memory: Any = None # UnifiedMemorySystem expected here
     skill_registry: Any = None # SkillRegistry expected here
 
     class Config:
         arbitrary_types_allowed = True
 
-    def __init__(self, **data):
+    def __init__(self, unified_memory: Any, llm_client: Any, skill_registry: Any, **data):
         super().__init__(**data)
         self.logger = setup_logger("execution_system")
 
-        # Initialize LLM client if not provided
-        if not self.llm:
-            try:
-                from jarvis.llm import LLMClient
-                self.llm = LLMClient()
-            except Exception as e:
-                self.logger.warning(f"Could not initialize LLM client: {e}")
-        
-        # Use the globally discovered skill registry
-        from jarvis.skills import skill_registry as default_skill_registry
-        self.skill_registry = data.get('skill_registry', default_skill_registry)
+        # Check for required dependencies
+        if not unified_memory:
+            raise ValueError("UnifiedMemorySystem instance is required for ExecutionSystem")
+        if not llm_client:
+            self.logger.warning("LLMClient instance not provided to ExecutionSystem. Skill parsing and error diagnosis may be limited.")
+        if not skill_registry:
+            raise ValueError("SkillRegistry instance is required for ExecutionSystem")
+
+        self.unified_memory = unified_memory
+        self.llm = llm_client
+        self.skill_registry = skill_registry
 
         # Initialize strategies
         self._strategies = {}

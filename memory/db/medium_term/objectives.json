@@ -6,5 +6,13 @@
     "completed_at": null,
     "status": "active",
     "progress": []
+  },
+  "obj_20250404082625": {
+    "objective_id": "obj_20250404082625",
+    "description": "Set Objective to work on content creation brainstorming",
+    "created_at": "2025-04-04T08:26:25.683758",
+    "completed_at": null,
+    "status": "active",
+    "progress": []
   }
 }

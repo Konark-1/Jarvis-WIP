@@ -173,7 +173,7 @@ def main():
                     logger.info("Running periodic knowledge organization")
                     try:
                         # Example: Rebuild index and summarize
-                        memory_system.organize_knowledge(summarize=True, rebuild_stm_index=True)
+                        memory_system.organize_knowledge(summarize=True)
                     except Exception as e:
                          logger.error(f"Error during knowledge organization: {e}")
                     last_knowledge_org_time = now
