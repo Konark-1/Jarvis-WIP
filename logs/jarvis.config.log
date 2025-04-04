@@ -1,0 +1,21 @@
+2025-04-05 04:04:12 - jarvis.config - ERROR - Missing required API key configurations (check .env or environment variables): GROQ_API_KEY, TAVILY_API_KEY
+2025-04-05 04:04:12 - jarvis.config - ERROR - CRITICAL ERROR: Failed to load or validate settings: Missing required API key configurations (check .env or environment variables): GROQ_API_KEY, TAVILY_API_KEY
+Traceback (most recent call last):
+  File "C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\jarvis\config.py", line 85, in <module>
+    raise ValueError(error_msg) # Raise error to stop execution
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: Missing required API key configurations (check .env or environment variables): GROQ_API_KEY, TAVILY_API_KEY
+2025-04-05 04:05:06 - jarvis.config - ERROR - Missing required API key configurations (check .env or environment variables): GROQ_API_KEY, TAVILY_API_KEY
+2025-04-05 04:05:06 - jarvis.config - ERROR - CRITICAL ERROR: Failed to load or validate settings: Missing required API key configurations (check .env or environment variables): GROQ_API_KEY, TAVILY_API_KEY
+Traceback (most recent call last):
+  File "C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\jarvis\config.py", line 87, in <module>
+    raise ValueError(error_msg) # Raise error to stop execution
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: Missing required API key configurations (check .env or environment variables): GROQ_API_KEY, TAVILY_API_KEY
+2025-04-05 04:05:25 - jarvis.config - ERROR - Missing required API key configurations (check .env or environment variables): GROQ_API_KEY, TAVILY_API_KEY
+2025-04-05 04:05:25 - jarvis.config - ERROR - CRITICAL ERROR: Failed to load or validate settings: Missing required API key configurations (check .env or environment variables): GROQ_API_KEY, TAVILY_API_KEY
+Traceback (most recent call last):
+  File "C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\jarvis\config.py", line 89, in <module>
+    raise ValueError(error_msg) # Raise error to stop execution
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: Missing required API key configurations (check .env or environment variables): GROQ_API_KEY, TAVILY_API_KEY

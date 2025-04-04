@@ -212,9 +212,11 @@ Available Skills:
 Based on the objective, context, and available skills, generate a JSON list representing the plan. Each object in the list should represent a task and have the following keys:
 - "description": A clear description of the task.
 - "skill": The name of the *most appropriate* skill from the list above to accomplish this task.
-    - **Use 'reasoning_skill' if the task involves analyzing results from previous steps, requires general knowledge application not covered by other skills, or needs synthesis.**
-    - **Use 'execute_python_file' ONLY if the user specifically asks to run an existing file or if you are certain a relevant file exists based on prior context.** Provide ONLY the relative path *within* the sandbox (e.g., 'my_script.py', NOT 'workspace_sandbox/my_script.py'). Do NOT invent filenames.
-    - Choose specific skills like 'web_search' or 'read_file' when they directly match the action needed.
+    - **Use 'reasoning_skill'** for analysis, synthesis, or general knowledge tasks.
+    - **Use 'execute_python_file'** ONLY for running existing, known files.
+    - **Use 'read_file'** for reading specific files.
+    - **Use 'browse_webpage'** when you need the detailed content of a *specific known URL*. Provide the exact URL.
+    - **Use 'web_search'** for general searches when you don't have a specific URL, or to find relevant URLs to browse later. **WARNING:** 'web_search' is unreliable for real-time data.
 - "arguments": (Optional) A dictionary of arguments required by the selected skill, inferred from the task description and context. Only include if "skill" is specified. Ensure argument names match the skill definition exactly.
 
 Return *only* the JSON list (starting with '[' and ending with ']'), without any introductory text, comments, or explanations.
