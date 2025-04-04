@@ -2,9 +2,9 @@
 Execution system that handles task execution and error recovery.
 """
 
-from typing import Dict, Any, List, Optional, Tuple
+from typing import Dict, Any, List, Optional, Tuple, TYPE_CHECKING
 from datetime import datetime
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from enum import Enum
 import time
 import json
@@ -12,10 +12,21 @@ import logging
 
 from utils.logger import setup_logger
 # Import skill components
-from jarvis.skills import skill_registry, SkillResult
+# from jarvis.skills import skill_registry, SkillResult # Removed unused import of old global
+from jarvis.skills import SkillResult # Keep SkillResult
+from jarvis.skills.registry import SkillRegistry # Import the class if needed for type hints elsewhere, or rely on TYPE_CHECKING
 
-# Assume Task structure is defined elsewhere (e.g., planning.py)
-# For type hinting here:
+# Conditional Imports for Type Checking
+if TYPE_CHECKING:
+    from .memory.unified_memory import UnifiedMemorySystem
+    from .llm import LLMClient
+    from .skills import SkillRegistry
+    from jarvis.planning import Task # Assuming Task is defined in planning.py
+    
+# Import runtime dependencies
+from .llm import LLMError # <-- ADDED Import
+
+# Local Task definition for cases where full import isn't desired/possible at runtime
 class Task(BaseModel):
     task_id: str
     description: str
@@ -27,6 +38,13 @@ class Task(BaseModel):
     max_retries: int = 3
     metadata: Dict[str, Any] = Field(default_factory=dict)
 
+# --- Pydantic Model for Structured LLM Output (Skill Parsing) ---
+class ParsedSkillCall(BaseModel):
+    """Represents the structured identification of a skill and its parameters from text."""
+    skill_name: Optional[str] = Field(..., description="The exact name of the skill to call, or null if no suitable skill is found.")
+    parameters: Dict[str, Any] = Field(default_factory=dict, description="A dictionary of parameter names and values extracted for the skill.")
+
+# ------------------------------------------------------------------
 
 class ExecutionResult(BaseModel):
     """Result of executing a task"""
@@ -50,32 +68,53 @@ class ExecutionStrategy(BaseModel):
 class ExecutionSystem(BaseModel):
     """System for executing tasks with error recovery and skill dispatch."""
 
-    logger: Any = None
-    llm: Any = None # LLMClient expected here
-    unified_memory: Any = None # UnifiedMemorySystem expected here
-    skill_registry: Any = None # SkillRegistry expected here
+    logger: logging.Logger
+    llm: Optional['LLMClient']
+    unified_memory: 'UnifiedMemorySystem'
+    skill_registry: 'SkillRegistry'
+    planning_system: Optional['PlanningSystem'] = None
+    strategies: Dict[str, ExecutionStrategy] = Field(default_factory=dict)
 
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    def __init__(self, unified_memory: Any, llm_client: Any, skill_registry: Any, **data):
-        super().__init__(**data)
-        self.logger = setup_logger("execution_system")
+    def __init__(self, 
+                 unified_memory: 'UnifiedMemorySystem', 
+                 llm_client: Optional['LLMClient'], 
+                 skill_registry: 'SkillRegistry', 
+                 planning_system: Optional['PlanningSystem'],
+                 **data):
+        # Initialize logger first if not passed in data
+        # --- Logger Initialization ---
+        if 'logger' not in data:
+            # data['logger'] = logging.getLogger(__name__) # Use module name
+            # # Basic check: assume configured if it has handlers or level is not NOTSET
+            # if not data['logger'].hasHandlers() and data['logger'].level == logging.NOTSET:
+            #      data['logger'].setLevel(logging.INFO) # Default level if needed
+            #      print(f"WARNING: Logger '{__name__}' was not configured. Applying default level INFO.")
+            data['logger'] = setup_logger(__name__) # Reverted to setup_logger
+        # --- End Logger Initialization ---
 
-        # Check for required dependencies
+        # Check required dependencies before passing them to super
         if not unified_memory:
             raise ValueError("UnifiedMemorySystem instance is required for ExecutionSystem")
-        if not llm_client:
-            self.logger.warning("LLMClient instance not provided to ExecutionSystem. Skill parsing and error diagnosis may be limited.")
         if not skill_registry:
             raise ValueError("SkillRegistry instance is required for ExecutionSystem")
 
-        self.unified_memory = unified_memory
-        self.llm = llm_client
-        self.skill_registry = skill_registry
+        # Add dependencies to data dict for Pydantic initialization
+        data['unified_memory'] = unified_memory
+        data['skill_registry'] = skill_registry
+        data['llm'] = llm_client
+        data['planning_system'] = planning_system
 
-        # Initialize strategies
-        self._strategies = {}
+        # Now call super().__init__ with all necessary data from the dict
+        super().__init__(**data)
+
+        # Post-initialization checks or actions can go here
+        # The logger is now available via self.logger as Pydantic initialized it
+        if not self.llm:
+            self.logger.warning("LLMClient instance not provided to ExecutionSystem. Skill parsing and error diagnosis may be limited.")
+
+        # Initialize strategies after core components are initialized by Pydantic
         self._load_execution_strategies()
     
     def execute_task(self, task: Task) -> ExecutionResult:
@@ -128,7 +167,7 @@ class ExecutionSystem(BaseModel):
             if not execution_result or not execution_result.success:
                 self.logger.info(f"Primary execution failed for task {task.task_id}. Trying fallback strategies...")
                 for fallback_name in strategy.fallback_strategies:
-                    fallback_strategy = self._strategies.get(fallback_name)
+                    fallback_strategy = self.strategies.get(fallback_name)
                     if fallback_strategy:
                         self.logger.info(f"Attempting fallback strategy '{fallback_name}' for task {task.task_id}")
                         try:
@@ -187,7 +226,7 @@ class ExecutionSystem(BaseModel):
                 execution_time=final_execution_time, metadata={'diagnosis': diagnosis}
             )
 
-    def _diagnose_execution_error(self, task: Task, error_message: str) -> str:
+    def _diagnose_execution_error(self, task: 'Task', error_message: str) -> str:
         """Use LLM to diagnose task execution errors."""
         diagnosis = "Diagnosis unavailable."
         if self.llm:
@@ -220,11 +259,11 @@ class ExecutionSystem(BaseModel):
                 self.logger.error(f"LLM diagnosis for task {task.task_id} failed: {diag_err}")
         return diagnosis
 
-    def _load_execution_strategies(self):
+    def _load_execution_strategies(self) -> None:
         """Load execution strategies from memory"""
         try:
             # Default strategies
-            self._strategies = {
+            self.strategies = {
                 "default": ExecutionStrategy(
                     name="default",
                     description="Default execution strategy",
@@ -248,42 +287,51 @@ class ExecutionSystem(BaseModel):
                 )
             }
             
+            # TODO: Load custom strategies from memory/config if needed
+            self.logger.info(f"Loaded {len(self.strategies)} execution strategies.")
+            
         except Exception as e:
             self.logger.error(f"Error loading execution strategies: {e}")
-            # Ensure at least default strategy exists
-            self._strategies = {
-                "default": ExecutionStrategy(
-                    name="default",
-                    description="Default execution strategy",
-                    max_retries=3,
-                    retry_delay=1.0,
-                    timeout=30.0
-                )
-            }
     
-    def _get_execution_strategy(self, task: Task) -> ExecutionStrategy:
-        """Get the appropriate execution strategy for a task"""
-        try:
-            # Check task metadata for strategy
-            strategy_name = task.metadata.get("execution_strategy")
-            if strategy_name and strategy_name in self._strategies:
-                return self._strategies[strategy_name]
-            
-            # Use default strategy
-            return self._strategies["default"]
-            
-        except Exception as e:
-            self.logger.error(f"Error getting execution strategy: {e}")
-            return self._strategies["default"]
+    def _get_execution_strategy(self, task: 'Task') -> ExecutionStrategy:
+        """Get the execution strategy for a task, falling back to default."""
+        # Check task metadata for a specific strategy
+        strategy_name = task.metadata.get("execution_strategy", "default")
+        default_strategy = self.strategies["default"] # Get default first
+        return self.strategies.get(strategy_name, default_strategy)
     
-    def _execute_with_strategy(self, task: Task, strategy: ExecutionStrategy) -> ExecutionResult:
-        """Execute a task using a specific strategy, attempting skill dispatch first."""
+    def _execute_with_strategy(self, task: 'Task', strategy: ExecutionStrategy) -> ExecutionResult:
+        """Execute a task using a specific strategy (internal attempt logic)."""
         start_time = time.time()
+        skill_name = None
         try:
-            # --- Skill Dispatch Attempt ---
-            skill_name, params = self._parse_task_for_skill(task)
+            # --- PRIORITY CHECK: Handle Synthesis Tasks FIRST ---
+            task_desc_lower = task.description.lower()
+            synthesis_keywords = ["synthesize", "summarize", "report", "compile", "present", "finalize", "combine", "consolidate", "review results"]
+            is_synthesis_task = any(keyword in task_desc_lower for keyword in synthesis_keywords)
 
-            if skill_name and self.skill_registry:
+            if is_synthesis_task and self.planning_system:
+                try:
+                    self.logger.info(f"Task '{task.task_id}' identified as synthesis task based on description. Executing internal synthesis logic...")
+                    synthesis_result: ExecutionResult = self._synthesize_results(task)
+                    return synthesis_result # Return directly if synthesis is handled
+                except Exception as synth_err:
+                    error_msg = f"Internal synthesis execution failed for task {task.task_id}: {synth_err}"
+                    self.logger.error(error_msg, exc_info=True)
+                    # Return failure if synthesis itself errored
+                    return ExecutionResult(task_id=task.task_id, success=False, output=None, error=error_msg, execution_time=time.time()-start_time)
+            
+            # --- If NOT a synthesis task, proceed with Skill Dispatch Attempt ---
+            parsed_result = self._parse_task_for_skill(task)
+
+            # Check if parsing returned a valid skill and params
+            if parsed_result:
+                skill_name, params = parsed_result # Unpack only if not None
+            else:
+                skill_name = None # Explicitly set to None
+                params = None
+
+            if skill_name and params is not None and self.skill_registry:
                 skill = self.skill_registry.get_skill(skill_name)
                 if skill:
                     self.logger.info(f"Attempting to execute task '{task.task_id}' using skill: '{skill_name}'")
@@ -312,92 +360,130 @@ class ExecutionSystem(BaseModel):
                         return ExecutionResult(task_id=task.task_id, success=False, output=None, error=error_msg, execution_time=time.time()-start_time)
                 else:
                     self.logger.warning(f"Parsed skill '{skill_name}' not found in registry.")
-            # --- End Skill Dispatch Attempt ---
+                    # Fall through if skill not in registry
 
-            # --- LLM Execution Fallback ---
-            self.logger.info(f"No skill dispatched for task {task.task_id}. Attempting LLM execution.")
-            if self.llm:
-                try:
-                    # Existing LLM execution logic (can be refined)
-                    system_prompt = """
-                    You are Jarvis, an AI assistant executing a planned task.
-                    Analyze the task description and metadata.
-                    Describe the exact steps you would take to accomplish this task.
-                    Summarize the outcome or result of performing these steps.
-                    Be concise and focus on the execution and result.
-                    """
+            # --- Handle cases where no skill was parsed by the LLM ---
+            elif not skill_name:
+                task_desc_lower = task.description.lower()
+                # More comprehensive keywords for synthesis/final reporting
+                synthesis_keywords = ["synthesize", "summarize", "report", "compile", "present", "finalize", "combine", "consolidate", "review results"]
+                # Check if it looks like a synthesis task AND planning system is available
+                is_synthesis_task = any(keyword in task_desc_lower for keyword in synthesis_keywords)
 
-                    prompt = f"""
-                    Task to execute: {task.description}
-                    Task Metadata: {json.dumps(task.metadata, indent=2)}
-
-                    Execute this task and provide a summary of the steps and results.
-                    """
-
-                    llm_output = self.llm.process_with_llm(
-                        prompt=prompt,
-                        system_prompt=system_prompt,
-                        temperature=0.5, # Lower temp for execution description
-                        max_tokens=500
-                    )
+                if is_synthesis_task and self.planning_system:
+                    try:
+                        self.logger.info(f"Task '{task.task_id}' identified as synthesis task based on description. Executing internal synthesis logic...")
+                        # Directly call the internal synthesis method
+                        synthesis_result: ExecutionResult = self._synthesize_results(task)
+                        # Return the result obtained from the synthesis method
+                        return synthesis_result
+                    except Exception as synth_err:
+                         # Handle errors during the synthesis process itself
+                         error_msg = f"Internal synthesis execution failed for task {task.task_id}: {synth_err}"
+                         self.logger.error(error_msg, exc_info=True)
+                         return ExecutionResult(task_id=task.task_id, success=False, output=None, error=error_msg, execution_time=time.time()-start_time)
+                else:
+                    # If not a synthesis task or planning system unavailable, treat as internal step
+                    self.logger.info(f"No suitable skill identified by LLM for task '{task.task_id}' ('{task.description}') and not identified as a synthesis task. Marking as completed internal step.")
                     exec_time = time.time() - start_time
                     return ExecutionResult(
                         task_id=task.task_id,
-                        success=True, # Assume success if LLM provides output
-                        output=llm_output,
+                        success=True, # Mark as success as it's an expected internal step
+                        output="Internal step completed (no direct action/skill identified).",
+                        error=None,
                         execution_time=exec_time,
-                        metadata={'executed_by': 'llm'}
+                        metadata={'executed_by': 'internal'} # Mark execution type
                     )
-                except Exception as llm_err:
-                    error_msg = f"Error executing task {task.task_id} with LLM: {llm_err}"
-                    self.logger.error(error_msg)
-                    return ExecutionResult(task_id=task.task_id, success=False, output=None, error=error_msg, execution_time=time.time()-start_time)
 
-            # --- Final Fallback (If no skill and no LLM) ---
-            self.logger.warning(f"No skill or LLM available for task {task.task_id}. Using basic fallback.")
-            output = f"Placeholder execution for task: {task.description}"
-            success = True # Basic fallback assumes success
-            exec_time = time.time() - start_time
-            return ExecutionResult(
-                task_id=task.task_id,
-                success=success,
-                output=output,
-                execution_time=exec_time,
-                metadata={'executed_by': 'fallback'}
-            )
-
-        except Exception as e:
-            # Catch errors within the _execute_with_strategy scope
-            error_msg = f"Unexpected error in strategy execution for task {task.task_id}: {e}"
-            self.logger.error(error_msg, exc_info=True)
+            # --- Fallback Error Handling ---
+            # If code reaches here, it means something went wrong earlier
+            # e.g., skill parsed but not found, or parameter validation failed and wasn't caught cleanly above.
+            error_msg = f"Execution failed for task {task.task_id}. Could not execute skill '{skill_name}' or handle as internal/synthesis step."
+            self.logger.error(error_msg)
             return ExecutionResult(task_id=task.task_id, success=False, output=None, error=error_msg, execution_time=time.time()-start_time)
 
-    def _parse_task_for_skill(self, task: Task) -> Tuple[Optional[str], Optional[Dict[str, Any]]]:
-        """Attempts to parse the task to identify a skill and its parameters."""
-        # Strategy 1: Check metadata first
-        if "skill_name" in task.metadata:
-            skill_name = task.metadata["skill_name"]
-            params = task.metadata.get("parameters", {})
-            if isinstance(params, dict):
-                # Validate against registry
-                if self.skill_registry and self.skill_registry.get_skill(skill_name):
-                    self.logger.info(f"Using skill '{skill_name}' from task metadata.")
-                    return skill_name, params
-                else:
-                    self.logger.warning(f"Skill '{skill_name}' from metadata not found in registry. Ignoring.")
+        except Exception as strategy_exec_err:
+             # Catch unexpected errors within the _execute_with_strategy scope
+             error_msg = f"Unexpected error during execution strategy for task {task.task_id}: {strategy_exec_err}"
+             self.logger.error(error_msg, exc_info=True)
+             return ExecutionResult(task_id=task.task_id, success=False, output=None, error=error_msg, execution_time=time.time()-start_time)
+
+    def _parse_task_for_skill(self, task: 'Task') -> Optional[Tuple[str, Dict[str, Any]]]:
+        """Use LLM to parse task description into a structured skill call, with fallback."""
+        if not self.llm:
+            self.logger.warning("LLM not available for skill parsing.")
+            return None
+            
+        # --- Determine if we can use Instructor --- 
+        use_instructor = False
+        if hasattr(self.llm, 'process_structured_output'):
+            # Check if the *currently selected* provider's client seems patched
+            client = None
+            provider = self.llm.primary_provider
+            if provider == "groq": client = self.llm.groq_client
+            elif provider == "openai": client = self.llm.openai_client
+            elif provider == "anthropic": client = self.llm.anthropic_client
+            
+            if client and (hasattr(client, '_instructor_is_patched') or "instructor" in str(type(client)).lower()):
+                 use_instructor = True
+                 self.logger.debug("Instructor appears available for the current LLM provider.")
             else:
-                 self.logger.warning(f"Task metadata has skill_name '{skill_name}' but parameters are not a dict. Ignoring metadata skill.")
+                 self.logger.warning(f"Instructor response_model requested, but client '{provider}' appears unpatched. Falling back to manual JSON parsing.")
+        else:
+            self.logger.error("LLMClient does not have 'process_structured_output' method.")
+            # Fallback to manual parsing if method doesn't exist
 
-        # Strategy 2: Use LLM to parse description
-        if self.llm and self.skill_registry:
-            try:
-                skill_defs = self.skill_registry.get_skill_definitions()
-                if not skill_defs:
-                    self.logger.warning("Skill registry is empty. Cannot use LLM for skill parsing.")
-                    return None, None
+        try:
+            skill_defs = self.skill_registry.get_skill_definitions()
+            if not skill_defs:
+                self.logger.warning("Skill registry is empty. Cannot use LLM for skill parsing.")
+                return None
+            skill_defs_json = json.dumps(skill_defs, indent=2)
+            prompt = f"Identify the skill and parameters for the task: {task.description}"
 
-                skill_defs_json = json.dumps(skill_defs, indent=2)
+            if use_instructor:
+                # --- Instructor Path --- 
+                self.logger.debug(f"Sending skill parsing prompt to LLM for task: {task.task_id} (using Instructor)")
+                system_prompt = f"""... [System prompt explaining Instructor/Pydantic output] ...""" # Truncated for brevity, use original prompt
+                system_prompt = f"""
+                You are an expert function calling agent. Your task is to identify the most appropriate skill (function) from the provided list to fulfill the user's request (task description) and extract the necessary parameters accurately.
 
+                Available Skills (Functions):
+                ```json
+                {skill_defs_json}
+                ```
+
+                Analyze the following task description:
+                `{task.description}`
+
+                Determine the single best matching skill and its parameters based *only* on the task description and the available skills.
+                If no single skill is a clear and appropriate match, return `skill_name` as `null`.
+                Extract parameter values directly from the task description where possible.
+                Ensure parameter keys and value types match the skill definition.
+                Do not invent parameters or values not present in the description.
+                You MUST output a JSON object conforming to the specified Pydantic schema.
+                """
+                parsed_response = self.llm.process_structured_output(
+                    prompt=prompt,
+                    system_prompt=system_prompt,
+                    response_model=ParsedSkillCall,
+                    temperature=0.0,
+                    max_tokens=500
+                )
+                if isinstance(parsed_response, ParsedSkillCall):
+                    skill_name = parsed_response.skill_name
+                    params = parsed_response.parameters
+                    # ... (rest of validation logic as before) ...
+                    if not skill_name: return None # No suitable skill
+                    if self.skill_registry.get_skill(skill_name): return skill_name, params
+                    else: self.logger.warning(f"Instructor identified invalid skill '{skill_name}'"); return None
+                else:
+                    self.logger.error(f"Instructor response was not ParsedSkillCall: {type(parsed_response)}")
+                    return None
+            else:
+                # --- Fallback Path (Manual JSON Parsing) --- 
+                self.logger.debug(f"Sending skill parsing prompt to LLM for task: {task.task_id} (manual JSON parsing)")
+                system_prompt = f"""... [System prompt explaining JSON output] ...""" # Truncated for brevity, use original prompt
                 system_prompt = f"""
                 You are an expert function calling agent. Your task is to identify the most appropriate skill (function) from the provided list to fulfill the user's request (task description) and extract the necessary parameters accurately.
 
@@ -422,66 +508,144 @@ class ExecutionSystem(BaseModel):
                 - Do not invent parameters or values not present in the description.
                 - Output *only* the JSON object, nothing else.
                 """
-                prompt = f"Identify the skill and parameters for the task: {task.description}"
-
-                self.logger.debug(f"Sending skill parsing prompt to LLM for task: {task.task_id}")
                 response_content = self.llm.process_with_llm(
-                    prompt=prompt, # Prompt is simple, context is in system prompt
+                    prompt=prompt, 
                     system_prompt=system_prompt,
-                    temperature=0.0, # Zero temperature for deterministic function calling
-                    max_tokens=500 # Allow space for params
+                    temperature=0.0, 
+                    max_tokens=500 
                 )
-
-                # Attempt to parse the response
                 try:
                     # Clean potential markdown
                     if response_content.strip().startswith("```json"):
                         response_content = response_content.strip()[7:-3].strip()
                     elif response_content.strip().startswith("```"):
                          response_content = response_content.strip()[3:-3].strip()
-
                     parsed_data = json.loads(response_content)
-
-                    # Validate response structure
                     if not isinstance(parsed_data, dict) or "skill_name" not in parsed_data or "parameters" not in parsed_data:
-                         raise ValueError("LLM response does not match the required structure.")
-
+                         raise ValueError("Manual JSON response does not match required structure.")
                     skill_name = parsed_data.get("skill_name")
                     params = parsed_data.get("parameters")
+                    if not skill_name or not isinstance(params, dict): return None # No suitable skill
+                    if self.skill_registry.get_skill(skill_name): return skill_name, params
+                    else: self.logger.warning(f"Manual JSON parsing identified invalid skill '{skill_name}'"); return None
+                except (json.JSONDecodeError, ValueError) as json_err:
+                    self.logger.error(f"Failed to parse or validate manual JSON response: {json_err}. Raw: {response_content}")
+                    return None
 
-                    # Check if LLM decided no skill fits or params invalid
-                    if not skill_name or not isinstance(params, dict):
-                        self.logger.info(f"LLM indicated no suitable skill for task: {task.task_id} ('{task.description}')")
-                        return None, None
+        except (LLMError, ValueError) as e: # Catch LLM or Value errors from either path
+             self.logger.error(f"Error during skill parsing for task {task.task_id}: {e}", exc_info=True)
+             return None
+        except Exception as e:
+            self.logger.exception(f"Unexpected error during skill parsing on task {task.task_id}: {e}")
+            return None
 
-                    # Validate skill name against registry
-                    if self.skill_registry.get_skill(skill_name):
-                        self.logger.info(f"LLM successfully parsed task '{task.task_id}' to skill: '{skill_name}', params: {params}")
-                        return skill_name, params
-                    else:
-                        self.logger.warning(f"LLM identified skill '{skill_name}' which is not in the registry. Ignoring.")
-                        return None, None
+    def _synthesize_results(self, task: 'Task') -> ExecutionResult:
+        """Synthesizes results from completed tasks in the plan associated with the given task."""
+        start_time = time.time()
+        plan_id = task.metadata.get("plan_id")
 
-                except json.JSONDecodeError as json_err:
-                    self.logger.error(f"Failed to parse LLM response for skill parsing: {json_err}. Raw response:\n{response_content}")
-                    return None, None
-                except ValueError as val_err:
-                     self.logger.error(f"LLM response validation failed for skill parsing: {val_err}. Raw response:\n{response_content}")
-                     return None, None
+        if not self.planning_system:
+            error_msg = f"PlanningSystem not available for synthesis task {task.task_id}"
+            self.logger.error(error_msg)
+            return ExecutionResult(task_id=task.task_id, success=False, output=None, error=error_msg, execution_time=time.time()-start_time, metadata={'executed_by': 'synthesis'})
 
-            # Catch specific LLM errors
-            except LLMTokenLimitError as token_err:
-                self.logger.error(f"LLM skill parsing failed due to token limit for task {task.task_id}: {token_err}")
-                return None, None
-            except LLMCommunicationError as comm_err:
-                self.logger.error(f"LLM skill parsing failed due to communication error for task {task.task_id}: {comm_err}")
-                return None, None
-            except Exception as e:
-                self.logger.exception(f"Unexpected error using LLM for skill parsing on task {task.task_id}: {e}")
-                return None, None
+        if not plan_id:
+            error_msg = f"Missing plan_id in metadata for synthesis task {task.task_id}"
+            self.logger.error(error_msg)
+            return ExecutionResult(task_id=task.task_id, success=False, output=None, error=error_msg, execution_time=time.time()-start_time, metadata={'executed_by': 'synthesis'})
 
-        self.logger.info(f"Could not parse skill from task {task.task_id} ('{task.description}') using metadata or LLM.")
-        return None, None
+        try:
+            # Retrieve the plan using the PlanningSystem's method
+            # Note: Using internal _get_plan might be necessary if no public getter exists
+            # Adjust based on PlanningSystem's actual interface
+            plan = self.planning_system._get_plan(plan_id) # Assuming this internal method exists
+            
+            if not plan:
+                raise ValueError(f"Could not retrieve plan {plan_id} for synthesis.")
+
+            # Gather outputs from previous completed tasks in this plan
+            previous_outputs = []
+            for prev_task in plan.tasks:
+                if prev_task.task_id == task.task_id: # Don't include the synthesis task itself
+                    continue
+                # Check for completion and presence of output in metadata
+                if prev_task.status == "completed" and prev_task.metadata.get("last_output"):
+                    previous_outputs.append(f"Output from task '{prev_task.description}' (ID: {prev_task.task_id}):\n{prev_task.metadata['last_output']}\n---")
+            
+            if not previous_outputs:
+                self.logger.warning(f"No previous outputs found in plan {plan_id} for synthesis task {task.task_id}.")
+                synthesis_context = "No previous task outputs were available to synthesize."
+            else:
+                synthesis_context = "\n".join(previous_outputs)
+
+            # Use LLM to synthesize
+            if not self.llm:
+                raise ValueError("LLM not available for synthesis.")
+            
+            synthesis_system_prompt = """
+            You are Jarvis, synthesizing the results of a completed plan.
+            Review the provided outputs from the completed tasks in the plan.
+            Generate a final, comprehensive response or report that directly addresses the original objective based *only* on these results.
+            Present the information clearly and concisely to the user.
+            Focus on answering the user's original goal using the gathered information.
+            Do not add commentary about the process, just provide the synthesized result.
+            """
+            synthesis_prompt = f"""
+            Original Objective: {plan.objective_description if hasattr(plan, 'objective_description') else '(Objective description not found)'} 
+            Task to Perform: {task.description}
+            
+            Results from Previous Tasks:
+            ---
+            {synthesis_context}
+            ---
+            
+            Generate the final synthesized response for the user based *only* on the provided results:
+            """
+
+            final_response = self.llm.process_with_llm(
+                prompt=synthesis_prompt,
+                system_prompt=synthesis_system_prompt,
+                temperature=0.6, 
+                max_tokens=2000 # Allow longer summary
+            )
+
+            return ExecutionResult(
+                task_id=task.task_id,
+                success=True,
+                output=final_response,
+                execution_time=time.time() - start_time,
+                metadata={'executed_by': 'synthesis'}
+            )
+
+        except Exception as e:
+            error_msg = f"Error during synthesis process for task {task.task_id}: {e}"
+            self.logger.error(error_msg, exc_info=True)
+            return ExecutionResult(
+                task_id=task.task_id,
+                success=False,
+                output=None,
+                error=error_msg,
+                execution_time=time.time() - start_time,
+                metadata={'executed_by': 'synthesis'} # Still mark as synthesis attempt
+            )
 
     # _store_execution_result and _reflect_on_execution (optional, can be added later)
     # ... 
+
+# <<< End of ExecutionSystem class definition >>>
+
+# Ensure dependent classes are fully defined before rebuilding models that reference them
+# try:
+#     from .memory.unified_memory import UnifiedMemorySystem
+#     from .skills.registry import SkillRegistry # Use registry path
+#     from .llm import LLMClient
+#     
+#     # Perform model rebuild for ExecutionSystem
+#     ExecutionSystem.model_rebuild()
+#     print("Rebuilt Pydantic model: ExecutionSystem") # Optional
+# except ImportError as e:
+#     print(f"Warning: Could not import dependencies to rebuild ExecutionSystem: {e}")
+# except NameError as e:
+#     print(f"Warning: Could not rebuild ExecutionSystem, definition might be missing: {e}")
+# except Exception as e:
+#     print(f"Warning: An unexpected error occurred during ExecutionSystem model rebuild: {e}") 

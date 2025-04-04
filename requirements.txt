@@ -12,3 +12,7 @@ uvicorn[standard]
 requests 
 beautifulsoup4
 duckduckgo-search
+langgraph
+instructor
+crewai>=0.28.8,<0.29.0
+crewai_tools

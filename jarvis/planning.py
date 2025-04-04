@@ -4,15 +4,33 @@ Planning system for Jarvis that integrates with memory and provides agentic plan
 
 import os
 import json
-from typing import Dict, Any, List, Optional, Tuple
+from typing import Dict, Any, List, Optional, Tuple, TYPE_CHECKING
 from datetime import datetime
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
+import logging
+from enum import Enum # <-- Import Enum
 
-from .memory.medium_term import Objective, MediumTermMemory
+# Conditional Imports for Type Checking
+if TYPE_CHECKING:
+    from .memory.unified_memory import UnifiedMemorySystem
+    from .memory.medium_term import MediumTermMemory, Objective
+    from .memory.long_term import LongTermMemory
+    from .memory.short_term import ShortTermMemory
+    from .llm import LLMClient
+    
+# Runtime Imports
+from .memory.medium_term import Objective, MediumTermMemory # Keep for runtime use if needed by Pydantic
 from .memory.long_term import LongTermMemory
 from .memory.short_term import ShortTermMemory
 from utils.logger import setup_logger
-from .llm import LLMClient, LLMError, LLMCommunicationError, LLMTokenLimitError # Import LLM exceptions
+from .llm import LLMClient, LLMError, LLMCommunicationError, LLMTokenLimitError # Keep runtime imports for exceptions
+
+# <<< ADDED TaskStatus Enum >>>
+class TaskStatus(str, Enum):
+    PENDING = "pending"
+    IN_PROGRESS = "in_progress"
+    COMPLETED = "completed"
+    FAILED = "failed"
 
 class Task(BaseModel):
     """A single task in a plan"""
@@ -30,6 +48,7 @@ class Plan(BaseModel):
     """A plan to achieve an objective"""
     plan_id: str
     objective_id: str
+    objective_description: str
     tasks: List[Task] = Field(default_factory=list)
     created_at: datetime = Field(default_factory=datetime.now)
     status: str = "active"  # active, completed, failed
@@ -39,60 +58,100 @@ class Plan(BaseModel):
 class PlanningSystem(BaseModel):
     """Planning system that creates and manages plans to achieve objectives"""
     
-    logger: Any = None
-    unified_memory: Any = None # Should be UnifiedMemorySystem
-    llm: Any = None
+    model_config = ConfigDict(arbitrary_types_allowed=True)
     
-    class Config:
-        arbitrary_types_allowed = True
+    logger: logging.Logger
+    unified_memory: 'UnifiedMemorySystem'
+    llm: Optional['LLMClient'] # LLM can be optional
     
-    def __init__(self, unified_memory: Any, llm_client: Any, **data):
-        super().__init__(**data)
-        self.logger = setup_logger("planning_system")
-        
+    # <<< ADDED: Cache for active plans >>>
+    active_plans: Dict[str, Plan] = Field(default_factory=dict)
+    
+    def __init__(self, unified_memory: 'UnifiedMemorySystem', llm_client: Optional['LLMClient'], **data):
+        # Prepare data for Pydantic initialization
+        init_data = data.copy()
+
+        # --- Logger Initialization ---
+        if 'logger' not in init_data:
+            init_data['logger'] = setup_logger(__name__) # Reverted to setup_logger
+        # --- End Logger Initialization ---
+
+        # Validate required unified_memory
         if not unified_memory:
             raise ValueError("UnifiedMemorySystem instance is required for PlanningSystem")
-        self.unified_memory = unified_memory
         
-        # Use components from unified memory
-        self.medium_term_memory = self.unified_memory.medium_term
-        self.long_term_memory = self.unified_memory.long_term
-        self.short_term_memory = self.unified_memory.short_term
+        # Add unified memory and LLM to init_data for Pydantic
+        init_data['unified_memory'] = unified_memory
+        init_data['llm'] = llm_client # Add llm_client (Optional)
+
+        # Call Pydantic's __init__ with all necessary data
+        super().__init__(**init_data)
         
-        # Use provided LLM client
-        if not llm_client:
+        # Post-initialization checks (accessing fields via self)
+        if not self.llm:
              self.logger.warning("LLM client not provided to PlanningSystem. Planning capabilities will be limited.")
-        self.llm = llm_client
+        
+        # Access sub-memory via self.unified_memory when needed
     
-    def create_plan(self, objective_id: str) -> Plan:
-        """Create a plan to achieve an objective"""
+    def create_plan(self, objective_id: str, 
+                      context_knowledge: Optional[List[Dict[str, Any]]] = None, 
+                      context_history: Optional[List[Dict[str, str]]] = None) -> Plan:
+        """Create a plan to achieve an objective, using provided context."""
         # Get objective details
-        objective = self.medium_term_memory.get_objective(objective_id)
+        objective: Optional['Objective'] = self.unified_memory.medium_term.get_objective(objective_id)
         if not objective:
             raise ValueError(f"Objective {objective_id} not found")
         
-        # Create plan
+        # Create plan object
         plan_id = f"plan_{datetime.now().strftime('%Y%m%d%H%M%S')}"
         plan = Plan(
             plan_id=plan_id,
-            objective_id=objective_id
+            objective_id=objective_id,
+            objective_description=objective.description
         )
         
-        # Break down objective into tasks
-        tasks = self._decompose_objective(objective.description)
+        # Break down objective into tasks, passing context
+        tasks = self._decompose_objective(
+            objective.description, 
+            plan_id,
+            context_knowledge=context_knowledge,
+            context_history=context_history
+        )
         plan.tasks = tasks
         
-        # Store plan in memory
+        # Store plan in memory (persistence and active cache)
         self._store_plan(plan)
+        self.active_plans[plan_id] = plan # Add to active cache (still needed for get_next_task if not fully refactored)
+        self.logger.info(f"Created and cached active plan: {plan_id}")
         
         return plan
     
-    def _decompose_objective(self, objective_description: str) -> List[Task]:
-        """Break down an objective into tasks using LLM-based planning"""
-        # Use long-term memory to find similar objectives and their successful task breakdowns
-        similar_objectives = self.long_term_memory.retrieve_knowledge(
-            f"objective decomposition for: {objective_description}"
-        )
+    def is_plan_complete(self, plan_id: str) -> bool:
+        """Check if all tasks in a plan are marked as completed."""
+        plan = self.active_plans.get(plan_id)
+        if not plan:
+            self.logger.warning(f"Attempted to check completion status for non-existent or inactive plan: {plan_id}")
+            # If the plan isn't in the active cache, it's effectively complete (or failed/removed).
+            # Returning True might be misleading, but returning False could stall the main loop if the plan *was* removed because it finished.
+            # Let's consider it 'not actively completable' and return False, allowing the main loop to potentially handle the state based on other factors.
+            return False
+
+        for task in plan.tasks:
+            if task.status != "completed":
+                return False # Found a task that is not completed
+        
+        # If loop finishes without returning False, all tasks are completed
+        self.logger.debug(f"Plan {plan_id} confirmed as complete (all tasks are 'completed').")
+        return True
+    
+    def _decompose_objective(self, objective_description: str, plan_id: str, 
+                             context_knowledge: Optional[List[Dict[str, Any]]] = None, 
+                             context_history: Optional[List[Dict[str, str]]] = None) -> List[Task]:
+        """Break down an objective into tasks using LLM-based planning and provided context."""
+        # REMOVED internal LTM search for similar objectives
+        # similar_objectives: List[Dict[str, Any]] = self.unified_memory.long_term.retrieve_knowledge(
+        #     f"objective decomposition for: {objective_description}"
+        # )
         
         # Create a task ID prefix
         task_id_prefix = f"task_{datetime.now().strftime('%Y%m%d%H%M%S')}"
@@ -100,13 +159,36 @@ class PlanningSystem(BaseModel):
         # Use LLM to decompose the objective if available
         if self.llm:
             try:
+                # --- Format Context for Prompt --- 
+                context_str = ""
+                if context_history:
+                    context_str += "\nRelevant Conversation History:\n"
+                    for msg in context_history[-3:]: # Use last 3 messages
+                         context_str += f"- {msg.get('role', 'unknown')}: {msg.get('content', '')}\n"
+                    context_str += "---"
+                
+                if context_knowledge:
+                    context_str += "\nRelevant Retrieved Knowledge:\n"
+                    for i, item in enumerate(context_knowledge[:3]): # Use top 3 knowledge items
+                         # Safely access content and metadata
+                         content = item.get('content', 'N/A')
+                         metadata_desc = item.get('metadata', {}).get('description', '')
+                         # Shorten potentially long content
+                         content_preview = (str(content)[:150] + '...') if len(str(content)) > 150 else str(content)
+                         context_str += f"- Item {i+1} ({metadata_desc}): {content_preview}\n"
+                    context_str += "---"
+                # --- End Context Formatting --- 
+
                 system_prompt = """
                 You are Jarvis, an AI assistant that excels at breaking down objectives into practical, actionable tasks.
                 For the given objective, create a comprehensive and logical sequence of tasks needed to accomplish it.
                 Consider dependencies between tasks and different phases like planning, research, execution, and validation.
+                Use the provided context (conversation history, retrieved knowledge) to inform the task breakdown if relevant.
+                
+                Crucially, ensure the **final task** is always responsible for synthesizing the results or outcomes from the previous tasks and preparing a final report or response for the user.
                 
                 Return the tasks as a JSON array of objects. Each object MUST have a "description" (string) and "dependencies" (list of integers, representing the 0-based index of tasks that must precede this one).
-                Optionally include a "phase" (string: planning|research|execution|validation).
+                Optionally include a "phase" (string: planning|research|execution|validation|reporting).
                 Example structure:
                 [
                     {
@@ -123,28 +205,12 @@ class PlanningSystem(BaseModel):
                 Ensure the output is ONLY the JSON array, without any introductory text or markdown formatting.
                 """
                 
-                # Add context from similar objectives if available
-                similar_context = ""
-                if similar_objectives:
-                    similar_context = "Here are examples of similar objectives and their task breakdowns:\n"
-                    for i, obj in enumerate(similar_objectives[:3]):
-                        similar_context += f"Example {i+1}: {obj['content']}\n"
-                        if "tasks" in obj["metadata"]:
-                            similar_context += "Tasks:\n"
-                            # Ensure metadata tasks are dictionaries before accessing
-                            if isinstance(obj["metadata"]["tasks"], list):
-                                for task_meta in obj["metadata"]["tasks"]:
-                                    if isinstance(task_meta, dict) and "description" in task_meta:
-                                        similar_context += f"- {task_meta['description']}\n"
-                            elif isinstance(obj["metadata"]["tasks"], str):
-                                # Handle case where tasks might be stored as a string
-                                similar_context += f" {obj['metadata']['tasks']}\n"
-                        similar_context += "\n"
+                # REMOVED logic for formatting internal LTM search results
                 
                 prompt = f"""
                 Objective: {objective_description}
                 
-                {similar_context}
+                {context_str} # Inject formatted context here
                 
                 Create a logical sequence of tasks to accomplish this objective following the specified JSON format.
                 Output ONLY the JSON array.
@@ -204,7 +270,8 @@ class PlanningSystem(BaseModel):
                                 description=task_data["description"],
                                 dependencies=dependencies,
                                 metadata={
-                                    "phase": task_data.get("phase", "execution")
+                                    "phase": task_data.get("phase", "execution"),
+                                    "plan_id": plan_id
                                 }
                             ))
 
@@ -231,141 +298,58 @@ class PlanningSystem(BaseModel):
                 self.logger.error(f"LLM task decomposition failed due to token limit: {token_err}")
                 # Fall through to rule-based decomposition
             except LLMCommunicationError as comm_err:
-                self.logger.error(f"LLM task decomposition failed due to communication error: {comm_err}")
-                # Fall through to rule-based decomposition
+                 self.logger.error(f"LLM task decomposition failed due to communication error: {comm_err}")
+                 # Fall through to rule-based decomposition
             except Exception as e:
                  self.logger.exception(f"Unexpected error during LLM task decomposition attempt: {e}")
                  # Fall through to rule-based decomposition
 
-        # Fall back to rule-based decomposition if LLM fails, returns invalid data, or is not available
-        self.logger.info("Falling back to rule-based task decomposition.")
-        dynamic_tasks = []
-        task_index = 1
-        
-        # Analyze the objective to create appropriate tasks
-        keywords = objective_description.lower().split()
-        
-        # Default tasks for planning phase
-        dynamic_tasks.append(Task(
-            task_id=f"{task_id_prefix}_{task_index}",
-            description="Analyze requirements and constraints",
-            metadata={"type": "planning", "phase": "preparation"}
-        ))
-        task_index += 1
-        
-        # Information gathering phase
-        if any(kw in keywords for kw in ['find', 'search', 'locate', 'research', 'information']):
-            dynamic_tasks.append(Task(
-                task_id=f"{task_id_prefix}_{task_index}",
-                description="Gather information and research",
-                metadata={"type": "research", "phase": "information_gathering"}
-            ))
-            task_index += 1
-        
-        # Development phase
-        if any(kw in keywords for kw in ['create', 'develop', 'build', 'implement', 'code']):
-            dynamic_tasks.append(Task(
-                task_id=f"{task_id_prefix}_{task_index}",
-                description="Design solution architecture",
-                metadata={"type": "planning", "phase": "design"}
-            ))
-            task_index += 1
-            
-            dynamic_tasks.append(Task(
-                task_id=f"{task_id_prefix}_{task_index}",
-                description="Implement core functionality",
-                metadata={"type": "execution", "phase": "implementation"}
-            ))
-            task_index += 1
-        
-        # Organization phase
-        if any(kw in keywords for kw in ['organize', 'sort', 'categorize', 'arrange']):
-            dynamic_tasks.append(Task(
-                task_id=f"{task_id_prefix}_{task_index}",
-                description="Scan and analyze target items",
-                metadata={"type": "execution", "phase": "analysis"}
-            ))
-            task_index += 1
-            
-            dynamic_tasks.append(Task(
-                task_id=f"{task_id_prefix}_{task_index}",
-                description="Create organization scheme",
-                metadata={"type": "planning", "phase": "organization"}
-            ))
-            task_index += 1
-            
-            dynamic_tasks.append(Task(
-                task_id=f"{task_id_prefix}_{task_index}",
-                description="Apply organization changes",
-                metadata={"type": "execution", "phase": "implementation"}
-            ))
-            task_index += 1
-        
-        # Problem-solving phase
-        if any(kw in keywords for kw in ['solve', 'fix', 'repair', 'debug', 'troubleshoot']):
-            dynamic_tasks.append(Task(
-                task_id=f"{task_id_prefix}_{task_index}",
-                description="Diagnose problem root cause",
-                metadata={"type": "analysis", "phase": "diagnosis"}
-            ))
-            task_index += 1
-            
-            dynamic_tasks.append(Task(
-                task_id=f"{task_id_prefix}_{task_index}",
-                description="Develop solution approach",
-                metadata={"type": "planning", "phase": "solution_design"}
-            ))
-            task_index += 1
-            
-            dynamic_tasks.append(Task(
-                task_id=f"{task_id_prefix}_{task_index}",
-                description="Implement and test solution",
-                metadata={"type": "execution", "phase": "implementation"}
-            ))
-            task_index += 1
-        
-        # If no specific tasks could be created, add generic tasks
-        if len(dynamic_tasks) <= 1:
-            dynamic_tasks.append(Task(
-                task_id=f"{task_id_prefix}_{task_index}",
-                description="Break down objective into specific tasks",
-                metadata={"type": "planning", "phase": "decomposition"}
-            ))
-            task_index += 1
-            
-            dynamic_tasks.append(Task(
-                task_id=f"{task_id_prefix}_{task_index}",
-                description="Execute primary task",
-                metadata={"type": "execution", "phase": "implementation"}
-            ))
-            task_index += 1
-        
-        # Add validation tasks
-        dynamic_tasks.append(Task(
-            task_id=f"{task_id_prefix}_{task_index}",
-            description="Verify completion and quality",
-            metadata={"type": "validation", "phase": "verification"}
-        ))
-        task_index += 1
-        
-        # Store this decomposition in long-term memory for future reference
-        self._store_decomposition(objective_description, dynamic_tasks)
-        
-        return dynamic_tasks
+        # Fallback to basic task if LLM fails or is unavailable
+        self.logger.warning("LLM decomposition failed or unavailable. Creating a single task for the objective.")
+        # Return a list containing a single task representing the whole objective
+        return [Task(task_id=f"{task_id_prefix}_1", 
+                    description=objective_description, 
+                    metadata={"plan_id": plan_id})
+               ]
     
-    def _store_plan(self, plan: Plan):
+    def _store_plan(self, plan: Plan) -> None:
         """Store a plan in memory"""
         # Store in medium-term memory
-        self.medium_term_memory.add_progress(
+        self.unified_memory.medium_term.add_progress(
             f"Created plan {plan.plan_id} with {len(plan.tasks)} tasks",
             metadata={"plan_id": plan.plan_id}
         )
         
+        # <<< Serialize tasks for storage >>>
+        # Exclude datetimes for simpler JSON, keep other fields
+        tasks_serializable = [task.model_dump(exclude={'created_at', 'completed_at'}) for task in plan.tasks]
+        tasks_json = json.dumps(tasks_serializable)
+
+        # <<< Prepare complete metadata for LTM >>>
+        plan_metadata = {
+            "type": "plan",
+            "plan_id": plan.plan_id, # Include plan_id
+            "objective_id": plan.objective_id,
+            "status": plan.status,
+            "created_at": plan.created_at.isoformat(), # Store as ISO string
+            # Store serialized tasks
+            "tasks_json": tasks_json,
+            # Add other relevant plan metadata if needed
+            # "other_metadata": json.dumps(plan.metadata) if plan.metadata else None # Original line with potential None
+        }
+        # <<< Only add other_metadata if it exists >>>
+        if plan.metadata:
+            try:
+                plan_metadata["other_metadata_json"] = json.dumps(plan.metadata)
+            except TypeError as e:
+                 self.logger.warning(f"Could not serialize plan.metadata for plan {plan.plan_id}: {e}")
+                 # Optionally store a placeholder or skip
+
         # Store in long-term memory for future reference
-        self.long_term_memory.add_knowledge(
-            f"plan_{plan.plan_id}",
-            f"Plan for objective {plan.objective_id}: {plan.tasks}",
-            metadata={"type": "plan", "objective_id": plan.objective_id}
+        self.unified_memory.long_term.add_knowledge(
+            f"plan_{plan.plan_id}", # Use a consistent ID format
+            f"Stored plan for objective {plan.objective_id}", # Simpler content description
+            metadata=plan_metadata # Store the complete metadata
         )
     
     def get_next_task(self, plan_id: str) -> Optional[Task]:
@@ -392,15 +376,61 @@ class PlanningSystem(BaseModel):
         return None
     
     def _get_plan(self, plan_id: str) -> Optional[Plan]:
-        """Get a plan from memory"""
-        # Try to get from long-term memory
-        plan_data = self.long_term_memory.retrieve_knowledge(f"plan_{plan_id}")
-        if plan_data:
-            return Plan(**plan_data[0]["metadata"])
-        return None
+        """Get a plan from the active cache ONLY."""
+        # <<< MODIFIED: Check active cache first >>>
+        if plan_id in self.active_plans:
+            # self.logger.debug(f"Retrieving plan {plan_id} from active cache.") # Reduce log noise
+            return self.active_plans[plan_id]
+        
+        # <<< REMOVED: Logic to load from LTM automatically >>>
+        # self.logger.debug(f"Plan {plan_id} not in active cache. Not loading automatically.")
+        return None # Return None if not in active cache
     
-    def update_task_status(self, plan_id: str, task_id: str, status: str, error: Optional[str] = None):
-        """Update the status of a task"""
+    def load_plan_from_ltm(self, plan_id: str) -> Optional[Plan]:
+        """Explicitly loads a plan from LTM and adds it to the active cache."""
+        # Check if already active to avoid redundant load
+        if plan_id in self.active_plans:
+            self.logger.info(f"Plan {plan_id} is already in active cache.")
+            return self.active_plans[plan_id]
+
+        self.logger.info(f"Explicitly loading plan {plan_id} from LTM.")
+        knowledge_id = f"plan_{plan_id}"
+        plan_knowledge = self.unified_memory.long_term.retrieve_knowledge(knowledge_id)
+        
+        if plan_knowledge and plan_knowledge[0].get("metadata"):
+            metadata = plan_knowledge[0]["metadata"]
+            try:
+                # Deserialize tasks
+                tasks_list = []
+                if metadata.get("tasks_json"): 
+                    tasks_data = json.loads(metadata["tasks_json"])
+                    tasks_list = [Task(**task_data) for task_data in tasks_data]
+                
+                other_metadata = {} 
+                if metadata.get("other_metadata_json"): 
+                    other_metadata = json.loads(metadata["other_metadata_json"])
+                
+                plan_obj = Plan(
+                    plan_id=metadata.get("plan_id", plan_id),
+                    objective_id=metadata.get("objective_id", "unknown"),
+                    objective_description=metadata.get("objective_description", "unknown"),
+                    tasks=tasks_list,
+                    created_at=datetime.fromisoformat(metadata["created_at"]) if metadata.get("created_at") else datetime.now(),
+                    status=metadata.get("status", "active"),
+                    metadata=other_metadata,
+                )
+                self.active_plans[plan_id] = plan_obj
+                self.logger.info(f"Loaded plan {plan_id} from LTM and added to active cache.")
+                return plan_obj
+            except (json.JSONDecodeError, TypeError, KeyError, ValueError) as e:
+                self.logger.error(f"Error reconstructing plan {plan_id} from metadata: {e}. Metadata: {metadata}", exc_info=True)
+                return None
+        else:
+            self.logger.warning(f"Plan {plan_id} not found in LTM.")
+            return None
+
+    def update_task_status(self, plan_id: str, task_id: str, status: str, error: Optional[str] = None, output: Optional[Any] = None) -> None:
+        """Update the status of a task and store its output."""
         plan = self._get_plan(plan_id)
         if not plan:
             return
@@ -408,23 +438,49 @@ class PlanningSystem(BaseModel):
         # Find and update task
         task = next((t for t in plan.tasks if t.task_id == task_id), None)
         if task:
+            # <<< Log status change >>>
+            self.logger.info(f"Updating task {task_id} in plan {plan_id} to status: {status}")
+            
             task.status = status
             if status == "completed":
                 task.completed_at = datetime.now()
+                # Store the output in the task metadata if successful
+                if output is not None:
+                    # Ensure output is serializable if storing plan back to LTM eventually
+                    try:
+                        # Simple check for basic types, attempt json.dumps for others
+                        if isinstance(output, (str, int, float, bool, list, dict)):
+                             task.metadata["last_output"] = output
+                        else:
+                             task.metadata["last_output"] = json.dumps(output) # Or str(output)
+                    except Exception as serial_err:
+                         self.logger.warning(f"Could not serialize output for task {task_id}: {serial_err}. Storing as string.")
+                         task.metadata["last_output"] = str(output)
             elif status == "failed":
                 task.error_count += 1
                 if error:
                     task.metadata["last_error"] = error
             
             # Update plan status
+            plan_finished = False # <<< Flag to check if plan ended >>>
             if all(t.status == "completed" for t in plan.tasks):
                 plan.status = "completed"
                 plan.completed_at = datetime.now()
+                plan_finished = True
+                self.logger.info(f"Plan {plan_id} marked as completed.")
             elif any(t.status == "failed" for t in plan.tasks):
                 plan.status = "failed"
+                # Consider adding a completed_at timestamp for failed plans too?
+                plan_finished = True
+                self.logger.info(f"Plan {plan_id} marked as failed.")
             
-            # Store updated plan
+            # Store updated plan (persists changes)
             self._store_plan(plan)
+            
+            # <<< ADDED: Remove finished plan from active cache >>>
+            if plan_finished and plan_id in self.active_plans:
+                del self.active_plans[plan_id]
+                self.logger.info(f"Removed finished plan {plan_id} from active cache.")
     
     def get_plan_status(self, plan_id: str) -> Dict[str, Any]:
         """Get the current status of a plan"""
@@ -452,14 +508,46 @@ class PlanningSystem(BaseModel):
             "tasks": task_counts
         }
     
-    def _store_decomposition(self, objective_description: str, tasks: List[Task]):
+    def _store_decomposition(self, objective_description: str, tasks: List[Task]) -> None:
         """Store a task decomposition in long-term memory for future reference"""
-        self.long_term_memory.add_knowledge(
+        # Convert tasks to a serializable format (e.g., list of dicts)
+        tasks_serializable = [task.model_dump(exclude={'created_at', 'completed_at'}) for task in tasks] # Exclude datetimes for simpler JSON
+        # Serialize task list to JSON string
+        tasks_json = json.dumps(tasks_serializable)
+
+        # Create metadata dictionary
+        decomposition_metadata = {
+            "type": "task_decomposition",
+            "objective": objective_description,
+            "task_count": len(tasks_serializable),
+            "timestamp": datetime.now().isoformat(),
+            # Store the JSON string
+            "tasks_json": tasks_json
+        }
+
+        # Add to long-term memory
+        self.unified_memory.long_term.add_knowledge(
             f"objective_decomposition_{datetime.now().strftime('%Y%m%d%H%M%S')}",
             f"Decomposition for: {objective_description}",
-            metadata={
-                "objective": objective_description,
-                "tasks": [task.dict() for task in tasks],
-                "timestamp": datetime.now().isoformat()
-            }
-        ) 
+            metadata=decomposition_metadata
+        )
+
+# <<< End of PlanningSystem class definition >>>
+
+# Ensure dependent classes are fully defined before rebuilding models that reference them
+# try:
+#     from .memory.unified_memory import UnifiedMemorySystem
+#     from .memory.medium_term import MediumTermMemory # Add imports for all forward refs
+#     from .memory.long_term import LongTermMemory
+#     from .memory.short_term import ShortTermMemory
+#     from .llm import LLMClient
+#     
+#     # Perform model rebuild for PlanningSystem
+#     PlanningSystem.model_rebuild()
+#     print("Rebuilt Pydantic model: PlanningSystem") # Optional
+# except ImportError as e:
+#     print(f"Warning: Could not import dependencies to rebuild PlanningSystem: {e}")
+# except NameError as e:
+#     print(f"Warning: Could not rebuild PlanningSystem, definition might be missing: {e}")
+# except Exception as e:
+#     print(f"Warning: An unexpected error occurred during PlanningSystem model rebuild: {e}") 

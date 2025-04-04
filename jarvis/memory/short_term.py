@@ -26,7 +26,7 @@ class ShortTermMemory(BaseModel):
     # Context variables (for maintaining state during a conversation)
     context: Dict[str, Any] = Field(default_factory=dict)
     
-    def add_interaction(self, speaker: str, text: str, metadata: Dict[str, Any] = None):
+    def add_interaction(self, speaker: str, text: str, metadata: Optional[Dict[str, Any]] = None) -> None:
         """Add an interaction to short-term memory"""
         if metadata is None:
             metadata = {}
@@ -43,13 +43,13 @@ class ShortTermMemory(BaseModel):
         if len(self.interactions) > self.max_interactions:
             self.interactions = self.interactions[-self.max_interactions:]
     
-    def get_recent_interactions(self, n: int = None) -> List[Interaction]:
+    def get_recent_interactions(self, n: Optional[int] = None) -> List[Interaction]:
         """Get the n most recent interactions"""
         if n is None:
             return self.interactions
         return self.interactions[-n:]
     
-    def get_conversation_history(self, n: int = None) -> str:
+    def get_conversation_history(self, n: Optional[int] = None) -> str:
         """Get conversation history as a formatted string"""
         interactions = self.get_recent_interactions(n)
         
@@ -69,11 +69,11 @@ class ShortTermMemory(BaseModel):
         """Get a context variable"""
         return self.context.get(key, default)
     
-    def clear_context(self):
+    def clear_context(self) -> None:
         """Clear all context variables"""
         self.context = {}
     
-    def reset(self):
+    def reset(self) -> None:
         """Reset short-term memory (clear interactions and context)"""
         self.interactions = []
         self.clear_context() 

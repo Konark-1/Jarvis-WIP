@@ -16,3 +16,141 @@
 2025-04-04 08:06:27 - jarvis_agent - ERROR - Error generating response with LLM: RetryError[<Future at 0x24d82655bb0 state=finished raised ValueError>]
 2025-04-04 08:25:56 - jarvis_agent - INFO - No active plan or current plan step completed. Processing input: 'Open youtube'
 2025-04-04 08:26:26 - jarvis_agent - ERROR - Error creating plan for objective: Objective obj_20250404082625 not found
+2025-04-04 17:33:00 - jarvis_agent - INFO - No active plan or current plan step completed. Processing input: 'Hello'
+2025-04-04 17:33:08 - jarvis_agent - INFO - No active plan or current plan step completed. Processing input: 'Open Youtube'
+2025-04-04 17:33:22 - jarvis_agent - INFO - No active plan or current plan step completed. Processing input: 'Open Edge'
+2025-04-04 17:33:51 - jarvis_agent - ERROR - Error creating plan for objective: Expected metadata value to be a str, int, float or bool, got [{'task_id': 'task_20250404173351_1', 'description': 'Analyze requirements and constraints', 'status': 'pending', 'dependencies': [], 'created_at': datetime.datetime(2025, 4, 4, 17, 33, 51, 993107), 'completed_at': None, 'error_count': 0, 'max_retries': 3, 'metadata': {'type': 'planning', 'phase': 'preparation'}}, {'task_id': 'task_20250404173351_2', 'description': 'Break down objective into specific tasks', 'status': 'pending', 'dependencies': [], 'created_at': datetime.datetime(2025, 4, 4, 17, 33, 51, 993107), 'completed_at': None, 'error_count': 0, 'max_retries': 3, 'metadata': {'type': 'planning', 'phase': 'decomposition'}}, {'task_id': 'task_20250404173351_3', 'description': 'Execute primary task', 'status': 'pending', 'dependencies': [], 'created_at': datetime.datetime(2025, 4, 4, 17, 33, 51, 993107), 'completed_at': None, 'error_count': 0, 'max_retries': 3, 'metadata': {'type': 'execution', 'phase': 'implementation'}}, {'task_id': 'task_20250404173351_4', 'description': 'Verify completion and quality', 'status': 'pending', 'dependencies': [], 'created_at': datetime.datetime(2025, 4, 4, 17, 33, 51, 993107), 'completed_at': None, 'error_count': 0, 'max_retries': 3, 'metadata': {'type': 'validation', 'phase': 'verification'}}] which is a list in add.
+2025-04-04 17:34:58 - jarvis_agent - INFO - Active plan plan_20250404173449 for objective obj_20250404173448. Checking for next task.
+2025-04-04 17:34:59 - jarvis_agent - ERROR - Error during task execution or response generation for input 'Go On': 1 validation error for Plan
+plan_id
+  Field required [type=missing, input_value={'objective_id': 'obj_202...256870', 'type': 'plan'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+Traceback (most recent call last):
+  File "C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\jarvis\agent.py", line 533, in _execute_task
+    next_task = self.planning_system.get_next_task(self.state.current_plan_id)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\jarvis\planning.py", line 378, in get_next_task
+    plan = self._get_plan(plan_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\jarvis\planning.py", line 403, in _get_plan
+    return Plan(**plan_data[0]["metadata"])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\pydantic\main.py", line 253, in __init__
+    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pydantic_core._pydantic_core.ValidationError: 1 validation error for Plan
+plan_id
+  Field required [type=missing, input_value={'objective_id': 'obj_202...256870', 'type': 'plan'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+2025-04-04 17:36:05 - jarvis_agent - ERROR - Error creating plan for objective: Expected metadata value to be a str, int, float or bool, got None which is a NoneType in add.
+2025-04-04 17:36:11 - jarvis_agent - INFO - No active plan or current plan step completed. Processing input: 'Go on'
+2025-04-04 17:36:41 - jarvis_agent - INFO - No active plan or current plan step completed. Processing input: 'You must be able to write meta-prompts and execute agentically'
+2025-04-04 17:36:52 - jarvis_agent - INFO - No active plan or current plan step completed. Processing input: ''
+2025-04-04 17:37:42 - jarvis_agent - INFO - Active plan plan_20250404173737 for objective obj_20250404173736. Checking for next task.
+2025-04-04 17:37:43 - jarvis_agent - INFO - Proceeding with task task_20250404173737_1: 'Prepare the cleaning station and utensils'
+2025-04-04 17:37:45 - jarvis_agent - INFO - Task task_20250404173737_1 completed successfully.
+2025-04-04 17:38:14 - jarvis_agent - INFO - No active plan or current plan step completed. Processing input: 'search web groq api'
+2025-04-04 17:38:36 - jarvis_agent - INFO - No active plan or current plan step completed. Processing input: 'browse url groq.com'
+2025-04-04 17:40:01 - jarvis_agent - INFO - No active plan or current plan step completed. Processing input: 'search web for groq api'
+2025-04-04 17:40:01 - jarvis_agent - ERROR - Error attempting direct command execution for 'search web for groq api': name 'Task' is not defined
+Traceback (most recent call last):
+  File "C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\jarvis\agent.py", line 626, in _execute_task
+    temp_task = Task(task_id=temp_task_id, description=text)
+                ^^^^
+NameError: name 'Task' is not defined
+2025-04-04 17:40:01 - jarvis_agent - INFO - Falling back to general conversational response for input: 'search web for groq api'
+2025-04-04 17:40:26 - jarvis_agent - INFO - No active plan or current plan step completed. Processing input: 'browse url https://groq.com/'
+2025-04-04 17:40:26 - jarvis_agent - ERROR - Error attempting direct command execution for 'browse url https://groq.com/': name 'Task' is not defined
+Traceback (most recent call last):
+  File "C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\jarvis\agent.py", line 626, in _execute_task
+    temp_task = Task(task_id=temp_task_id, description=text)
+                ^^^^
+NameError: name 'Task' is not defined
+2025-04-04 17:40:26 - jarvis_agent - INFO - Falling back to general conversational response for input: 'browse url https://groq.com/'
+2025-04-04 17:56:35 - jarvis_agent - INFO - No active plan or current plan step completed. Processing input: ''
+2025-04-04 17:56:35 - jarvis_agent - INFO - Attempting to execute direct command as task: 
+2025-04-04 18:02:38 - jarvis_agent - INFO - Bypassing state loading for testing. Starting with default state.
+2025-04-04 18:03:41 - jarvis_agent - INFO - Bypassing state loading for testing. Starting with default state.
+2025-04-04 18:05:19 - jarvis_agent - INFO - Bypassing state loading for testing. Starting with default state.
+2025-04-04 18:06:49 - jarvis_agent - INFO - Bypassing state loading for testing. Starting with default state.
+2025-04-04 18:07:28 - jarvis_agent - INFO - Active plan plan_20250404180711 for objective obj_20250404180710. Checking for next task.
+2025-04-04 18:07:28 - jarvis_agent - INFO - Proceeding with task task_20250404180711_3: 'Identify and prioritize the most relevant metrics for measuring meme virality (e.g., engagement, shares, views)'
+2025-04-04 18:07:32 - jarvis_agent - INFO - Task task_20250404180711_3 completed successfully.
+2025-04-04 18:08:54 - jarvis_agent - INFO - Bypassing state loading for testing. Starting with default state.
+2025-04-04 18:09:23 - jarvis_agent - INFO - No active plan or current plan step completed. Processing input: '?'
+2025-04-04 18:09:23 - jarvis_agent - INFO - Attempting to execute direct command as task: ?
+2025-04-04 18:09:35 - jarvis_agent - WARNING - Direct command execution failed or no skill matched. Falling back to conversational LLM. Error (if any): Missing required parameter 'url' for action 'browse'.
+2025-04-04 18:09:35 - jarvis_agent - INFO - Falling back to general conversational response for input: '?'
+2025-04-04 18:52:11 - jarvis_agent - INFO - JarvisAgent core components initialized by Pydantic.
+2025-04-04 18:52:11 - jarvis_agent - INFO - Loading agent state from long-term memory...
+2025-04-04 18:52:12 - jarvis_agent - INFO - JarvisAgent initialization complete.
+2025-04-04 18:53:27 - jarvis_agent - INFO - No active plan or current plan step completed. Processing input: 'Generate the report'
+2025-04-04 18:53:27 - jarvis_agent - INFO - Attempting to execute direct command as task: Generate the report
+2025-04-04 18:53:40 - jarvis_agent - WARNING - Direct command execution failed or no skill matched. Falling back to conversational LLM. Error (if any): Parameter validation failed for skill 'read_file': Missing required parameter: 'file_path'
+2025-04-04 18:53:40 - jarvis_agent - INFO - Falling back to general conversational response for input: 'Generate the report'
+2025-04-04 19:07:14 - jarvis_agent - INFO - JarvisAgent core components initialized by Pydantic.
+2025-04-04 19:07:14 - jarvis_agent - INFO - Loading agent state from long-term memory...
+2025-04-04 19:07:15 - jarvis_agent - INFO - JarvisAgent initialization complete.
+2025-04-04 19:07:18 - jarvis_agent - INFO - JarvisAgent core components initialized by Pydantic.
+2025-04-04 19:07:18 - jarvis_agent - INFO - Loading agent state from long-term memory...
+2025-04-04 19:07:18 - jarvis_agent - INFO - JarvisAgent initialization complete.
+2025-04-04 19:07:34 - jarvis_agent - INFO - JarvisAgent core components initialized by Pydantic.
+2025-04-04 19:07:34 - jarvis_agent - INFO - Loading agent state from long-term memory...
+2025-04-04 19:07:34 - jarvis_agent - INFO - JarvisAgent initialization complete.
+2025-04-04 19:07:37 - jarvis_agent - INFO - JarvisAgent core components initialized by Pydantic.
+2025-04-04 19:07:37 - jarvis_agent - INFO - Loading agent state from long-term memory...
+2025-04-04 19:07:37 - jarvis_agent - INFO - JarvisAgent initialization complete.
+2025-04-04 19:14:15 - jarvis_agent - INFO - JarvisAgent core components initialized by Pydantic.
+2025-04-04 19:14:15 - jarvis_agent - INFO - Loading agent state from long-term memory...
+2025-04-04 19:14:15 - jarvis_agent - INFO - JarvisAgent initialization complete.
+2025-04-04 19:14:18 - jarvis_agent - INFO - JarvisAgent core components initialized by Pydantic.
+2025-04-04 19:14:18 - jarvis_agent - INFO - Loading agent state from long-term memory...
+2025-04-04 19:14:19 - jarvis_agent - INFO - JarvisAgent initialization complete.
+2025-04-04 19:37:17 - jarvis_agent - INFO - JarvisAgent core components initialized by Pydantic.
+2025-04-04 19:37:17 - jarvis_agent - INFO - Loading agent state from long-term memory...
+2025-04-04 19:37:18 - jarvis_agent - INFO - JarvisAgent initialization complete.
+2025-04-04 19:42:52 - jarvis_agent - INFO - JarvisAgent core components initialized by Pydantic.
+2025-04-04 19:42:52 - jarvis_agent - INFO - Loading agent state from long-term memory...
+2025-04-04 19:42:52 - jarvis_agent - INFO - JarvisAgent initialization complete.
+2025-04-04 19:44:38 - jarvis_agent - INFO - JarvisAgent core components initialized by Pydantic.
+2025-04-04 19:44:38 - jarvis_agent - INFO - Loading agent state from long-term memory...
+2025-04-04 19:44:38 - jarvis_agent - INFO - JarvisAgent initialization complete.
+2025-04-04 19:49:09 - jarvis_agent - INFO - JarvisAgent core components initialized by Pydantic.
+2025-04-04 19:49:09 - jarvis_agent - INFO - Loading agent state from long-term memory...
+2025-04-04 19:49:09 - jarvis_agent - INFO - JarvisAgent initialization complete.
+2025-04-04 19:53:43 - jarvis_agent - INFO - JarvisAgent core components initialized by Pydantic.
+2025-04-04 19:53:43 - jarvis_agent - INFO - Loading agent state from long-term memory...
+2025-04-04 19:53:43 - jarvis_agent - INFO - JarvisAgent initialization complete.
+2025-04-04 19:56:29 - jarvis_agent - INFO - JarvisAgent core components initialized by Pydantic.
+2025-04-04 19:56:29 - jarvis_agent - INFO - Loading agent state from long-term memory...
+2025-04-04 19:56:29 - jarvis_agent - INFO - JarvisAgent initialization complete.
+2025-04-04 20:03:10 - jarvis_agent - INFO - JarvisAgent core components initialized by Pydantic.
+2025-04-04 20:03:10 - jarvis_agent - INFO - Loading agent state from long-term memory...
+2025-04-04 20:03:11 - jarvis_agent - INFO - JarvisAgent initialization complete.
+2025-04-04 20:05:35 - jarvis_agent - INFO - JarvisAgent core components initialized by Pydantic.
+2025-04-04 20:05:35 - jarvis_agent - INFO - Loading agent state from long-term memory...
+2025-04-04 20:05:35 - jarvis_agent - INFO - JarvisAgent initialization complete.
+2025-04-04 20:06:10 - jarvis_agent - INFO - JarvisAgent core components initialized by Pydantic.
+2025-04-04 20:06:10 - jarvis_agent - INFO - Loading agent state from long-term memory...
+2025-04-04 20:06:10 - jarvis_agent - INFO - JarvisAgent initialization complete.
+2025-04-04 20:11:24 - jarvis_agent - INFO - JarvisAgent core components initialized by Pydantic.
+2025-04-04 20:11:24 - jarvis_agent - INFO - Loading agent state from long-term memory...
+2025-04-04 20:11:25 - jarvis_agent - INFO - JarvisAgent initialization complete.
+2025-04-04 20:14:44 - jarvis_agent - INFO - JarvisAgent core components initialized by Pydantic.
+2025-04-04 20:14:44 - jarvis_agent - INFO - Loading agent state from long-term memory...
+2025-04-04 20:14:44 - jarvis_agent - INFO - JarvisAgent initialization complete.
+2025-04-04 20:15:22 - jarvis_agent - INFO - JarvisAgent core components initialized by Pydantic.
+2025-04-04 20:15:22 - jarvis_agent - INFO - Loading agent state from long-term memory...
+2025-04-04 20:15:22 - jarvis_agent - INFO - JarvisAgent initialization complete.
+2025-04-04 20:16:36 - jarvis_agent - INFO - JarvisAgent core components initialized by Pydantic.
+2025-04-04 20:16:36 - jarvis_agent - INFO - Loading agent state from long-term memory...
+2025-04-04 20:16:36 - jarvis_agent - INFO - JarvisAgent initialization complete.
+2025-04-04 20:17:45 - jarvis_agent - INFO - JarvisAgent core components initialized by Pydantic.
+2025-04-04 20:17:45 - jarvis_agent - INFO - Loading agent state from long-term memory...
+2025-04-04 20:17:45 - jarvis_agent - INFO - JarvisAgent initialization complete.
+2025-04-04 20:19:30 - jarvis_agent - INFO - JarvisAgent core components initialized by Pydantic.
+2025-04-04 20:19:30 - jarvis_agent - INFO - Loading agent state from long-term memory...
+2025-04-04 20:19:30 - jarvis_agent - INFO - JarvisAgent initialization complete.
+2025-04-04 20:48:19 - jarvis_agent - INFO - JarvisAgent core components initialized by Pydantic.
+2025-04-04 20:48:19 - jarvis_agent - INFO - Loading agent state from long-term memory...
+2025-04-04 20:48:20 - jarvis_agent - INFO - JarvisAgent initialization complete.

@@ -1,0 +1,28 @@
+2025-04-04 19:26:01 - mock_memory - INFO - UnifiedMemorySystem initialized. Medium term exists? True
+2025-04-04 19:26:01 - mock_memory - INFO - UnifiedMemorySystem post-initialization complete.
+2025-04-04 19:27:16 - mock_memory - INFO - Assembled context for query 'Review active objectives triggered by: What were the key points from the last Project Phoenix meeting?': 306 tokens (Effective Max: 2350, Original Max: 2500).
+2025-04-04 19:27:25 - mock_memory - INFO - Assembled context for query 'Review active objectives triggered by: Summarize my recent interactions about AI memory systems.': 331 tokens (Effective Max: 2350, Original Max: 2500).
+2025-04-04 19:27:35 - mock_memory - INFO - Assembled context for query 'Review active objectives triggered by: Give me context for planning my week.': 315 tokens (Effective Max: 2350, Original Max: 2500).
+2025-04-04 19:27:45 - mock_memory - INFO - Assembled context for query 'Review active objectives triggered by: What's the current status of the 'Draft email' objective?': 319 tokens (Effective Max: 2350, Original Max: 2500).
+2025-04-04 19:27:58 - mock_memory - INFO - Assembled context for query 'Self-assessment trigger: What were the key points from the last Project Phoenix meeting?': 290 tokens (Effective Max: 2850, Original Max: 3000).
+2025-04-04 19:28:02 - mock_memory - INFO - Assembled context for query 'Self-assessment trigger: Summarize my recent interactions about AI memory systems.': 300 tokens (Effective Max: 2850, Original Max: 3000).
+2025-04-04 19:28:07 - mock_memory - INFO - Assembled context for query 'Self-assessment trigger: Give me context for planning my week.': 299 tokens (Effective Max: 2850, Original Max: 3000).
+2025-04-04 19:28:14 - mock_memory - INFO - Assembled context for query 'Self-assessment trigger: What's the current status of the 'Draft email' objective?': 303 tokens (Effective Max: 2850, Original Max: 3000).
+2025-04-04 19:28:52 - mock_memory - INFO - UnifiedMemorySystem initialized. Medium term exists? True
+2025-04-04 19:28:52 - mock_memory - INFO - UnifiedMemorySystem post-initialization complete.
+2025-04-04 19:30:14 - mock_memory - INFO - UnifiedMemorySystem initialized. Medium term exists? True
+2025-04-04 19:30:14 - mock_memory - INFO - UnifiedMemorySystem post-initialization complete.
+2025-04-04 19:31:24 - mock_memory - INFO - Assembled context for query 'What were the key points from the last Project Phoenix meeting?': 310 tokens (Effective Max: 3946, Original Max: 4096).
+2025-04-04 19:31:24 - mock_memory - INFO - Assembled context for query 'Summarize my recent interactions about AI memory systems.': 326 tokens (Effective Max: 3946, Original Max: 4096).
+2025-04-04 19:31:25 - mock_memory - INFO - Assembled context for query 'Give me context for planning my week.': 322 tokens (Effective Max: 3946, Original Max: 4096).
+2025-04-04 19:31:25 - mock_memory - INFO - Assembled context for query 'What's the current status of the 'Draft email' objective?': 319 tokens (Effective Max: 3946, Original Max: 4096).
+2025-04-04 19:32:05 - mock_memory - INFO - Assembled context for query 'Review active objectives triggered by: What were the key points from the last Project Phoenix meeting?': 310 tokens (Effective Max: 2350, Original Max: 2500).
+2025-04-04 19:32:15 - mock_memory - INFO - Assembled context for query 'Review active objectives triggered by: Summarize my recent interactions about AI memory systems.': 331 tokens (Effective Max: 2350, Original Max: 2500).
+2025-04-04 19:32:24 - mock_memory - INFO - Assembled context for query 'Review active objectives triggered by: Give me context for planning my week.': 319 tokens (Effective Max: 2350, Original Max: 2500).
+2025-04-04 19:32:34 - mock_memory - INFO - Assembled context for query 'Review active objectives triggered by: What's the current status of the 'Draft email' objective?': 319 tokens (Effective Max: 2350, Original Max: 2500).
+2025-04-04 19:32:43 - mock_memory - INFO - Assembled context for query 'Self-assessment trigger: What were the key points from the last Project Phoenix meeting?': 294 tokens (Effective Max: 2850, Original Max: 3000).
+2025-04-04 19:32:51 - mock_memory - INFO - Assembled context for query 'Self-assessment trigger: Summarize my recent interactions about AI memory systems.': 300 tokens (Effective Max: 2850, Original Max: 3000).
+2025-04-04 19:32:57 - mock_memory - INFO - Assembled context for query 'Self-assessment trigger: Give me context for planning my week.': 303 tokens (Effective Max: 2850, Original Max: 3000).
+2025-04-04 19:33:03 - mock_memory - INFO - Assembled context for query 'Self-assessment trigger: What's the current status of the 'Draft email' objective?': 303 tokens (Effective Max: 2850, Original Max: 3000).
+2025-04-04 19:33:18 - mock_memory - INFO - UnifiedMemorySystem initialized. Medium term exists? True
+2025-04-04 19:33:18 - mock_memory - INFO - UnifiedMemorySystem post-initialization complete.

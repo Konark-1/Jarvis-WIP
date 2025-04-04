@@ -4,3 +4,208 @@
 If you got this error by calling handler(<some type>) within `__get_pydantic_core_schema__` then you likely need to call `handler.generate_schema(<some type>)` since we do not call `__get_pydantic_core_schema__` on `<some type>` otherwise to avoid infinite recursion.
 
 For further information visit https://errors.pydantic.dev/2.11/u/schema-for-unknown-type
+2025-04-04 18:53:08 - planning_system - INFO - Successfully decomposed objective into 9 tasks using LLM.
+2025-04-04 18:53:08 - planning_system - INFO - Created and cached active plan: plan_20250404185307
+2025-04-04 18:53:11 - planning_system - INFO - Updating task task_20250404185307_1 in plan plan_20250404185307 to status: completed
+2025-04-04 18:53:21 - planning_system - INFO - Updating task task_20250404185307_2 in plan plan_20250404185307 to status: completed
+2025-04-04 18:54:21 - planning_system - INFO - Updating task task_20250404185307_3 in plan plan_20250404185307 to status: failed
+2025-04-04 18:54:21 - planning_system - INFO - Plan plan_20250404185307 marked as failed.
+2025-04-04 18:54:21 - planning_system - INFO - Removed finished plan plan_20250404185307 from active cache.
+2025-04-04 19:07:16 - planning_system - INFO - Successfully decomposed objective into 7 tasks using LLM.
+2025-04-04 19:07:17 - planning_system - INFO - Created and cached active plan: plan_20250404190715
+2025-04-04 19:07:20 - planning_system - INFO - Successfully decomposed objective into 10 tasks using LLM.
+2025-04-04 19:07:20 - planning_system - INFO - Created and cached active plan: plan_20250404190719
+2025-04-04 19:07:35 - planning_system - INFO - Successfully decomposed objective into 8 tasks using LLM.
+2025-04-04 19:07:36 - planning_system - INFO - Created and cached active plan: plan_20250404190734
+2025-04-04 19:07:40 - planning_system - INFO - Successfully decomposed objective into 8 tasks using LLM.
+2025-04-04 19:07:41 - planning_system - INFO - Created and cached active plan: plan_20250404190738
+2025-04-04 19:14:16 - planning_system - INFO - Successfully decomposed objective into 6 tasks using LLM.
+2025-04-04 19:14:17 - planning_system - INFO - Created and cached active plan: plan_20250404191415
+2025-04-04 19:14:20 - planning_system - INFO - Successfully decomposed objective into 7 tasks using LLM.
+2025-04-04 19:14:21 - planning_system - INFO - Created and cached active plan: plan_20250404191419
+2025-04-04 19:39:18 - planning_system - INFO - Successfully decomposed objective into 9 tasks using LLM.
+2025-04-04 19:39:19 - planning_system - INFO - Created and cached active plan: plan_20250404193917
+2025-04-04 19:39:28 - planning_system - INFO - Updating task task_20250404193917_1 in plan plan_20250404193917 to status: failed
+2025-04-04 19:39:28 - planning_system - INFO - Plan plan_20250404193917 marked as failed.
+2025-04-04 19:39:28 - planning_system - INFO - Removed finished plan plan_20250404193917 from active cache.
+2025-04-04 19:43:51 - planning_system - INFO - Loaded plan plan_20250404193917 from LTM and added to active cache.
+2025-04-04 19:44:00 - planning_system - INFO - Updating task task_20250404191419_1 in plan plan_20250404193917 to status: failed
+2025-04-04 19:44:00 - planning_system - INFO - Plan plan_20250404193917 marked as failed.
+2025-04-04 19:44:00 - planning_system - INFO - Removed finished plan plan_20250404193917 from active cache.
+2025-04-04 19:45:44 - planning_system - INFO - Successfully decomposed objective into 10 tasks using LLM.
+2025-04-04 19:45:44 - planning_system - INFO - Created and cached active plan: plan_20250404194542
+2025-04-04 19:45:45 - planning_system - INFO - Updating task task_20250404194542_1 in plan plan_20250404194542 to status: completed
+2025-04-04 19:45:54 - planning_system - INFO - Successfully decomposed objective into 8 tasks using LLM.
+2025-04-04 19:45:54 - planning_system - INFO - Created and cached active plan: plan_20250404194552
+2025-04-04 19:45:55 - planning_system - INFO - Updating task task_20250404194553_1 in plan plan_20250404194552 to status: completed
+2025-04-04 19:50:25 - planning_system - INFO - Successfully decomposed objective into 11 tasks using LLM.
+2025-04-04 19:50:25 - planning_system - INFO - Created and cached active plan: plan_20250404195023
+2025-04-04 19:50:27 - planning_system - INFO - Updating task task_20250404195023_1 in plan plan_20250404195023 to status: completed
+2025-04-04 19:50:30 - planning_system - INFO - Updating task task_20250404195023_2 in plan plan_20250404195023 to status: completed
+2025-04-04 19:50:33 - planning_system - INFO - Updating task task_20250404195023_3 in plan plan_20250404195023 to status: completed
+2025-04-04 19:50:36 - planning_system - INFO - Updating task task_20250404195023_4 in plan plan_20250404195023 to status: completed
+2025-04-04 19:50:38 - planning_system - INFO - Updating task task_20250404195023_5 in plan plan_20250404195023 to status: completed
+2025-04-04 19:50:41 - planning_system - INFO - Updating task task_20250404195023_6 in plan plan_20250404195023 to status: completed
+2025-04-04 19:50:44 - planning_system - INFO - Updating task task_20250404195023_7 in plan plan_20250404195023 to status: completed
+2025-04-04 19:50:45 - planning_system - INFO - Updating task task_20250404195023_8 in plan plan_20250404195023 to status: completed
+2025-04-04 19:50:47 - planning_system - INFO - Updating task task_20250404195023_9 in plan plan_20250404195023 to status: completed
+2025-04-04 19:50:54 - planning_system - INFO - Updating task task_20250404195023_10 in plan plan_20250404195023 to status: completed
+2025-04-04 19:51:03 - planning_system - INFO - Updating task task_20250404195023_11 in plan plan_20250404195023 to status: completed
+2025-04-04 19:51:03 - planning_system - INFO - Plan plan_20250404195023 marked as completed.
+2025-04-04 19:51:03 - planning_system - INFO - Removed finished plan plan_20250404195023 from active cache.
+2025-04-04 19:51:04 - planning_system - INFO - Loaded plan plan_20250404195023 from LTM and added to active cache.
+2025-04-04 19:51:11 - planning_system - INFO - Updating task task_20250404191419_1 in plan plan_20250404195023 to status: completed
+2025-04-04 19:51:18 - planning_system - INFO - Updating task task_20250404191419_2 in plan plan_20250404195023 to status: completed
+2025-04-04 19:51:27 - planning_system - INFO - Updating task task_20250404191419_3 in plan plan_20250404195023 to status: completed
+2025-04-04 19:51:34 - planning_system - INFO - Updating task task_20250404191419_4 in plan plan_20250404195023 to status: completed
+2025-04-04 19:51:43 - planning_system - INFO - Updating task task_20250404191419_5 in plan plan_20250404195023 to status: completed
+2025-04-04 19:51:51 - planning_system - INFO - Updating task task_20250404191419_6 in plan plan_20250404195023 to status: completed
+2025-04-04 19:51:58 - planning_system - INFO - Updating task task_20250404191419_7 in plan plan_20250404195023 to status: completed
+2025-04-04 19:51:58 - planning_system - INFO - Plan plan_20250404195023 marked as completed.
+2025-04-04 19:51:58 - planning_system - INFO - Removed finished plan plan_20250404195023 from active cache.
+2025-04-04 19:52:00 - planning_system - INFO - Loaded plan plan_20250404195023 from LTM and added to active cache.
+2025-04-04 19:52:06 - planning_system - INFO - Updating task task_20250404191419_1 in plan plan_20250404195023 to status: completed
+2025-04-04 19:52:14 - planning_system - INFO - Updating task task_20250404191419_2 in plan plan_20250404195023 to status: completed
+2025-04-04 19:52:22 - planning_system - INFO - Updating task task_20250404191419_3 in plan plan_20250404195023 to status: completed
+2025-04-04 19:52:30 - planning_system - INFO - Updating task task_20250404191419_4 in plan plan_20250404195023 to status: completed
+2025-04-04 19:52:39 - planning_system - INFO - Updating task task_20250404191419_5 in plan plan_20250404195023 to status: completed
+2025-04-04 19:52:46 - planning_system - INFO - Updating task task_20250404191419_6 in plan plan_20250404195023 to status: completed
+2025-04-04 19:52:54 - planning_system - INFO - Updating task task_20250404191419_7 in plan plan_20250404195023 to status: completed
+2025-04-04 19:52:54 - planning_system - INFO - Plan plan_20250404195023 marked as completed.
+2025-04-04 19:52:54 - planning_system - INFO - Removed finished plan plan_20250404195023 from active cache.
+2025-04-04 19:52:55 - planning_system - INFO - Loaded plan plan_20250404195023 from LTM and added to active cache.
+2025-04-04 19:53:02 - planning_system - INFO - Updating task task_20250404191419_1 in plan plan_20250404195023 to status: completed
+2025-04-04 19:53:48 - planning_system - INFO - Successfully decomposed objective into 10 tasks using LLM.
+2025-04-04 19:53:48 - planning_system - INFO - Created and cached active plan: plan_20250404195346
+2025-04-04 19:53:51 - planning_system - INFO - Updating task task_20250404195346_1 in plan plan_20250404195346 to status: completed
+2025-04-04 19:53:53 - planning_system - INFO - Updating task task_20250404195346_2 in plan plan_20250404195346 to status: completed
+2025-04-04 19:53:56 - planning_system - INFO - Updating task task_20250404195346_3 in plan plan_20250404195346 to status: completed
+2025-04-04 19:53:59 - planning_system - INFO - Updating task task_20250404195346_4 in plan plan_20250404195346 to status: completed
+2025-04-04 19:54:02 - planning_system - INFO - Updating task task_20250404195346_5 in plan plan_20250404195346 to status: completed
+2025-04-04 19:54:05 - planning_system - INFO - Updating task task_20250404195346_6 in plan plan_20250404195346 to status: completed
+2025-04-04 19:54:07 - planning_system - INFO - Updating task task_20250404195346_7 in plan plan_20250404195346 to status: completed
+2025-04-04 19:54:15 - planning_system - INFO - Updating task task_20250404195346_8 in plan plan_20250404195346 to status: completed
+2025-04-04 19:54:22 - planning_system - INFO - Updating task task_20250404195346_9 in plan plan_20250404195346 to status: completed
+2025-04-04 19:54:31 - planning_system - INFO - Updating task task_20250404195346_10 in plan plan_20250404195346 to status: completed
+2025-04-04 19:54:31 - planning_system - INFO - Plan plan_20250404195346 marked as completed.
+2025-04-04 19:54:31 - planning_system - INFO - Removed finished plan plan_20250404195346 from active cache.
+2025-04-04 19:54:32 - planning_system - INFO - Loaded plan plan_20250404195346 from LTM and added to active cache.
+2025-04-04 19:54:39 - planning_system - INFO - Updating task task_20250404195346_1 in plan plan_20250404195346 to status: completed
+2025-04-04 19:54:48 - planning_system - INFO - Updating task task_20250404195346_2 in plan plan_20250404195346 to status: completed
+2025-04-04 19:54:55 - planning_system - INFO - Updating task task_20250404195346_3 in plan plan_20250404195346 to status: completed
+2025-04-04 19:55:03 - planning_system - INFO - Updating task task_20250404195346_4 in plan plan_20250404195346 to status: completed
+2025-04-04 19:55:11 - planning_system - INFO - Updating task task_20250404195346_5 in plan plan_20250404195346 to status: completed
+2025-04-04 19:55:20 - planning_system - INFO - Updating task task_20250404195346_6 in plan plan_20250404195346 to status: completed
+2025-04-04 19:55:28 - planning_system - INFO - Updating task task_20250404195346_7 in plan plan_20250404195346 to status: completed
+2025-04-04 20:01:23 - planning_system - INFO - Successfully decomposed objective into 8 tasks using LLM.
+2025-04-04 20:01:24 - planning_system - INFO - Created and cached active plan: plan_20250404200122
+2025-04-04 20:01:25 - planning_system - INFO - Updating task task_20250404200122_1 in plan plan_20250404200122 to status: completed
+2025-04-04 20:01:28 - planning_system - INFO - Updating task task_20250404200122_2 in plan plan_20250404200122 to status: completed
+2025-04-04 20:01:32 - planning_system - INFO - Updating task task_20250404200122_3 in plan plan_20250404200122 to status: completed
+2025-04-04 20:01:37 - planning_system - INFO - Updating task task_20250404200122_4 in plan plan_20250404200122 to status: completed
+2025-04-04 20:01:41 - planning_system - INFO - Updating task task_20250404200122_5 in plan plan_20250404200122 to status: completed
+2025-04-04 20:03:15 - planning_system - INFO - Successfully decomposed objective into 10 tasks using LLM.
+2025-04-04 20:03:16 - planning_system - INFO - Created and cached active plan: plan_20250404200313
+2025-04-04 20:03:16 - planning_system - INFO - Updating task task_20250404200314_1 in plan plan_20250404200313 to status: completed
+2025-04-04 20:03:19 - planning_system - INFO - Updating task task_20250404200314_2 in plan plan_20250404200313 to status: completed
+2025-04-04 20:03:22 - planning_system - INFO - Updating task task_20250404200314_3 in plan plan_20250404200313 to status: completed
+2025-04-04 20:03:25 - planning_system - INFO - Updating task task_20250404200314_4 in plan plan_20250404200313 to status: completed
+2025-04-04 20:03:28 - planning_system - INFO - Updating task task_20250404200314_5 in plan plan_20250404200313 to status: completed
+2025-04-04 20:03:30 - planning_system - INFO - Updating task task_20250404200314_6 in plan plan_20250404200313 to status: completed
+2025-04-04 20:03:33 - planning_system - INFO - Updating task task_20250404200314_7 in plan plan_20250404200313 to status: completed
+2025-04-04 20:03:34 - planning_system - INFO - Updating task task_20250404200314_8 in plan plan_20250404200313 to status: completed
+2025-04-04 20:03:38 - planning_system - INFO - Updating task task_20250404200314_9 in plan plan_20250404200313 to status: completed
+2025-04-04 20:03:46 - planning_system - INFO - Updating task task_20250404200314_10 in plan plan_20250404200313 to status: completed
+2025-04-04 20:03:46 - planning_system - INFO - Plan plan_20250404200313 marked as completed.
+2025-04-04 20:03:46 - planning_system - INFO - Removed finished plan plan_20250404200313 from active cache.
+2025-04-04 20:06:14 - planning_system - INFO - Successfully decomposed objective into 9 tasks using LLM.
+2025-04-04 20:06:15 - planning_system - INFO - Created and cached active plan: plan_20250404200612
+2025-04-04 20:06:16 - planning_system - INFO - Updating task task_20250404200613_1 in plan plan_20250404200612 to status: completed
+2025-04-04 20:06:19 - planning_system - INFO - Updating task task_20250404200613_2 in plan plan_20250404200612 to status: completed
+2025-04-04 20:06:22 - planning_system - INFO - Updating task task_20250404200613_3 in plan plan_20250404200612 to status: completed
+2025-04-04 20:06:24 - planning_system - INFO - Updating task task_20250404200613_4 in plan plan_20250404200612 to status: completed
+2025-04-04 20:06:27 - planning_system - INFO - Updating task task_20250404200613_5 in plan plan_20250404200612 to status: completed
+2025-04-04 20:06:30 - planning_system - INFO - Updating task task_20250404200613_6 in plan plan_20250404200612 to status: completed
+2025-04-04 20:06:31 - planning_system - INFO - Updating task task_20250404200613_7 in plan plan_20250404200612 to status: completed
+2025-04-04 20:06:32 - planning_system - INFO - Updating task task_20250404200613_8 in plan plan_20250404200612 to status: completed
+2025-04-04 20:06:36 - planning_system - INFO - Updating task task_20250404200613_9 in plan plan_20250404200612 to status: completed
+2025-04-04 20:06:36 - planning_system - INFO - Plan plan_20250404200612 marked as completed.
+2025-04-04 20:06:36 - planning_system - INFO - Removed finished plan plan_20250404200612 from active cache.
+2025-04-04 20:12:23 - planning_system - INFO - Successfully decomposed objective into 8 tasks using LLM.
+2025-04-04 20:12:24 - planning_system - INFO - Created and cached active plan: plan_20250404201222
+2025-04-04 20:12:26 - planning_system - INFO - Updating task task_20250404201222_1 in plan plan_20250404201222 to status: completed
+2025-04-04 20:12:28 - planning_system - INFO - Updating task task_20250404201222_2 in plan plan_20250404201222 to status: completed
+2025-04-04 20:12:30 - planning_system - INFO - Updating task task_20250404201222_3 in plan plan_20250404201222 to status: completed
+2025-04-04 20:12:33 - planning_system - INFO - Updating task task_20250404201222_4 in plan plan_20250404201222 to status: completed
+2025-04-04 20:12:36 - planning_system - INFO - Updating task task_20250404201222_5 in plan plan_20250404201222 to status: completed
+2025-04-04 20:12:38 - planning_system - INFO - Updating task task_20250404201222_6 in plan plan_20250404201222 to status: completed
+2025-04-04 20:12:39 - planning_system - INFO - Updating task task_20250404201222_7 in plan plan_20250404201222 to status: completed
+2025-04-04 20:12:42 - planning_system - INFO - Updating task task_20250404201222_8 in plan plan_20250404201222 to status: completed
+2025-04-04 20:12:42 - planning_system - INFO - Plan plan_20250404201222 marked as completed.
+2025-04-04 20:12:42 - planning_system - INFO - Removed finished plan plan_20250404201222 from active cache.
+2025-04-04 20:14:48 - planning_system - INFO - Successfully decomposed objective into 9 tasks using LLM.
+2025-04-04 20:14:48 - planning_system - INFO - Created and cached active plan: plan_20250404201446
+2025-04-04 20:14:50 - planning_system - INFO - Updating task task_20250404201446_1 in plan plan_20250404201446 to status: completed
+2025-04-04 20:15:26 - planning_system - INFO - Successfully decomposed objective into 9 tasks using LLM.
+2025-04-04 20:15:27 - planning_system - INFO - Created and cached active plan: plan_20250404201525
+2025-04-04 20:15:29 - planning_system - INFO - Updating task task_20250404201525_1 in plan plan_20250404201525 to status: completed
+2025-04-04 20:15:32 - planning_system - INFO - Updating task task_20250404201525_2 in plan plan_20250404201525 to status: completed
+2025-04-04 20:15:35 - planning_system - INFO - Updating task task_20250404201525_3 in plan plan_20250404201525 to status: completed
+2025-04-04 20:15:37 - planning_system - INFO - Updating task task_20250404201525_4 in plan plan_20250404201525 to status: completed
+2025-04-04 20:15:40 - planning_system - INFO - Updating task task_20250404201525_5 in plan plan_20250404201525 to status: completed
+2025-04-04 20:15:43 - planning_system - INFO - Updating task task_20250404201525_6 in plan plan_20250404201525 to status: completed
+2025-04-04 20:15:46 - planning_system - INFO - Updating task task_20250404201525_7 in plan plan_20250404201525 to status: completed
+2025-04-04 20:15:48 - planning_system - INFO - Updating task task_20250404201525_8 in plan plan_20250404201525 to status: completed
+2025-04-04 20:15:50 - planning_system - INFO - Updating task task_20250404201525_9 in plan plan_20250404201525 to status: completed
+2025-04-04 20:15:50 - planning_system - INFO - Plan plan_20250404201525 marked as completed.
+2025-04-04 20:15:51 - planning_system - INFO - Removed finished plan plan_20250404201525 from active cache.
+2025-04-04 20:15:51 - planning_system - WARNING - Attempted to check completion status for non-existent or inactive plan: plan_20250404201525
+2025-04-04 20:16:40 - planning_system - INFO - Successfully decomposed objective into 9 tasks using LLM.
+2025-04-04 20:16:40 - planning_system - INFO - Created and cached active plan: plan_20250404201638
+2025-04-04 20:16:41 - planning_system - INFO - Updating task task_20250404201638_1 in plan plan_20250404201638 to status: completed
+2025-04-04 20:16:44 - planning_system - INFO - Updating task task_20250404201638_2 in plan plan_20250404201638 to status: completed
+2025-04-04 20:16:46 - planning_system - INFO - Updating task task_20250404201638_3 in plan plan_20250404201638 to status: completed
+2025-04-04 20:16:49 - planning_system - INFO - Updating task task_20250404201638_4 in plan plan_20250404201638 to status: completed
+2025-04-04 20:16:52 - planning_system - INFO - Updating task task_20250404201638_5 in plan plan_20250404201638 to status: completed
+2025-04-04 20:17:01 - planning_system - INFO - Updating task task_20250404201638_6 in plan plan_20250404201638 to status: failed
+2025-04-04 20:17:01 - planning_system - INFO - Plan plan_20250404201638 marked as failed.
+2025-04-04 20:17:01 - planning_system - INFO - Removed finished plan plan_20250404201638 from active cache.
+2025-04-04 20:17:50 - planning_system - INFO - Successfully decomposed objective into 9 tasks using LLM.
+2025-04-04 20:17:50 - planning_system - INFO - Created and cached active plan: plan_20250404201748
+2025-04-04 20:17:51 - planning_system - INFO - Updating task task_20250404201748_1 in plan plan_20250404201748 to status: completed
+2025-04-04 20:17:53 - planning_system - INFO - Updating task task_20250404201748_2 in plan plan_20250404201748 to status: completed
+2025-04-04 20:17:55 - planning_system - INFO - Updating task task_20250404201748_3 in plan plan_20250404201748 to status: completed
+2025-04-04 20:17:58 - planning_system - INFO - Updating task task_20250404201748_4 in plan plan_20250404201748 to status: completed
+2025-04-04 20:18:00 - planning_system - INFO - Updating task task_20250404201748_5 in plan plan_20250404201748 to status: completed
+2025-04-04 20:18:02 - planning_system - INFO - Updating task task_20250404201748_6 in plan plan_20250404201748 to status: completed
+2025-04-04 20:18:08 - planning_system - INFO - Updating task task_20250404201748_7 in plan plan_20250404201748 to status: completed
+2025-04-04 20:18:17 - planning_system - INFO - Updating task task_20250404201748_8 in plan plan_20250404201748 to status: completed
+2025-04-04 20:18:40 - planning_system - INFO - Updating task task_20250404201748_9 in plan plan_20250404201748 to status: completed
+2025-04-04 20:18:40 - planning_system - INFO - Plan plan_20250404201748 marked as completed.
+2025-04-04 20:18:41 - planning_system - INFO - Removed finished plan plan_20250404201748 from active cache.
+2025-04-04 20:18:41 - planning_system - WARNING - Attempted to check completion status for non-existent or inactive plan: plan_20250404201748
+2025-04-04 20:19:51 - planning_system - INFO - Successfully decomposed objective into 9 tasks using LLM.
+2025-04-04 20:19:52 - planning_system - INFO - Created and cached active plan: plan_20250404201949
+2025-04-04 20:19:52 - planning_system - INFO - Updating task task_20250404201950_1 in plan plan_20250404201949 to status: completed
+2025-04-04 20:19:55 - planning_system - INFO - Updating task task_20250404201950_2 in plan plan_20250404201949 to status: completed
+2025-04-04 20:19:58 - planning_system - INFO - Updating task task_20250404201950_3 in plan plan_20250404201949 to status: completed
+2025-04-04 20:20:01 - planning_system - INFO - Updating task task_20250404201950_4 in plan plan_20250404201949 to status: completed
+2025-04-04 20:20:04 - planning_system - INFO - Updating task task_20250404201950_5 in plan plan_20250404201949 to status: completed
+2025-04-04 20:20:06 - planning_system - INFO - Updating task task_20250404201950_6 in plan plan_20250404201949 to status: completed
+2025-04-04 20:20:31 - planning_system - INFO - Updating task task_20250404201950_7 in plan plan_20250404201949 to status: completed
+2025-04-04 20:20:40 - planning_system - INFO - Updating task task_20250404201950_8 in plan plan_20250404201949 to status: completed
+2025-04-04 20:21:08 - planning_system - INFO - Updating task task_20250404201950_9 in plan plan_20250404201949 to status: completed
+2025-04-04 20:21:08 - planning_system - INFO - Plan plan_20250404201949 marked as completed.
+2025-04-04 20:21:08 - planning_system - INFO - Removed finished plan plan_20250404201949 from active cache.
+2025-04-04 20:48:40 - planning_system - INFO - Successfully decomposed objective into 8 tasks using LLM.
+2025-04-04 20:48:41 - planning_system - INFO - Created and cached active plan: plan_20250404204839
+2025-04-04 20:48:43 - planning_system - INFO - Updating task task_20250404204839_1 in plan plan_20250404204839 to status: completed
+2025-04-04 20:48:45 - planning_system - INFO - Updating task task_20250404204839_2 in plan plan_20250404204839 to status: completed
+2025-04-04 20:48:48 - planning_system - INFO - Updating task task_20250404204839_3 in plan plan_20250404204839 to status: completed
+2025-04-04 20:48:50 - planning_system - INFO - Updating task task_20250404204839_4 in plan plan_20250404204839 to status: completed
+2025-04-04 20:48:51 - planning_system - INFO - Updating task task_20250404204839_5 in plan plan_20250404204839 to status: completed
+2025-04-04 20:48:54 - planning_system - INFO - Updating task task_20250404204839_6 in plan plan_20250404204839 to status: completed
+2025-04-04 20:49:13 - planning_system - INFO - Updating task task_20250404204839_7 in plan plan_20250404204839 to status: completed
+2025-04-04 20:49:40 - planning_system - INFO - Updating task task_20250404204839_8 in plan plan_20250404204839 to status: completed
+2025-04-04 20:49:40 - planning_system - INFO - Plan plan_20250404204839 marked as completed.
+2025-04-04 20:49:40 - planning_system - INFO - Removed finished plan plan_20250404204839 from active cache.

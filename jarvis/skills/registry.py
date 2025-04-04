@@ -77,5 +77,5 @@ class SkillRegistry:
         return definitions
 
 # Create a default instance and discover skills upon import
-skill_registry = SkillRegistry()
-skill_registry.discover_skills() 
+# skill_registry = SkillRegistry() # Removed global instance
+# skill_registry.discover_skills() # Removed auto-discovery call 

@@ -5,18 +5,27 @@ This module provides a unified memory system that integrates short-term,
 medium-term, and long-term memory with embedding-based semantic search.
 """
 
-from typing import Dict, List, Any, Optional, Union, Tuple
+from typing import Dict, List, Any, Optional, Union, Tuple, TYPE_CHECKING
 from datetime import datetime
 import os
 import json
 import time
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
+import logging
 
+# Conditional Imports
+if TYPE_CHECKING:
+    from jarvis.memory.short_term import ShortTermMemory
+    from jarvis.memory.medium_term import MediumTermMemory
+    from jarvis.memory.long_term import LongTermMemory
+    from jarvis.llm import LLMClient
+    
+# Runtime Imports
 from jarvis.memory.short_term import ShortTermMemory
 from jarvis.memory.medium_term import MediumTermMemory
 from jarvis.memory.long_term import LongTermMemory
-from utils.logger import setup_logger
-from jarvis.llm import LLMClient, LLMError, LLMCommunicationError, LLMTokenLimitError
+from utils.logger import setup_logger # Logger setup needed at runtime
+from jarvis.llm import LLMClient, LLMError, LLMCommunicationError, LLMTokenLimitError # Exceptions needed at runtime
 
 class MemoryEntry(BaseModel):
     """Base class for memory entries"""
@@ -48,30 +57,49 @@ class UnifiedMemorySystem(BaseModel):
     Unified memory system that integrates short-term, medium-term, and long-term memory
     with embedding-based semantic search and memory consolidation.
     """
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+    
     short_term: ShortTermMemory = Field(default_factory=ShortTermMemory)
     medium_term: MediumTermMemory = Field(default_factory=MediumTermMemory)
     long_term: LongTermMemory = Field(default_factory=LongTermMemory)
-    logger: Any = None
-    llm_client: Optional[LLMClient] = None  # Add LLM client to the system
+    logger: logging.Logger
+    llm_client: Optional['LLMClient'] = None  # Add LLM client to the system
     
     consolidation_rules: List[MemoryConsolidationRule] = Field(default_factory=list)
     
-    class Config:
-        arbitrary_types_allowed = True
-    
     def __init__(self, **data):
-        super().__init__(**data)
-        self.logger = setup_logger("unified_memory")
+        # Prepare data for Pydantic initialization
+        init_data = data.copy()
         
-        # Set up default consolidation rules if none provided
+        # --- Logger Initialization ---
+        if 'logger' not in init_data:
+            # init_data['logger'] = logging.getLogger(__name__) # Use module name
+            # # Basic check: assume configured if it has handlers or level is not NOTSET
+            # if not init_data['logger'].hasHandlers() and init_data['logger'].level == logging.NOTSET:
+            #      init_data['logger'].setLevel(logging.INFO) # Default level if needed
+            #      print(f"WARNING: Logger '{__name__}' was not configured. Applying default level INFO.")
+            init_data['logger'] = setup_logger(__name__) # Reverted to setup_logger
+        # --- End Logger Initialization ---
+        
+        # Call Pydantic's __init__ with logger guaranteed to be in init_data
+        super().__init__(**init_data)
+        
+        # Post-initialization setup (logger is now available via self.logger)
+        self.logger.info(f"UnifiedMemorySystem initialized. Medium term exists? {hasattr(self, 'medium_term')}")
+        if not hasattr(self, 'medium_term'):
+            self.logger.error("UnifiedMemorySystem MISSING 'medium_term' attribute after super().__init__! Default factory likely failed.")
+            # Potentially raise error or try manual init if critical
+
+        # Set up default consolidation rules if none provided via data
         if not self.consolidation_rules:
             self._setup_default_consolidation_rules()
         
         # Initialize memory cache
         self._cache: Dict[str, MemoryEntry] = {}
         self._cache_size = 1000
+        self.logger.info("UnifiedMemorySystem post-initialization complete.")
     
-    def _setup_default_consolidation_rules(self):
+    def _setup_default_consolidation_rules(self) -> None:
         """Set up default memory consolidation rules"""
         # Short-term to medium-term: 1 hour old, 0.7 importance, seen 3 times
         self.consolidation_rules.append(
@@ -193,7 +221,7 @@ class UnifiedMemorySystem(BaseModel):
     def search_memory(self, query: str, memory_types: Optional[List[str]] = None, k_per_type: int = 5, time_decay_factor: float = 0.95) -> List[MemoryEntry]:
         """Search across memory systems with relevance scoring and time decay."""
         try:
-            results_with_scores = []
+            results_with_scores: List[Tuple[MemoryEntry, float]] = []
             now = datetime.now()
 
             # Determine which memory types to search
@@ -294,12 +322,12 @@ class UnifiedMemorySystem(BaseModel):
                      results_with_scores.append((entry, final_score))
 
             # Sort results by the calculated final score (descending)
-            results_with_scores.sort(key=lambda x: x[1], reverse=True)
+            sorted_results = sorted(results_with_scores, key=lambda item: item[1], reverse=True)
 
-            # Return only the MemoryEntry objects
-            final_results = [entry for entry, score in results_with_scores]
-            self.logger.debug(f"Memory search for '{query}' returned {len(final_results)} results.")
-            return final_results
+            # Extract only the MemoryEntry objects
+            final_entries: List[MemoryEntry] = [entry for entry, score in sorted_results]
+            self.logger.debug(f"Memory search for '{query}' returned {len(final_entries)} results.")
+            return final_entries
 
         except Exception as e:
             self.logger.error(f"Error searching memory: {e}", exc_info=True)
@@ -365,7 +393,7 @@ class UnifiedMemorySystem(BaseModel):
             self.logger.error(f"Error deleting memory: {e}")
             return False
     
-    def _add_to_cache(self, key: str, entry: MemoryEntry):
+    def _add_to_cache(self, key: str, entry: MemoryEntry) -> None:
         """Add an entry to the memory cache"""
         # Remove oldest entry if cache is full
         if len(self._cache) >= self._cache_size:
@@ -374,11 +402,12 @@ class UnifiedMemorySystem(BaseModel):
         
         self._cache[key] = entry
     
-    def clear_cache(self):
+    def clear_cache(self) -> None:
         """Clear the memory cache"""
         self._cache.clear()
+        self.logger.info("Memory cache cleared.")
     
-    def consolidate_memories(self):
+    def consolidate_memories(self) -> None:
         """Consolidate memories based on rules."""
         self.logger.info("Starting memory consolidation check...")
         consolidation_actions = []
@@ -617,7 +646,7 @@ class UnifiedMemorySystem(BaseModel):
             self.logger.exception(f"Unexpected error during memory reflection: {e}")
             return {"error": f"An unexpected error occurred: {e}", "raw_llm_response": ""}
 
-    def reset_context(self):
+    def reset_context(self) -> None:
         """Reset short-term memory, optionally after consolidation."""
         self.logger.info("Resetting context (clearing short-term memory after consolidation check)." )
         # First, consolidate any important memories
@@ -658,7 +687,7 @@ class UnifiedMemorySystem(BaseModel):
              stats["short_term_count"] = "Error"
         return stats
     
-    def organize_knowledge(self, summarize: bool = True, rebuild_indices: bool = False, deduplicate: bool = False):
+    def organize_knowledge(self, summarize: bool = True, rebuild_indices: bool = False, deduplicate: bool = False) -> None:
         """Organizes long-term knowledge: Summarization, Indexing, Deduplication."""
         self.logger.info("Starting knowledge organization...")
         actions_taken = []
@@ -766,7 +795,7 @@ class UnifiedMemorySystem(BaseModel):
              # Could involve finding items with very high similarity scores (>0.95?) and merging/deleting.
              # actions_taken.append("deduplication_attempted")
 
-        self.logger.info(f"Knowledge organization finished. Actions taken: {actions_taken or 'None'}")
+        self.logger.info(f"Knowledge organization completed. Actions taken: {actions_taken}")
 
     def assemble_context(self, query: str, max_tokens: int = 4000, include_recent: int = 5, k_per_type: int = 5) -> str:
         """

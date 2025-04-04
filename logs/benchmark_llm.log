@@ -1,0 +1,405 @@
+2025-04-04 19:24:49 - benchmark_llm - INFO - Starting benchmarks for provider: groq, Model: llama-3.3-70b-versatile
+2025-04-04 19:24:50 - benchmark_llm - ERROR - Failed to initialize components: 'LLMClient' object has no attribute 'get_model_name'
+Traceback (most recent call last):
+  File "C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\benchmark_llm.py", line 757, in main
+    logger.info(f"Using specified model: {llm.get_model_name()}")
+                                          ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\pydantic\main.py", line 994, in __getattr__
+    raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}')
+AttributeError: 'LLMClient' object has no attribute 'get_model_name'
+2025-04-04 19:25:27 - benchmark_llm - INFO - Starting benchmarks for provider: groq, Model: llama-3.3-70b-versatile
+2025-04-04 19:25:28 - benchmark_llm - INFO - Using specified model: llama-3.3-70b-versatile
+2025-04-04 19:25:28 - benchmark_llm - ERROR - Failed to initialize components: 'MockUnifiedMemory' object has no attribute '__pydantic_fields_set__'
+Traceback (most recent call last):
+  File "C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\benchmark_llm.py", line 755, in main
+    mock_memory = MockUnifiedMemory(logger=setup_logger("mock_memory"), llm_client=llm) # Give memory the LLM client too
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\benchmark_llm.py", line 92, in __init__
+    self.short_term = ShortTermMemory()
+    ^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\pydantic\main.py", line 1001, in __setattr__
+    setattr_handler(self, name, value)  # call here to not memo on possibly unknown fields
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\pydantic\main.py", line 99, in _model_field_setattr_handler
+    model.__pydantic_fields_set__.add(name)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\pydantic\main.py", line 991, in __getattr__
+    return super().__getattribute__(item)  # Raises AttributeError if appropriate
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'MockUnifiedMemory' object has no attribute '__pydantic_fields_set__'. Did you mean: '__pydantic_fields__'?
+2025-04-04 19:26:00 - benchmark_llm - INFO - Starting benchmarks for provider: groq, Model: llama-3.3-70b-versatile
+2025-04-04 19:26:01 - benchmark_llm - INFO - Using specified model: llama-3.3-70b-versatile
+2025-04-04 19:26:02 - benchmark_llm - INFO - --- Running Benchmark: Task Decomposition --- Provider: groq
+2025-04-04 19:26:09 - benchmark_llm - INFO - --- Benchmark Task Decomposition Finished --- Duration: 7.06s
+2025-04-04 19:26:09 - benchmark_llm - INFO - --- Running Benchmark: Skill Parsing --- Provider: groq
+2025-04-04 19:26:18 - benchmark_llm - INFO - --- Benchmark Skill Parsing Finished --- Duration: 8.50s
+2025-04-04 19:26:18 - benchmark_llm - INFO - --- Running Benchmark: Error Diagnosis --- Provider: groq
+2025-04-04 19:27:06 - benchmark_llm - INFO - --- Benchmark Error Diagnosis Finished --- Duration: 48.16s
+2025-04-04 19:27:06 - benchmark_llm - INFO - --- Running Benchmark: Context Assembly --- Provider: groq
+2025-04-04 19:27:06 - benchmark_llm - ERROR - Error during benchmark Context Assembly: benchmark_assemble_context() got an unexpected keyword argument 'llm_client'
+Traceback (most recent call last):
+  File "C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\benchmark_llm.py", line 141, in run_benchmark
+    benchmark_outputs = func(llm_client=llm_client, **kwargs)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: benchmark_assemble_context() got an unexpected keyword argument 'llm_client'
+2025-04-04 19:27:06 - benchmark_llm - INFO - --- Benchmark Context Assembly Finished --- Duration: 0.00s
+2025-04-04 19:27:06 - benchmark_llm - INFO - --- Running Benchmark: Memory Reflection --- Provider: groq
+2025-04-04 19:27:06 - benchmark_llm - INFO - Starting memory reflection benchmark...
+2025-04-04 19:27:16 - benchmark_llm - INFO - Finished memory reflection benchmark.
+2025-04-04 19:27:16 - benchmark_llm - INFO - --- Benchmark Memory Reflection Finished --- Duration: 9.97s
+2025-04-04 19:27:16 - benchmark_llm - INFO - --- Running Benchmark: Objective Review --- Provider: groq
+2025-04-04 19:27:16 - benchmark_llm - INFO - Starting objective review benchmark...
+2025-04-04 19:27:57 - benchmark_llm - INFO - Finished objective review benchmark.
+2025-04-04 19:27:57 - benchmark_llm - INFO - --- Benchmark Objective Review Finished --- Duration: 41.41s
+2025-04-04 19:27:57 - benchmark_llm - INFO - --- Running Benchmark: Self Assessment --- Provider: groq
+2025-04-04 19:27:57 - benchmark_llm - INFO - Starting self-assessment benchmark...
+2025-04-04 19:28:20 - benchmark_llm - INFO - Finished self-assessment benchmark.
+2025-04-04 19:28:20 - benchmark_llm - INFO - --- Benchmark Self Assessment Finished --- Duration: 23.11s
+2025-04-04 19:28:20 - benchmark_llm - INFO - Benchmark results saved to benchmark_results_groq_70b.json
+2025-04-04 19:28:51 - benchmark_llm - INFO - Starting benchmarks for provider: groq, Model: llama-3.3-70b-versatile
+2025-04-04 19:28:52 - benchmark_llm - INFO - Using specified model: llama-3.3-70b-versatile
+2025-04-04 19:28:53 - benchmark_llm - INFO - --- Running Benchmark: Task Decomposition --- Provider: groq
+2025-04-04 19:29:00 - benchmark_llm - INFO - --- Benchmark Task Decomposition Finished --- Duration: 6.90s
+2025-04-04 19:29:00 - benchmark_llm - INFO - --- Running Benchmark: Skill Parsing --- Provider: groq
+2025-04-04 19:29:35 - benchmark_llm - INFO - --- Benchmark Skill Parsing Finished --- Duration: 35.27s
+2025-04-04 19:29:35 - benchmark_llm - INFO - --- Running Benchmark: Error Diagnosis --- Provider: groq
+2025-04-04 19:29:50 - benchmark_llm - INFO - --- Benchmark Error Diagnosis Finished --- Duration: 15.21s
+2025-04-04 19:30:13 - benchmark_llm - INFO - Starting benchmarks for provider: groq, Model: llama-3.3-70b-versatile
+2025-04-04 19:30:14 - benchmark_llm - INFO - Using specified model: llama-3.3-70b-versatile
+2025-04-04 19:30:15 - benchmark_llm - INFO - --- Running Benchmark: Task Decomposition --- Provider: groq
+2025-04-04 19:30:23 - benchmark_llm - INFO - --- Benchmark Task Decomposition Finished --- Duration: 7.56s
+2025-04-04 19:30:23 - benchmark_llm - INFO - --- Running Benchmark: Skill Parsing --- Provider: groq
+2025-04-04 19:31:06 - benchmark_llm - INFO - --- Benchmark Skill Parsing Finished --- Duration: 43.45s
+2025-04-04 19:31:06 - benchmark_llm - INFO - --- Running Benchmark: Error Diagnosis --- Provider: groq
+2025-04-04 19:31:23 - benchmark_llm - INFO - --- Benchmark Error Diagnosis Finished --- Duration: 16.98s
+2025-04-04 19:31:23 - benchmark_llm - INFO - --- Running Benchmark: Context Assembly --- Provider: groq
+2025-04-04 19:31:25 - benchmark_llm - INFO - --- Benchmark Context Assembly Finished --- Duration: 2.20s
+2025-04-04 19:31:25 - benchmark_llm - INFO - --- Running Benchmark: Memory Reflection --- Provider: groq
+2025-04-04 19:31:25 - benchmark_llm - INFO - Starting memory reflection benchmark...
+2025-04-04 19:32:04 - benchmark_llm - INFO - Finished memory reflection benchmark.
+2025-04-04 19:32:04 - benchmark_llm - INFO - --- Benchmark Memory Reflection Finished --- Duration: 39.07s
+2025-04-04 19:32:04 - benchmark_llm - INFO - --- Running Benchmark: Objective Review --- Provider: groq
+2025-04-04 19:32:04 - benchmark_llm - INFO - Starting objective review benchmark...
+2025-04-04 19:32:43 - benchmark_llm - INFO - Finished objective review benchmark.
+2025-04-04 19:32:43 - benchmark_llm - INFO - --- Benchmark Objective Review Finished --- Duration: 38.65s
+2025-04-04 19:32:43 - benchmark_llm - INFO - --- Running Benchmark: Self Assessment --- Provider: groq
+2025-04-04 19:32:43 - benchmark_llm - INFO - Starting self-assessment benchmark...
+2025-04-04 19:33:09 - benchmark_llm - INFO - Finished self-assessment benchmark.
+2025-04-04 19:33:09 - benchmark_llm - INFO - --- Benchmark Self Assessment Finished --- Duration: 25.79s
+2025-04-04 19:33:09 - benchmark_llm - INFO - Benchmark results saved to benchmark_results_groq_70b.json
+2025-04-04 19:33:17 - benchmark_llm - INFO - Starting benchmarks for provider: openai, Model: Default
+2025-04-04 19:33:19 - benchmark_llm - INFO - --- Running Benchmark: Task Decomposition --- Provider: openai
+2025-04-04 19:33:23 - benchmark_llm - ERROR - Error decomposing objective 'Plan my upcoming week, scheduling focused work blocks and personal appointments.': RetryError[<Future at 0x1f85b70f1a0 state=finished raised LLMCommunicationError>]
+Traceback (most recent call last):
+  File "C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\jarvis\llm.py", line 252, in _call_llm
+    response = client.chat.completions.create(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\openai\_utils\_utils.py", line 279, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\openai\resources\chat\completions\completions.py", line 914, in create
+    return self._post(
+           ^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\openai\_base_client.py", line 1242, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\openai\_base_client.py", line 919, in request
+    return self._request(
+           ^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\openai\_base_client.py", line 1023, in _request
+    raise self._make_status_error_from_response(err.response) from None
+openai.AuthenticationError: Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-dummy*******************ting. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_api_key'}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\tenacity\__init__.py", line 480, in __call__
+    result = fn(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\jarvis\llm.py", line 335, in _call_llm
+    raise LLMCommunicationError(provider, e) from e
+jarvis.llm.LLMCommunicationError: Error communicating with openai: Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-dummy*******************ting. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_api_key'}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\benchmark_llm.py", line 217, in benchmark_decompose_objective
+    response_content = llm_client.process_with_llm(
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\jarvis\llm.py", line 403, in process_with_llm
+    response = self._call_llm(
+               ^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\tenacity\__init__.py", line 338, in wrapped_f
+    return copy(f, *args, **kw)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\tenacity\__init__.py", line 477, in __call__
+    do = self.iter(retry_state=retry_state)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\tenacity\__init__.py", line 378, in iter
+    result = action(retry_state)
+             ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\tenacity\__init__.py", line 421, in exc_check
+    raise retry_exc from fut.exception()
+tenacity.RetryError: RetryError[<Future at 0x1f85b70f1a0 state=finished raised LLMCommunicationError>]
+2025-04-04 19:33:26 - benchmark_llm - ERROR - Error decomposing objective 'Research the latest advancements in AI agent memory systems, focusing on long-term consolidation techniques.': RetryError[<Future at 0x1f85b7a7770 state=finished raised LLMCommunicationError>]
+Traceback (most recent call last):
+  File "C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\jarvis\llm.py", line 252, in _call_llm
+    response = client.chat.completions.create(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\openai\_utils\_utils.py", line 279, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\openai\resources\chat\completions\completions.py", line 914, in create
+    return self._post(
+           ^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\openai\_base_client.py", line 1242, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\openai\_base_client.py", line 919, in request
+    return self._request(
+           ^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\openai\_base_client.py", line 1023, in _request
+    raise self._make_status_error_from_response(err.response) from None
+openai.AuthenticationError: Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-dummy*******************ting. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_api_key'}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\tenacity\__init__.py", line 480, in __call__
+    result = fn(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\jarvis\llm.py", line 335, in _call_llm
+    raise LLMCommunicationError(provider, e) from e
+jarvis.llm.LLMCommunicationError: Error communicating with openai: Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-dummy*******************ting. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_api_key'}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\benchmark_llm.py", line 217, in benchmark_decompose_objective
+    response_content = llm_client.process_with_llm(
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\jarvis\llm.py", line 403, in process_with_llm
+    response = self._call_llm(
+               ^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\tenacity\__init__.py", line 338, in wrapped_f
+    return copy(f, *args, **kw)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\tenacity\__init__.py", line 477, in __call__
+    do = self.iter(retry_state=retry_state)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\tenacity\__init__.py", line 378, in iter
+    result = action(retry_state)
+             ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\tenacity\__init__.py", line 421, in exc_check
+    raise retry_exc from fut.exception()
+tenacity.RetryError: RetryError[<Future at 0x1f85b7a7770 state=finished raised LLMCommunicationError>]
+2025-04-04 19:33:30 - benchmark_llm - ERROR - Error decomposing objective 'Draft a concise email to the Project Phoenix team summarizing the key decisions from today's sync meeting and outlining next steps.': RetryError[<Future at 0x1f85b7b9ee0 state=finished raised LLMCommunicationError>]
+Traceback (most recent call last):
+  File "C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\jarvis\llm.py", line 252, in _call_llm
+    response = client.chat.completions.create(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\openai\_utils\_utils.py", line 279, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\openai\resources\chat\completions\completions.py", line 914, in create
+    return self._post(
+           ^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\openai\_base_client.py", line 1242, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\openai\_base_client.py", line 919, in request
+    return self._request(
+           ^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\openai\_base_client.py", line 1023, in _request
+    raise self._make_status_error_from_response(err.response) from None
+openai.AuthenticationError: Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-dummy*******************ting. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_api_key'}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\tenacity\__init__.py", line 480, in __call__
+    result = fn(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\jarvis\llm.py", line 335, in _call_llm
+    raise LLMCommunicationError(provider, e) from e
+jarvis.llm.LLMCommunicationError: Error communicating with openai: Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-dummy*******************ting. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_api_key'}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\benchmark_llm.py", line 217, in benchmark_decompose_objective
+    response_content = llm_client.process_with_llm(
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\jarvis\llm.py", line 403, in process_with_llm
+    response = self._call_llm(
+               ^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\tenacity\__init__.py", line 338, in wrapped_f
+    return copy(f, *args, **kw)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\tenacity\__init__.py", line 477, in __call__
+    do = self.iter(retry_state=retry_state)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\tenacity\__init__.py", line 378, in iter
+    result = action(retry_state)
+             ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\tenacity\__init__.py", line 421, in exc_check
+    raise retry_exc from fut.exception()
+tenacity.RetryError: RetryError[<Future at 0x1f85b7b9ee0 state=finished raised LLMCommunicationError>]
+2025-04-04 19:33:34 - benchmark_llm - ERROR - Error decomposing objective 'Organize my digital notes on project management methodologies.': RetryError[<Future at 0x1f85b7ba000 state=finished raised LLMCommunicationError>]
+Traceback (most recent call last):
+  File "C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\jarvis\llm.py", line 252, in _call_llm
+    response = client.chat.completions.create(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\openai\_utils\_utils.py", line 279, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\openai\resources\chat\completions\completions.py", line 914, in create
+    return self._post(
+           ^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\openai\_base_client.py", line 1242, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\openai\_base_client.py", line 919, in request
+    return self._request(
+           ^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\openai\_base_client.py", line 1023, in _request
+    raise self._make_status_error_from_response(err.response) from None
+openai.AuthenticationError: Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-dummy*******************ting. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_api_key'}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\tenacity\__init__.py", line 480, in __call__
+    result = fn(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\jarvis\llm.py", line 335, in _call_llm
+    raise LLMCommunicationError(provider, e) from e
+jarvis.llm.LLMCommunicationError: Error communicating with openai: Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-dummy*******************ting. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_api_key'}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\benchmark_llm.py", line 217, in benchmark_decompose_objective
+    response_content = llm_client.process_with_llm(
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\jarvis\llm.py", line 403, in process_with_llm
+    response = self._call_llm(
+               ^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\tenacity\__init__.py", line 338, in wrapped_f
+    return copy(f, *args, **kw)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\tenacity\__init__.py", line 477, in __call__
+    do = self.iter(retry_state=retry_state)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\tenacity\__init__.py", line 378, in iter
+    result = action(retry_state)
+             ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\tenacity\__init__.py", line 421, in exc_check
+    raise retry_exc from fut.exception()
+tenacity.RetryError: RetryError[<Future at 0x1f85b7ba000 state=finished raised LLMCommunicationError>]
+2025-04-04 19:33:38 - benchmark_llm - ERROR - Error decomposing objective 'Find and summarize three recent articles about using Groq for low-latency LLM applications.': RetryError[<Future at 0x1f85b7c30b0 state=finished raised LLMCommunicationError>]
+Traceback (most recent call last):
+  File "C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\jarvis\llm.py", line 252, in _call_llm
+    response = client.chat.completions.create(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\openai\_utils\_utils.py", line 279, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\openai\resources\chat\completions\completions.py", line 914, in create
+    return self._post(
+           ^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\openai\_base_client.py", line 1242, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\openai\_base_client.py", line 919, in request
+    return self._request(
+           ^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\openai\_base_client.py", line 1023, in _request
+    raise self._make_status_error_from_response(err.response) from None
+openai.AuthenticationError: Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-dummy*******************ting. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_api_key'}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\tenacity\__init__.py", line 480, in __call__
+    result = fn(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\jarvis\llm.py", line 335, in _call_llm
+    raise LLMCommunicationError(provider, e) from e
+jarvis.llm.LLMCommunicationError: Error communicating with openai: Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-dummy*******************ting. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_api_key'}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\benchmark_llm.py", line 217, in benchmark_decompose_objective
+    response_content = llm_client.process_with_llm(
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\jarvis\llm.py", line 403, in process_with_llm
+    response = self._call_llm(
+               ^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\tenacity\__init__.py", line 338, in wrapped_f
+    return copy(f, *args, **kw)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\tenacity\__init__.py", line 477, in __call__
+    do = self.iter(retry_state=retry_state)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\tenacity\__init__.py", line 378, in iter
+    result = action(retry_state)
+             ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\tenacity\__init__.py", line 421, in exc_check
+    raise retry_exc from fut.exception()
+tenacity.RetryError: RetryError[<Future at 0x1f85b7c30b0 state=finished raised LLMCommunicationError>]
+2025-04-04 19:33:38 - benchmark_llm - INFO - --- Benchmark Task Decomposition Finished --- Duration: 19.09s
+2025-04-04 19:33:38 - benchmark_llm - INFO - --- Running Benchmark: Skill Parsing --- Provider: openai
+2025-04-04 19:33:42 - benchmark_llm - ERROR - Error parsing task 'Search the web for tutorials on Python Pydantic V2 model config.': RetryError[<Future at 0x1f85b7c2930 state=finished raised LLMCommunicationError>]
+Traceback (most recent call last):
+  File "C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\jarvis\llm.py", line 252, in _call_llm
+    response = client.chat.completions.create(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\openai\_utils\_utils.py", line 279, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\openai\resources\chat\completions\completions.py", line 914, in create
+    return self._post(
+           ^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\openai\_base_client.py", line 1242, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\openai\_base_client.py", line 919, in request
+    return self._request(
+           ^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\openai\_base_client.py", line 1023, in _request
+    raise self._make_status_error_from_response(err.response) from None
+openai.AuthenticationError: Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-dummy*******************ting. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_api_key'}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\tenacity\__init__.py", line 480, in __call__
+    result = fn(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\jarvis\llm.py", line 335, in _call_llm
+    raise LLMCommunicationError(provider, e) from e
+jarvis.llm.LLMCommunicationError: Error communicating with openai: Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-dummy*******************ting. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_api_key'}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\benchmark_llm.py", line 282, in benchmark_parse_task_for_skill
+    response_content = llm_client.process_with_llm(
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\jarvis\llm.py", line 403, in process_with_llm
+    response = self._call_llm(
+               ^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\tenacity\__init__.py", line 338, in wrapped_f
+    return copy(f, *args, **kw)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\tenacity\__init__.py", line 477, in __call__
+    do = self.iter(retry_state=retry_state)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\tenacity\__init__.py", line 378, in iter
+    result = action(retry_state)
+             ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\tenacity\__init__.py", line 421, in exc_check
+    raise retry_exc from fut.exception()
+tenacity.RetryError: RetryError[<Future at 0x1f85b7c2930 state=finished raised LLMCommunicationError>]
