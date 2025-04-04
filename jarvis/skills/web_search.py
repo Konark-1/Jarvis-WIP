@@ -10,11 +10,11 @@ except ImportError:
     TavilyClient = None # Handle optional dependency
 
 # Import base class and result model
-from .base import Skill, SkillResult
+from jarvis.skills.base import Skill, SkillResult
 from jarvis.memory.unified_memory import MemoryEntry
 from jarvis.state import JarvisState
-from jarvis.constants import MAX_RETRIEVED_KNOWLEDGE_ITEMS
-# from jarvis.config import settings # <<< REMOVE top-level import
+from jarvis.config import settings # <<< MOVE import back to top level
+# from jarvis.constants import MAX_RETRIEVED_KNOWLEDGE_ITEMS # <<< REMOVE this import
 
 logger = logging.getLogger(__name__)
 
@@ -28,24 +28,27 @@ class WebSearchSkill(Skill):
 
     def __init__(self, tavily_client: Optional[TavilyClient] = None):
         """Initializes the Tavily client if not already done."""
-        # <<< ADDED: Import settings inside __init__ >>>
-        from jarvis.config import settings 
-        
-        # Initialize Tavily client, potentially using settings
-        api_key = settings.tavily.api_key
-        if not api_key:
-            logger.warning("Tavily API key not found in settings. WebSearchSkill will be disabled.")
-        else:
-            try:
-                WebSearchSkill.tavily_client = TavilyClient(api_key=api_key)
-                WebSearchSkill.api_key_status = "Initialized"
-                logger.info("Tavily client initialized successfully.")
-            except Exception as e:
-                logger.error(f"Failed to initialize Tavily client: {e}", exc_info=True)
-                WebSearchSkill.api_key_status = f"Initialization Error: {e}"
-        else:
-            # Log status if already attempted initialization
-             logger.debug(f"Tavily client status: {WebSearchSkill.api_key_status}")
+        # Only initialize if not already initialized or failed permanently
+        if WebSearchSkill.api_key_status not in ["Initialized", "Missing"]:
+            # <<< REMOVED: Import settings inside __init__ >>>
+            # from jarvis.config import settings 
+            
+            api_key = settings.tavily.api_key
+            if not api_key:
+                logger.warning("Tavily API key not found in settings. WebSearchSkill will be disabled.")
+                WebSearchSkill.api_key_status = "Missing"
+            else:
+                # API key exists, try to initialize
+                try:
+                    WebSearchSkill.tavily_client = TavilyClient(api_key=api_key)
+                    WebSearchSkill.api_key_status = "Initialized"
+                    logger.info("Tavily client initialized successfully.")
+                except Exception as e:
+                    logger.error(f"Failed to initialize Tavily client: {e}", exc_info=True)
+                    WebSearchSkill.api_key_status = f"Initialization Error: {e}"
+        # <<< REMOVED invalid second 'else' block >>>
+        # Log current status regardless of initialization attempt in this call
+        logger.debug(f"WebSearchSkill __init__ check complete. Status: {WebSearchSkill.api_key_status}")
 
     @property
     def name(self) -> str:

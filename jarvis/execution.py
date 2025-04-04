@@ -9,19 +9,24 @@ from enum import Enum
 import time
 import json
 import logging
+import asyncio # Added for potential async operations
+from tenacity import retry, stop_after_attempt, wait_exponential
 
 from utils.logger import setup_logger
 # Import skill components
 # from jarvis.skills import skill_registry, SkillResult # Removed unused import of old global
-from jarvis.skills import SkillResult # Keep SkillResult
+from jarvis.skills.base import SkillResult # Keep SkillResult
 from jarvis.skills.registry import SkillRegistry # Import the class if needed for type hints elsewhere, or rely on TYPE_CHECKING
+from jarvis.planning import Task # <<< Import Task directly BEFORE ExecutionResult
 
 # Conditional Imports for Type Checking
 if TYPE_CHECKING:
-    from .memory.unified_memory import UnifiedMemorySystem
-    from .llm import LLMClient
-    from .skills import SkillRegistry
-    from jarvis.planning import Task # Assuming Task is defined in planning.py
+    from jarvis.llm import LLMClient
+    from jarvis.planning import PlanningSystem, Task
+    from jarvis.memory.unified_memory import UnifiedMemorySystem
+    from jarvis.skills.registry import SkillRegistry
+    from jarvis.skills.base import SkillResult
+    from jarvis.state import JarvisState # <<< Ensure import is here
     
 # Import runtime dependencies
 from .llm import LLMError # <-- ADDED Import
@@ -54,6 +59,11 @@ class ExecutionResult(BaseModel):
     error: Optional[str] = None
     execution_time: float
     metadata: Dict[str, Any] = Field(default_factory=dict)
+    task: Optional[Task] = None # Use the imported Task type directly
+
+# --- Rebuild Model AFTER definition and Task import ---
+ExecutionResult.model_rebuild() # <<< Call model_rebuild here
+# -----------------------------------------------------
 
 class ExecutionStrategy(BaseModel):
     """Strategy for executing a task"""
@@ -117,10 +127,64 @@ class ExecutionSystem(BaseModel):
         # Initialize strategies after core components are initialized by Pydantic
         self._load_execution_strategies()
     
-    def execute_task(self, task: 'Task') -> ExecutionResult:
-        """Execute a task with error recovery, attempting skill dispatch first."""
+    def execute_task(self, task: 'Task', state: Optional[Any] = None) -> ExecutionResult:
+        """Execute a task with error recovery, handling skill-less reasoning tasks first."""
         start_time = time.time()
         self.logger.info(f"Executing task {task.task_id}: '{task.description}'")
+
+        # --- Check for No-Skill Reasoning Task FIRST --- 
+        if task.skill == "reasoning_skill": 
+            self.logger.info(f"Task {task.task_id} identified as reasoning task. Performing direct LLM reasoning.")
+            if not self.llm:
+                error_msg = "LLM not available to execute reasoning_skill task."
+                self.logger.error(error_msg)
+                return ExecutionResult(task_id=task.task_id, success=False, output=None, error=error_msg, execution_time=time.time()-start_time)
+            
+            # --- Gather Context for Reasoning --- 
+            context_str = f"Task: {task.description}\n"
+            if state and hasattr(state, 'execution_results') and state.execution_results:
+                # Get output from the last successful task as primary context
+                last_result = state.execution_results[-1]
+                if last_result.success and last_result.output:
+                    context_str += f"\nRelevant context from previous step ({last_result.task_id}):\n{str(last_result.output)}\n"
+                else:
+                    context_str += "\n(Previous step failed or produced no output.)\n"
+            else:
+                context_str += "\n(No previous execution results available.)\n"
+            # --- End Context Gathering ---
+
+            prompt = f"""
+            Based *only* on the provided context and task description, perform the requested task.
+            {context_str}
+            Provide only the direct answer or result for the task.
+            """
+            system_prompt = "You are a reasoning engine. Fulfill the user's task based *only* on the provided context."
+
+            try:
+                llm_output = self.llm.process_with_llm(
+                    prompt=prompt,
+                    system_prompt=system_prompt,
+                    max_tokens=1000, # Allow longer reasoning output
+                    temperature=0.3
+                ).strip()
+                
+                self.logger.info(f"LLM reasoning for task {task.task_id} completed.")
+                exec_time = time.time() - start_time
+                return ExecutionResult(
+                    task_id=task.task_id,
+                    success=True,
+                    output=llm_output,
+                    error=None,
+                    execution_time=exec_time,
+                    metadata={'executed_by': 'llm_reasoning'}
+                )
+            except Exception as llm_err:
+                error_msg = f"LLM reasoning execution failed for task {task.task_id}: {llm_err}"
+                self.logger.error(error_msg, exc_info=True)
+                return ExecutionResult(task_id=task.task_id, success=False, output=None, error=error_msg, execution_time=time.time()-start_time)
+        # --- END No-Skill Task Handling ---
+
+        # --- Existing Logic for Skill-Based Tasks ---
         try:
             strategy = self._get_execution_strategy(task)
             execution_result = None

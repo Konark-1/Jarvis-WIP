@@ -14,7 +14,6 @@ from jarvis.graph_nodes import (
     update_plan_node,
     retrieve_context_node,
     handle_error_node,
-    handle_plan_completion_node,
     synthesize_final_response_node,
     should_continue_condition,
     task_dispatch_condition
@@ -44,8 +43,8 @@ def build_graph(llm_client: LLMClient, planning_system: PlanningSystem, executio
     bound_get_next_task = partial(get_next_task_node, planner=planning_system)
     bound_execute_tool = partial(execute_tool_node, executor=execution_system)
     bound_update_plan = partial(update_plan_node, planner=planning_system)
-    bound_synthesize_final = partial(synthesize_final_response_node, llm=llm_client)
     bound_handle_error = partial(handle_error_node, llm=llm_client)
+    bound_synthesize_final_response = partial(synthesize_final_response_node, llm=llm_client)
 
     # --- Add nodes to the graph ---
     logger.debug("Adding nodes...")
@@ -56,7 +55,7 @@ def build_graph(llm_client: LLMClient, planning_system: PlanningSystem, executio
     workflow.add_node("execute_tool", bound_execute_tool)
     workflow.add_node("update_plan", bound_update_plan)
     workflow.add_node("handle_error", bound_handle_error)
-    workflow.add_node("synthesize_final", bound_synthesize_final)
+    workflow.add_node("synthesize_final_response", bound_synthesize_final_response)
 
     # --- Define edges --- 
     logger.debug("Adding edges...")
@@ -75,8 +74,9 @@ def build_graph(llm_client: LLMClient, planning_system: PlanningSystem, executio
         should_continue_condition, # Function to decide next step
         {
             "continue": "get_next_task",    # If plan is active
-            "handle_completion": "synthesize_final", 
-            "handle_error": "handle_error"     # If error during planning
+            "handle_completion": "synthesize_final_response", 
+            "handle_error": "handle_error",     # If error during planning
+            "plan_tasks": "plan_tasks" # <<< ADD Re-plan route (although less likely from here)
         }
     )
 
@@ -86,7 +86,7 @@ def build_graph(llm_client: LLMClient, planning_system: PlanningSystem, executio
         task_dispatch_condition, # Function to check if task exists
         {
             "execute": "execute_tool",         # Task found
-            "handle_completion": "synthesize_final",
+            "handle_completion": "synthesize_final_response",
             "handle_error": "handle_error"      # Error finding task
         }
     )
@@ -99,16 +99,17 @@ def build_graph(llm_client: LLMClient, planning_system: PlanningSystem, executio
         "update_plan",
         should_continue_condition, # Re-check plan status after update
         {
-            "continue": "get_next_task",    # Plan still active, get next task
-            "handle_completion": "synthesize_final", 
-            "handle_error": "handle_error"     # Error during update
+            "continue": "get_next_task",    # Plan still active, last task succeeded
+            "handle_completion": "synthesize_final_response", # Plan finished (completed/failed)
+            "handle_error": "handle_error",     # Critical error during update
+            "plan_tasks": "plan_tasks" # <<< ADD Re-plan route if last task failed
         }
     )
     
     # --- Define End Points ---
     # Nodes that lead to the end of the graph execution
     workflow.add_edge("handle_error", END)
-    workflow.add_edge("synthesize_final", END)
+    workflow.add_edge("synthesize_final_response", END)
 
     # --- Compile the graph --- 
     logger.info("Compiling graph...")

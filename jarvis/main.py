@@ -35,9 +35,11 @@ import json
 import warnings # <<< ADDED
 from jarvis.config import settings # <<< ADDED
 
-# --- Load .env file EARLY --- <<< ADDED
-# This ensures environment variables from .env are available when Pydantic settings are loaded.
-load_dotenv(find_dotenv(raise_error_if_not_found=False)) 
+# --- Load .env file VERY EARLY --- <<< REMOVED >>>
+# Pydantic Settings will now handle .env loading via model_config
+# print("[DEBUG main.py] Attempting to load .env before any project imports...")
+# loaded_env = load_dotenv(find_dotenv(raise_error_if_not_found=False), verbose=True)
+# print(f"[DEBUG main.py] dotenv loaded: {loaded_env}")
 # --- END Load .env ---
 
 # --- Suppress specific Pydantic V1/V2 warning --- ADDED
@@ -119,9 +121,7 @@ def setup_environment() -> logging.Logger:
     log_level = getattr(logging, log_level_str, logging.INFO)
     logger = setup_logger("main", log_level)
     
-    # Load environment variables (still useful for .env loading by BaseSettings)
-    # load_dotenv() # <<< REMOVED redundant call
-    logger.info("Environment variables loaded by dotenv (if .env exists) before settings initialization.") # <<< UPDATED log message
+    logger.info("Pydantic Settings will handle .env loading internally.") # <<< UPDATED log message
     
     # Check required API keys via settings
     missing_keys = []
@@ -288,10 +288,6 @@ if __name__ == "__main__":
     # Ensure the script runs in an environment with an event loop
     if sys.platform == "win32" and sys.version_info >= (3, 8):
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-
-    # --- Load environment variables --- (Added)
-    load_dotenv()
-    # -----------------------------------
 
     # Define a top-level logger for critical errors before main() setup
     logger = logging.getLogger(__name__)

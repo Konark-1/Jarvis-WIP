@@ -13524,3 +13524,343 @@ For troubleshooting, visit: https://python.langchain.com/docs/troubleshooting/er
 2025-04-05 02:59:12 - main - ERROR - Missing required API key configurations (check .env or environment variables): GROQ_API_KEY, TAVILY_API_KEY
 2025-04-05 03:00:36 - main - INFO - Environment variables loaded by dotenv (if .env exists) before settings initialization.
 2025-04-05 03:00:36 - main - ERROR - Missing required API key configurations (check .env or environment variables): GROQ_API_KEY, TAVILY_API_KEY
+2025-04-05 03:02:19 - main - INFO - Environment variables loaded by dotenv (if .env exists) before settings initialization.
+2025-04-05 03:02:19 - main - ERROR - Missing required API key configurations (check .env or environment variables): GROQ_API_KEY, TAVILY_API_KEY
+2025-04-05 03:02:46 - main - INFO - Environment variables loaded by dotenv (if .env exists) before settings initialization.
+2025-04-05 03:02:46 - main - ERROR - Missing required API key configurations (check .env or environment variables): GROQ_API_KEY, TAVILY_API_KEY
+2025-04-05 03:03:48 - main - INFO - Environment variables should be pre-loaded by dotenv before settings init.
+2025-04-05 03:03:48 - main - ERROR - Missing required API key configurations (check .env or environment variables): GROQ_API_KEY, TAVILY_API_KEY
+2025-04-05 03:04:27 - main - INFO - Pydantic Settings will handle .env loading internally.
+2025-04-05 03:04:27 - main - ERROR - Missing required API key configurations (check .env or environment variables): GROQ_API_KEY, TAVILY_API_KEY
+2025-04-05 03:04:54 - main - INFO - Pydantic Settings will handle .env loading internally.
+2025-04-05 03:04:54 - main - ERROR - Missing required API key configurations (check .env or environment variables): GROQ_API_KEY, TAVILY_API_KEY
+2025-04-05 03:05:44 - main - INFO - Pydantic Settings will handle .env loading internally.
+2025-04-05 03:05:44 - main - INFO - Initializing Jarvis components...
+2025-04-05 03:05:45 - main - INFO - Discovered skills: ['execute_python_file', 'read_file', 'web', 'web_search']
+2025-04-05 03:05:45 - main - INFO - Jarvis agent graph built successfully.
+2025-04-05 03:06:35 - main - INFO - Received objective: Check the current price of XAUUSD and create a report on its trend
+2025-04-05 03:06:35 - main - INFO - Invoking Jarvis agent graph...
+2025-04-05 03:06:51 - main - ERROR - Error during graph execution: 'ExecutionResult' object has no attribute 'get'
+Traceback (most recent call last):
+  File "C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\jarvis\main.py", line 258, in main
+    final_state = await app.ainvoke(inputs)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\langgraph\pregel\__init__.py", line 2741, in ainvoke
+    async for chunk in self.astream(
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\langgraph\pregel\__init__.py", line 2626, in astream
+    async for _ in runner.atick(
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\langgraph\pregel\runner.py", line 288, in atick
+    await arun_with_retry(
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\langgraph\pregel\retry.py", line 128, in arun_with_retry
+    return await task.proc.ainvoke(task.input, config)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\langgraph\utils\runnable.py", line 643, in ainvoke
+    input = await step.ainvoke(input, config, **kwargs)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\langgraph\utils\runnable.py", line 431, in ainvoke
+    ret = await asyncio.create_task(coro, context=context)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\langchain_core\runnables\config.py", line 616, in run_in_executor
+    return await asyncio.get_running_loop().run_in_executor(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\thread.py", line 59, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\langchain_core\runnables\config.py", line 607, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\jarvis\graph_nodes.py", line 675, in synthesize_final_response_node
+    task_desc = result.get('task', {}).get('description', f'Task {i+1}')
+                ^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\pydantic\main.py", line 994, in __getattr__
+    raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}')
+AttributeError: 'ExecutionResult' object has no attribute 'get'
+During task with name 'synthesize_final' and id '7f884794-886b-5a05-fbd4-1eeff9b4b46e'
+2025-04-05 03:08:00 - main - INFO - Pydantic Settings will handle .env loading internally.
+2025-04-05 03:08:00 - main - INFO - Initializing Jarvis components...
+2025-04-05 03:08:00 - main - INFO - Discovered skills: ['execute_python_file', 'read_file', 'web', 'web_search']
+2025-04-05 03:08:00 - main - INFO - Jarvis agent graph built successfully.
+2025-04-05 03:08:11 - main - INFO - Received objective: Check the current price of XAUUSD and create a report on its trend
+2025-04-05 03:08:11 - main - INFO - Invoking Jarvis agent graph...
+2025-04-05 03:08:59 - main - INFO - Pydantic Settings will handle .env loading internally.
+2025-04-05 03:08:59 - main - INFO - Initializing Jarvis components...
+2025-04-05 03:09:00 - main - INFO - Discovered skills: ['execute_python_file', 'read_file', 'web', 'web_search']
+2025-04-05 03:09:00 - main - INFO - Jarvis agent graph built successfully.
+2025-04-05 03:09:24 - main - INFO - Pydantic Settings will handle .env loading internally.
+2025-04-05 03:09:24 - main - INFO - Initializing Jarvis components...
+2025-04-05 03:09:24 - main - INFO - Discovered skills: ['execute_python_file', 'read_file', 'web', 'web_search']
+2025-04-05 03:09:24 - main - INFO - Jarvis agent graph built successfully.
+2025-04-05 03:09:41 - main - INFO - Received objective: Check the current price of XAUUSD and tell me its trendtrend
+2025-04-05 03:09:41 - main - INFO - Invoking Jarvis agent graph...
+2025-04-05 03:10:26 - main - INFO - Pydantic Settings will handle .env loading internally.
+2025-04-05 03:10:26 - main - INFO - Initializing Jarvis components...
+2025-04-05 03:10:27 - main - INFO - Discovered skills: ['execute_python_file', 'read_file', 'web', 'web_search']
+2025-04-05 03:10:27 - main - INFO - Jarvis agent graph built successfully.
+2025-04-05 03:10:29 - main - INFO - Received objective: Check the current price of XAUUSD and tell me its trendtrend
+2025-04-05 03:10:29 - main - INFO - Invoking Jarvis agent graph...
+2025-04-05 03:11:15 - main - INFO - Pydantic Settings will handle .env loading internally.
+2025-04-05 03:11:15 - main - INFO - Initializing Jarvis components...
+2025-04-05 03:11:16 - main - INFO - Discovered skills: ['execute_python_file', 'read_file', 'web_search']
+2025-04-05 03:11:16 - main - INFO - Jarvis agent graph built successfully.
+2025-04-05 03:11:32 - main - INFO - Received objective: Check the current price of XAUUSD and tell me its trendtrend
+2025-04-05 03:11:32 - main - INFO - Invoking Jarvis agent graph...
+2025-04-05 03:20:17 - main - INFO - Pydantic Settings will handle .env loading internally.
+2025-04-05 03:20:17 - main - INFO - Initializing Jarvis components...
+2025-04-05 03:20:18 - main - INFO - Discovered skills: ['execute_python_file', 'read_file', 'web_search']
+2025-04-05 03:20:18 - main - INFO - Jarvis agent graph built successfully.
+2025-04-05 03:20:22 - main - INFO - Received objective: Check the current price of XAUUSD and tell me its trendtrend
+2025-04-05 03:20:22 - main - INFO - Invoking Jarvis agent graph...
+2025-04-05 03:20:24 - main - ERROR - Error during graph execution: 'dict' object has no attribute 'task_id'
+Traceback (most recent call last):
+  File "C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\jarvis\main.py", line 258, in main
+    final_state = await app.ainvoke(inputs)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\langgraph\pregel\__init__.py", line 2741, in ainvoke
+    async for chunk in self.astream(
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\langgraph\pregel\__init__.py", line 2626, in astream
+    async for _ in runner.atick(
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\langgraph\pregel\runner.py", line 288, in atick
+    await arun_with_retry(
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\langgraph\pregel\retry.py", line 128, in arun_with_retry
+    return await task.proc.ainvoke(task.input, config)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\langgraph\utils\runnable.py", line 643, in ainvoke
+    input = await step.ainvoke(input, config, **kwargs)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\langgraph\utils\runnable.py", line 431, in ainvoke
+    ret = await asyncio.create_task(coro, context=context)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\langchain_core\runnables\config.py", line 616, in run_in_executor
+    return await asyncio.get_running_loop().run_in_executor(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\thread.py", line 59, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\langchain_core\runnables\config.py", line 607, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\jarvis\graph_nodes.py", line 400, in execute_tool_node
+    execution_result = executor.execute_task(task, state=state)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\jarvis\execution.py", line 128, in execute_task
+    self.logger.info(f"Executing task {task.task_id}: '{task.description}'")
+                                       ^^^^^^^^^^^^
+AttributeError: 'dict' object has no attribute 'task_id'
+During task with name 'execute_tool' and id '1254224f-56fe-9c82-08ed-991afa56bf31'
+2025-04-05 03:20:51 - main - INFO - Pydantic Settings will handle .env loading internally.
+2025-04-05 03:20:51 - main - INFO - Initializing Jarvis components...
+2025-04-05 03:20:52 - main - INFO - Discovered skills: ['execute_python_file', 'read_file', 'web_search']
+2025-04-05 03:20:52 - main - INFO - Jarvis agent graph built successfully.
+2025-04-05 03:20:55 - main - INFO - Received objective: Check the current price of XAUUSD and tell me its trendtrend
+2025-04-05 03:20:55 - main - INFO - Invoking Jarvis agent graph...
+2025-04-05 03:20:59 - main - ERROR - Error during graph execution: `ExecutionResult` is not fully defined; you should define `Task`, then call `ExecutionResult.model_rebuild()`.
+
+For further information visit https://errors.pydantic.dev/2.11/u/class-not-fully-defined
+Traceback (most recent call last):
+  File "C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\jarvis\execution.py", line 398, in _execute_with_strategy
+    return ExecutionResult(
+           ^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\pydantic\main.py", line 253, in __init__
+    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\pydantic\_internal\_mock_val_ser.py", line 100, in __getattr__
+    raise PydanticUserError(self._error_message, code=self._code)
+pydantic.errors.PydanticUserError: `ExecutionResult` is not fully defined; you should define `Task`, then call `ExecutionResult.model_rebuild()`.
+
+For further information visit https://errors.pydantic.dev/2.11/u/class-not-fully-defined
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\jarvis\execution.py", line 409, in _execute_with_strategy
+    return ExecutionResult(task_id=task.task_id, success=False, output=None, error=error_msg, execution_time=time.time()-start_time)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\pydantic\main.py", line 253, in __init__
+    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\pydantic\_internal\_mock_val_ser.py", line 100, in __getattr__
+    raise PydanticUserError(self._error_message, code=self._code)
+pydantic.errors.PydanticUserError: `ExecutionResult` is not fully defined; you should define `Task`, then call `ExecutionResult.model_rebuild()`.
+
+For further information visit https://errors.pydantic.dev/2.11/u/class-not-fully-defined
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\jarvis\execution.py", line 190, in execute_task
+    execution_result = self._execute_with_strategy(task, strategy)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\jarvis\execution.py", line 488, in _execute_with_strategy
+    return ExecutionResult(task_id=task.task_id, success=False, output=None, error=error_msg, execution_time=time.time()-start_time)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\pydantic\main.py", line 253, in __init__
+    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\pydantic\_internal\_mock_val_ser.py", line 100, in __getattr__
+    raise PydanticUserError(self._error_message, code=self._code)
+pydantic.errors.PydanticUserError: `ExecutionResult` is not fully defined; you should define `Task`, then call `ExecutionResult.model_rebuild()`.
+
+For further information visit https://errors.pydantic.dev/2.11/u/class-not-fully-defined
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\jarvis\execution.py", line 210, in execute_task
+    execution_result = ExecutionResult(
+                       ^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\pydantic\main.py", line 253, in __init__
+    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\pydantic\_internal\_mock_val_ser.py", line 100, in __getattr__
+    raise PydanticUserError(self._error_message, code=self._code)
+pydantic.errors.PydanticUserError: `ExecutionResult` is not fully defined; you should define `Task`, then call `ExecutionResult.model_rebuild()`.
+
+For further information visit https://errors.pydantic.dev/2.11/u/class-not-fully-defined
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\jarvis\main.py", line 258, in main
+    final_state = await app.ainvoke(inputs)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\langgraph\pregel\__init__.py", line 2741, in ainvoke
+    async for chunk in self.astream(
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\langgraph\pregel\__init__.py", line 2626, in astream
+    async for _ in runner.atick(
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\langgraph\pregel\runner.py", line 288, in atick
+    await arun_with_retry(
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\langgraph\pregel\retry.py", line 128, in arun_with_retry
+    return await task.proc.ainvoke(task.input, config)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\langgraph\utils\runnable.py", line 643, in ainvoke
+    input = await step.ainvoke(input, config, **kwargs)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\langgraph\utils\runnable.py", line 431, in ainvoke
+    ret = await asyncio.create_task(coro, context=context)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\langchain_core\runnables\config.py", line 616, in run_in_executor
+    return await asyncio.get_running_loop().run_in_executor(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\thread.py", line 59, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\langchain_core\runnables\config.py", line 607, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\jarvis\graph_nodes.py", line 417, in execute_tool_node
+    execution_result = executor.execute_task(task, state=state)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\jarvis\execution.py", line 283, in execute_task
+    return ExecutionResult(
+           ^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\pydantic\main.py", line 253, in __init__
+    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\pydantic\_internal\_mock_val_ser.py", line 100, in __getattr__
+    raise PydanticUserError(self._error_message, code=self._code)
+pydantic.errors.PydanticUserError: `ExecutionResult` is not fully defined; you should define `Task`, then call `ExecutionResult.model_rebuild()`.
+
+For further information visit https://errors.pydantic.dev/2.11/u/class-not-fully-defined
+During task with name 'execute_tool' and id 'ea5cfdb3-290d-c176-472b-5e74e6f7e466'
+2025-04-05 03:21:31 - main - INFO - Pydantic Settings will handle .env loading internally.
+2025-04-05 03:21:31 - main - INFO - Initializing Jarvis components...
+2025-04-05 03:21:32 - main - INFO - Discovered skills: ['execute_python_file', 'read_file', 'web_search']
+2025-04-05 03:21:32 - main - INFO - Jarvis agent graph built successfully.
+2025-04-05 03:21:35 - main - INFO - Received objective: Check the current price of XAUUSD and tell me its trendtrend
+2025-04-05 03:21:35 - main - INFO - Invoking Jarvis agent graph...
+2025-04-05 03:23:15 - main - INFO - Pydantic Settings will handle .env loading internally.
+2025-04-05 03:23:15 - main - INFO - Initializing Jarvis components...
+2025-04-05 03:23:15 - main - INFO - Discovered skills: ['execute_python_file', 'read_file', 'web_search']
+2025-04-05 03:23:15 - main - INFO - Jarvis agent graph built successfully.
+2025-04-05 03:23:41 - main - INFO - Received objective: Check XAUUSD price and then create a real time price analysis repotr
+2025-04-05 03:23:41 - main - INFO - Invoking Jarvis agent graph...
+2025-04-05 03:24:59 - main - INFO - Pydantic Settings will handle .env loading internally.
+2025-04-05 03:24:59 - main - INFO - Initializing Jarvis components...
+2025-04-05 03:25:00 - main - INFO - Discovered skills: ['execute_python_file', 'read_file', 'web_search']
+2025-04-05 03:25:00 - main - INFO - Jarvis agent graph built successfully.
+2025-04-05 03:25:02 - main - INFO - Received objective: Check XAUUSD price and then create a real time price analysis repotr
+2025-04-05 03:25:02 - main - INFO - Invoking Jarvis agent graph...
+2025-04-05 03:25:59 - main - INFO - Pydantic Settings will handle .env loading internally.
+2025-04-05 03:25:59 - main - INFO - Initializing Jarvis components...
+2025-04-05 03:26:00 - main - INFO - Discovered skills: ['execute_python_file', 'read_file', 'web_search']
+2025-04-05 03:26:00 - main - INFO - Jarvis agent graph built successfully.
+2025-04-05 03:26:02 - main - INFO - Received objective: Check XAUUSD price and then create a real time price analysis repotr
+2025-04-05 03:26:02 - main - INFO - Invoking Jarvis agent graph...
+2025-04-05 03:26:24 - main - INFO - Pydantic Settings will handle .env loading internally.
+2025-04-05 03:26:24 - main - INFO - Initializing Jarvis components...
+2025-04-05 03:26:25 - main - INFO - Discovered skills: ['execute_python_file', 'read_file', 'web_search']
+2025-04-05 03:26:25 - main - INFO - Jarvis agent graph built successfully.
+2025-04-05 03:27:07 - main - INFO - Received objective: Check XAUUSD price and then try to run 'non_existent_script.py'
+2025-04-05 03:27:07 - main - INFO - Invoking Jarvis agent graph...
+2025-04-05 03:28:16 - main - INFO - Pydantic Settings will handle .env loading internally.
+2025-04-05 03:28:16 - main - INFO - Initializing Jarvis components...
+2025-04-05 03:28:17 - main - INFO - Discovered skills: ['execute_python_file', 'read_file', 'web_search']
+2025-04-05 03:28:17 - main - INFO - Jarvis agent graph built successfully.
+2025-04-05 03:28:32 - main - INFO - Received objective: Check XAUUSD price and then try to run 'non_existent_script.py'
+2025-04-05 03:28:32 - main - INFO - Invoking Jarvis agent graph...
+2025-04-05 03:29:44 - main - INFO - Pydantic Settings will handle .env loading internally.
+2025-04-05 03:29:44 - main - INFO - Initializing Jarvis components...
+2025-04-05 03:29:44 - main - INFO - Discovered skills: ['execute_python_file', 'read_file', 'web_search']
+2025-04-05 03:29:44 - main - INFO - Jarvis agent graph built successfully.
+2025-04-05 03:29:47 - main - INFO - Received objective: Check XAUUSD price and then try to run 'non_existent_script.py'
+2025-04-05 03:29:47 - main - INFO - Invoking Jarvis agent graph...
+2025-04-05 03:30:38 - main - INFO - Pydantic Settings will handle .env loading internally.
+2025-04-05 03:30:38 - main - INFO - Initializing Jarvis components...
+2025-04-05 03:30:39 - main - INFO - Discovered skills: ['execute_python_file', 'read_file', 'web_search']
+2025-04-05 03:30:39 - main - INFO - Jarvis agent graph built successfully.
+2025-04-05 03:31:23 - main - INFO - Pydantic Settings will handle .env loading internally.
+2025-04-05 03:31:23 - main - INFO - Initializing Jarvis components...
+2025-04-05 03:31:24 - main - INFO - Discovered skills: ['execute_python_file', 'read_file', 'web_search']
+2025-04-05 03:31:24 - main - INFO - Jarvis agent graph built successfully.
+2025-04-05 03:32:59 - main - INFO - Pydantic Settings will handle .env loading internally.
+2025-04-05 03:32:59 - main - INFO - Initializing Jarvis components...
+2025-04-05 03:32:59 - main - INFO - Discovered skills: ['execute_python_file', 'read_file', 'web_search']
+2025-04-05 03:32:59 - main - INFO - Jarvis agent graph built successfully.
+2025-04-05 03:33:19 - main - INFO - Received objective: Check XAUUSD price and then try to run 'non_existent_script.py'
+2025-04-05 03:33:19 - main - INFO - Invoking Jarvis agent graph...
+2025-04-05 03:35:59 - main - INFO - Pydantic Settings will handle .env loading internally.
+2025-04-05 03:35:59 - main - INFO - Initializing Jarvis components...
+2025-04-05 03:35:59 - main - INFO - Discovered skills: ['execute_python_file', 'read_file', 'web_search']
+2025-04-05 03:35:59 - main - INFO - Jarvis agent graph built successfully.
+2025-04-05 03:36:06 - main - INFO - Received objective: Check XAUUSD price and then try to run 'non_existent_script.py'
+2025-04-05 03:36:06 - main - INFO - Invoking Jarvis agent graph...
+2025-04-05 03:36:17 - main - ERROR - Error during graph execution: 'NoneType' object has no attribute 'get'
+Traceback (most recent call last):
+  File "C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\jarvis\main.py", line 258, in main
+    final_state = await app.ainvoke(inputs)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\langgraph\pregel\__init__.py", line 2741, in ainvoke
+    async for chunk in self.astream(
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\langgraph\pregel\__init__.py", line 2626, in astream
+    async for _ in runner.atick(
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\langgraph\pregel\runner.py", line 288, in atick
+    await arun_with_retry(
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\langgraph\pregel\retry.py", line 128, in arun_with_retry
+    return await task.proc.ainvoke(task.input, config)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\langgraph\utils\runnable.py", line 643, in ainvoke
+    input = await step.ainvoke(input, config, **kwargs)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\langgraph\utils\runnable.py", line 431, in ainvoke
+    ret = await asyncio.create_task(coro, context=context)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\langchain_core\runnables\config.py", line 616, in run_in_executor
+    return await asyncio.get_running_loop().run_in_executor(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\thread.py", line 59, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\langchain_core\runnables\config.py", line 607, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\jarvis\graph_nodes.py", line 669, in synthesize_final_response_node
+    task_desc = result.get('task', {}).get('description', task_id)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'get'
+During task with name 'synthesize_final_response' and id 'a4e327b7-41a3-29ef-bcf0-e75d58d5e899'
+2025-04-05 03:36:55 - main - INFO - Pydantic Settings will handle .env loading internally.
+2025-04-05 03:36:55 - main - INFO - Initializing Jarvis components...
+2025-04-05 03:36:55 - main - INFO - Discovered skills: ['execute_python_file', 'read_file', 'web_search']
+2025-04-05 03:36:55 - main - INFO - Jarvis agent graph built successfully.
+2025-04-05 03:37:31 - main - INFO - Received objective: Check XAUUSD price and then try to run 'non_existent_script.py'
+2025-04-05 03:37:31 - main - INFO - Invoking Jarvis agent graph...

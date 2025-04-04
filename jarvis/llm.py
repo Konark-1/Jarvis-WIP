@@ -14,6 +14,7 @@ import logging
 from tenacity import retry, stop_after_attempt, wait_exponential
 import tiktoken
 import instructor
+from jarvis.config import settings
 
 # <<< ADDED TYPE_CHECKING block >>>
 if TYPE_CHECKING:
@@ -24,7 +25,6 @@ if TYPE_CHECKING:
 # <<< END TYPE_CHECKING block >>>
 
 from utils.logger import setup_logger
-# from jarvis.config import settings # <<< REMOVE top-level import
 
 # Initialize logger EARLY
 logger = logging.getLogger("jarvis.llm")
@@ -159,8 +159,8 @@ class LLMClient(BaseModel):
             from utils.logger import setup_logger
             data['logger'] = setup_logger("jarvis.llm")
             
-        # <<< ADDED: Import settings inside __init__ >>>
-        from jarvis.config import settings
+        # <<< REMOVED: Import settings inside __init__ >>>
+        # from jarvis.config import settings 
         
         # <<< ADDED: Set fields directly from settings >>>
         data['groq_api_key'] = settings.groq.api_key

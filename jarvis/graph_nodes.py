@@ -183,7 +183,16 @@ def plan_tasks_node(state: JarvisState, planner: PlanningSystem, llm: LLMClient,
     # Get available skill definitions
     available_skills = skills.get_skill_definitions()
     try:
-        skills_json_str = json.dumps(available_skills, indent=2)
+        # Add our pseudo-skill explanation to the list
+        pseudo_skill = {
+            "name": "reasoning_skill",
+            "description": "Use this INTERNAL skill when the task requires reasoning, summarization, synthesis, or analysis based on information gathered in previous steps, and no other specific skill (like web_search or read_file) is appropriate. This skill uses the LLM's general capabilities.",
+            "parameters": []
+        }
+        # Ensure available_skills is mutable if it comes from registry directly
+        skills_list = list(available_skills) 
+        skills_list.append(pseudo_skill)
+        skills_json_str = json.dumps(skills_list, indent=2)
     except Exception as e:
         logger.error(f"Failed to serialize skill definitions: {e}")
         skills_json_str = "[]" # Fallback to empty list
@@ -202,7 +211,10 @@ Available Skills:
 
 Based on the objective, context, and available skills, generate a JSON list representing the plan. Each object in the list should represent a task and have the following keys:
 - "description": A clear description of the task.
-- "skill": (Optional) The name of the *most appropriate* skill from the list above to accomplish this task. If no single skill is suitable or the task requires general reasoning/synthesis, omit this key.
+- "skill": The name of the *most appropriate* skill from the list above to accomplish this task.
+    - **Use 'reasoning_skill' if the task involves analyzing results from previous steps, requires general knowledge application not covered by other skills, or needs synthesis.**
+    - **Use 'execute_python_file' ONLY if the user specifically asks to run an existing file or if you are certain a relevant file exists based on prior context.** Provide ONLY the relative path *within* the sandbox (e.g., 'my_script.py', NOT 'workspace_sandbox/my_script.py'). Do NOT invent filenames.
+    - Choose specific skills like 'web_search' or 'read_file' when they directly match the action needed.
 - "arguments": (Optional) A dictionary of arguments required by the selected skill, inferred from the task description and context. Only include if "skill" is specified. Ensure argument names match the skill definition exactly.
 
 Return *only* the JSON list (starting with '[' and ending with ']'), without any introductory text, comments, or explanations.
@@ -385,87 +397,67 @@ def get_next_task_node(state: JarvisState, planner: PlanningSystem) -> Dict[str,
         logger.info(f"-> No runnable task found in plan {plan_id}.")
         return {"current_task": None, "timestamp": datetime.now()}
 
-def execute_tool_node(state: JarvisState, executor: ExecutionSystem) -> Dict[str, Any]: # Renamed for clarity
-    """Executes the current task using the ExecutionSystem."""
+def execute_tool_node(state: JarvisState, executor: ExecutionSystem) -> Dict[str, Any]:
+    """Executes the next tool call."""
     logger.info("NODE: execute_tool_node")
-    
-    current_task = state.get('current_task')
-    if not current_task:
-        logger.warning("No current task found in state to execute.")
-        # Return None for last_execution_result to signify no execution happened
-        return {"last_execution_result": None, "timestamp": datetime.now()}
-        
-    # Ensure current_task is a Task object
-    if isinstance(current_task, dict):
+    task_data = state.get('current_task') # Get task data (likely a dict)
+    if not task_data:
+        logger.error("execute_tool_node called with no current_task in state.")
+        return {"error_message": "Cannot execute tool: No current task found."}
+
+    # --- Ensure task is a Pydantic Task object --- 
+    if isinstance(task_data, dict):
         try:
-            current_task = Task(**current_task)
+            # Import Task model locally if needed to avoid top-level circular deps
+            from jarvis.planning import Task 
+            task = Task(**task_data)
+            logger.debug(f"Converted task data dict to Task object: {task.task_id}")
         except Exception as e:
-             logger.error(f"Failed to recreate Task object from state: {e}. Data: {current_task}")
-             # Return an error state
-             return {"last_execution_result": None, "error_message": "Invalid task data in state.", "timestamp": datetime.now()}
-    elif not isinstance(current_task, Task):
-         logger.error(f"current_task in state is not a Task object or dict, type: {type(current_task)}")
-         # Return an error state
-         return {"last_execution_result": None, "error_message": "Invalid task object type in state.", "timestamp": datetime.now()}
+            logger.error(f"Failed to convert task data to Task object: {e}. Data: {task_data}", exc_info=True)
+            return {"error_message": f"Invalid task data format: {e}"}
+    elif hasattr(task_data, 'task_id'): # Check if it might already be a Task-like object
+        task = task_data # Assume it's already the correct type or compatible
+    else:
+        logger.error(f"current_task data is neither a dict nor a Task object. Type: {type(task_data)}")
+        return {"error_message": "Invalid task data type in state."}
+    # --- End Task Conversion ---
 
-    logger.info(f"Executing task: {current_task.task_id} ('{current_task.description}')")
+    # Execute the task using the execution system
+    execution_result = executor.execute_task(task, state=state)
 
-    try:
-        result: ExecutionResult = executor.execute_task(current_task)
-        logger.info(f"-> Task {current_task.task_id} execution result: Success={result.success}")
+    # <<< Convert result to dict EARLY >>>
+    result_dict = execution_result.model_dump(mode='json')
 
-        history = state.get("execution_history", []) or []
-        # Ensure history contains ExecutionResult objects if it already exists
-        # (This might be needed if state somehow got inconsistent objects)
-        if history and not isinstance(history[0], ExecutionResult):
-             logger.warning("Execution history contained non-ExecutionResult objects. Reinitializing.")
-             history = [] # Or attempt conversion if possible
-             
-        history.append(result) # Append the ExecutionResult object
+    # Update the execution history in the state
+    # <<< REMOVE History update from this node >>>
+    # # <<< Add the DICT to history >>>
+    # current_history = state.get('execution_history', [])
+    # if not isinstance(current_history, list):
+    #     logger.warning(f"execution_history was not a list ({type(current_history)}), resetting.")
+    #     current_history = [] 
+    # updated_history = current_history + [result_dict] 
 
-        return {
-            "last_execution_result": result, # Return the object
-            "execution_history": history,
-            "timestamp": datetime.now()
-        }
-        
-    except Exception as e:
-        logger.exception(f"Error executing task {current_task.task_id}: {e}")
-        # <<< MODIFIED: Create ExecutionResult object for error case >>>
-        failed_exec_result = ExecutionResult(
-             task_id=current_task.task_id,
-             success=False,
-             output=None,
-             error=f"Node-level execution error: {e}",
-             execution_time=0.0, # Or calculate time if possible
-             metadata={"executed_by": "graph_node_error"}
-        )
-        history = state.get("execution_history", []) or []
-        # Ensure history contains ExecutionResult objects
-        if history and not isinstance(history[0], ExecutionResult):
-             logger.warning("Execution history contained non-ExecutionResult objects. Reinitializing.")
-             history = []
-             
-        history.append(failed_exec_result) # Append the object
-        return {
-            "error_message": f"Failed to execute task {current_task.task_id}: {e}", 
-            "last_execution_result": failed_exec_result, # Return the object
-            "execution_history": history,
-            "timestamp": datetime.now()
-        }
+    logger.info(f"execute_tool_node returning result - Success: {result_dict.get('success')}, Task ID: {result_dict.get('task_id')}")
+    
+    # <<< Return ONLY the last result dict >>>
+    return {
+        "last_execution_result": result_dict, 
+        # "execution_history": updated_history, 
+        "timestamp": datetime.now()
+    }
 
 def update_plan_node(state: JarvisState, planner: PlanningSystem) -> Dict[str, Any]:
     """Updates the plan status in the state based on the last execution result."""
-    logger.info("NODE: update_plan_node")
+    logger.info("NODE: update_plan_node (Entered)")
+    # <<< Expect a DICT now >>>
+    last_result_dict = state.get('last_execution_result') 
 
-    last_result = state.get('last_execution_result') # Now expects ExecutionResult object
+    # Check if it's a dict and has needed keys
+    if not isinstance(last_result_dict, dict) or 'task_id' not in last_result_dict or 'success' not in last_result_dict:
+        logger.warning(f"Invalid or missing last execution result dict found in state: {last_result_dict}")
+        return {"timestamp": datetime.now()} # No update if result is bad
+
     current_plan = state.get('current_plan')
-
-    if not last_result:
-        logger.warning("No last execution result found in state to update plan.")
-        # If no result, implies no execution happened, so no update needed
-        return {"timestamp": datetime.now()}
-
     if not current_plan:
         logger.error("No current plan found in state to update.")
         return {"error_message": "Cannot update plan: No plan found in state.", "timestamp": datetime.now()}
@@ -485,13 +477,15 @@ def update_plan_node(state: JarvisState, planner: PlanningSystem) -> Dict[str, A
         return {"error_message": "Invalid plan object type in state.", "timestamp": datetime.now()}
 
     plan_id = current_plan.plan_id
-    task_id = last_result.task_id
-    success = last_result.success
-    error = last_result.error
-    output = last_result.output
+    # <<< Extract info from DICT >>>
+    task_id = last_result_dict.get('task_id')
+    success = last_result_dict.get('success')
+    error = last_result_dict.get('error')
+    output = last_result_dict.get('output') 
 
+    # Check again after extraction, though initial check should cover basic keys
     if task_id is None or success is None:
-         logger.error(f"Invalid execution result format: {last_result}")
+         logger.error(f"Invalid execution result dict format: {last_result_dict}")
          return {"error_message": "Invalid execution result format.", "timestamp": datetime.now()}
 
     logger.info(f"Updating plan {plan_id} in state for task {task_id} status (Success={success})")
@@ -581,25 +575,44 @@ def update_plan_node(state: JarvisState, planner: PlanningSystem) -> Dict[str, A
 # --- Conditional Edge Functions ---
 
 def should_continue_condition(state: JarvisState) -> str:
-    """Determines the next step based on the plan status."""
-    logger.info("CONDITION: should_continue_condition")
+    """Determines the next step based on the plan status and last execution result."""
+    logger.info("CONDITION: should_continue_condition (Entered)")
     plan_status = state.get("plan_status")
     error_message = state.get("error_message")
+    # <<< Expect a DICT now >>>
+    last_result_dict = state.get("last_execution_result")
 
+    # <<< Extract success status from DICT >>>
+    last_success = last_result_dict.get('success') if isinstance(last_result_dict, dict) else 'N/A'
+    
+    logger.info(f"Evaluating condition: plan_status='{plan_status}', last_result.success='{last_success}', error_message='{error_message}'")
+
+    # 1. Handle critical graph errors first
     if error_message:
-        logger.warning(f"-> Error detected ('{error_message}'), routing to handle_error.")
+        logger.warning(f"-> Critical error detected ('{error_message}'), routing to handle_error.")
         return "handle_error"
         
+    # 2. Handle task execution failure: Re-plan
+    # <<< Check dict success value >>>
+    if isinstance(last_result_dict, dict) and last_success is False:
+        # Extract task_id for logging
+        failed_task_id = last_result_dict.get('task_id', 'Unknown')
+        logger.warning(f"-> Task {failed_task_id} failed. Routing back to plan_tasks for re-planning.")
+        return "plan_tasks" # ROUTE TO RE-PLAN
+
+    # 3. Handle plan completion (successful or failed overall)
     if plan_status == "completed" or plan_status == "failed":
         logger.info(f"-> Plan status is '{plan_status}', routing to handle_completion.")
         return "handle_completion"
-    elif plan_status == "active":
-        logger.info("-> Plan status is active, routing to get_next_task.")
+        
+    # 4. Continue with the active plan if last task succeeded
+    if plan_status == "active":
+        logger.info("-> Plan active, last task OK. Routing to get_next_task.")
         return "continue"
-    else:
-        # If plan status is None or unexpected, likely an error or start state
-        logger.warning(f"-> Plan status is unexpected ('{plan_status}'), routing to handle_error.")
-        return "handle_error" 
+        
+    # 5. Fallback/Default: Unexpected state, route to error
+    logger.warning(f"-> Plan status is unexpected ('{plan_status}') or state unclear, routing to handle_error.")
+    return "handle_error" 
 
 def task_dispatch_condition(state: JarvisState) -> str:
     """Determines if a task was found to be executed."""
@@ -638,22 +651,6 @@ def handle_error_node(state: JarvisState, llm: LLMClient) -> Dict[str, Any]:
         "timestamp": datetime.now()
         }
 
-def handle_plan_completion_node(state: JarvisState) -> Dict[str, Any]:
-    """Handles the completion (successful or failed) of a plan."""
-    # NOTE: This node is currently bypassed by conditional edges going directly
-    # to synthesize_final_response_node. It can be removed or repurposed.
-    logger.info(f"NODE: handle_plan_completion_node (Status: '{state.get('plan_status')}')")
-    plan_status = state.get("plan_status", "Unknown")
-    final_response = f"Plan execution finished with status: {plan_status}."
-
-    # TODO: Add final synthesis logic here if needed, based on execution_history
-    # For now, just report status.
-    
-    return {"final_response": final_response, "timestamp": datetime.now()}
-
-
-# --- Add a simple synthesis node placeholder ---
-# This might be called from handle_plan_completion_node or be a separate final step
 def synthesize_final_response_node(state: JarvisState, llm: LLMClient) -> Dict[str, Any]:
     """Synthesizes the final response based on objective, results, and errors."""
     logger.info("NODE: synthesize_final_response_node")
@@ -662,33 +659,54 @@ def synthesize_final_response_node(state: JarvisState, llm: LLMClient) -> Dict[s
     task_results = state.get('execution_history', [])
     error_message = state.get('error_message')
 
-    # --- Construct Prompt --- 
-    prompt_lines = [
-        "Objective:",
-        objective,
-        "\n---",
-        "Execution Summary:"
-    ]
-
+    # Format results
+    results_summary = "\nExecution Results:\n"
     if task_results:
-        for i, result in enumerate(task_results[-5:]): # Use last 5 results for brevity
-            task_desc = result.get('task', {}).get('description', f'Task {i+1}')
-            outcome = "Success" if result.get('success') else "Failure"
-            result_data = result.get('output') or result.get('error') or "No output/error recorded."
-            # Truncate long results
-            result_preview = (str(result_data)[:200] + '...') if len(str(result_data)) > 200 else str(result_data)
-            prompt_lines.append(f"- Task: {task_desc}\n  - Outcome: {outcome}\n  - Result: {result_preview}")
+        for i, result in enumerate(task_results[-5:]):
+            # --- Add Check: Ensure result is a dictionary --- 
+            if not isinstance(result, dict):
+                logger.warning(f"Skipping non-dict item in execution_history (index {i}): {type(result)}")
+                results_summary += f"- Task {i+1}: Invalid format in history\n"
+                continue # Skip to the next item
+            # -----------------------------------------------
+
+            task_id = result.get('task_id', f'Task_{i+1}')
+            # <<< Safely access nested task description >>>
+            task_info = result.get('task')
+            task_desc = task_info.get('description', task_id) if isinstance(task_info, dict) else task_id
+            # -------------------------------------------
+            success = result.get('success')
+            error = result.get('error')
+            output = result.get('output')
+
+            if success is True:
+                status = "Success"
+                results_summary += f"- {task_desc}: {status}\n"
+                # <<< ADD Output to summary if successful >>>
+                if output:
+                    output_preview = str(output)[:500] + ('...' if len(str(output)) > 500 else '') # Longer preview for results
+                    results_summary += f"  Output: {output_preview}\n"
+                else:
+                    results_summary += "  Output: (No output data provided)\n"
+                # <<< END Add Output >>>
+            elif success is False:
+                status = f"Failure ({error or 'No error details'})"
+                results_summary += f"- {task_desc}: {status}\n"
+            else:
+                # Handle cases where success key might be missing or None
+                status = "Unknown Status"
+                results_summary += f"- {task_desc}: {status}\n"
     else:
-        prompt_lines.append("(No tasks were executed or results available)")
+        results_summary += "- No tasks executed.\n"
 
     if error_message:
-        prompt_lines.append("\n---")
-        prompt_lines.append(f"Error Encountered: {error_message}")
+        results_summary += "\n---"
+        results_summary += f"Error Encountered: {error_message}"
 
-    prompt_lines.append("\n---")
-    prompt_lines.append("Instruction: Based on the objective and the execution summary (including any errors), generate a concise final response for the user.")
+    results_summary += "\n---"
+    results_summary += "Instruction: Based on the objective and the execution summary (including any errors), generate a concise final response for the user."
     
-    final_prompt = "\n".join(prompt_lines)
+    final_prompt = results_summary
     logger.debug(f"Final synthesis prompt:\n{final_prompt}")
 
     # --- Call LLM --- 
