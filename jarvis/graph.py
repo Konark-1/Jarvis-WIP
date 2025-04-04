@@ -44,7 +44,7 @@ def build_graph(llm_client: LLMClient, planning_system: PlanningSystem, executio
     bound_execute_tool = partial(execute_tool_node, executor=execution_system)
     bound_update_plan = partial(update_plan_node, planner=planning_system)
     bound_handle_error = partial(handle_error_node, llm=llm_client)
-    bound_synthesize_final_response = partial(synthesize_final_response_node, llm=llm_client)
+    bound_synthesize_final_response = partial(synthesize_final_response_node, llm=llm_client, executor=execution_system)
 
     # --- Add nodes to the graph ---
     logger.debug("Adding nodes...")
@@ -75,8 +75,7 @@ def build_graph(llm_client: LLMClient, planning_system: PlanningSystem, executio
         {
             "continue": "get_next_task",    # If plan is active
             "handle_completion": "synthesize_final_response", 
-            "handle_error": "handle_error",     # If error during planning
-            "plan_tasks": "plan_tasks" # <<< ADD Re-plan route (although less likely from here)
+            "handle_error": "handle_error"      # If error during planning or unexpected state
         }
     )
 
@@ -99,10 +98,9 @@ def build_graph(llm_client: LLMClient, planning_system: PlanningSystem, executio
         "update_plan",
         should_continue_condition, # Re-check plan status after update
         {
-            "continue": "get_next_task",    # Plan still active, last task succeeded
+            "continue": "get_next_task",    # Plan still active
             "handle_completion": "synthesize_final_response", # Plan finished (completed/failed)
-            "handle_error": "handle_error",     # Critical error during update
-            "plan_tasks": "plan_tasks" # <<< ADD Re-plan route if last task failed
+            "handle_error": "handle_error"      # Critical error during update or unexpected state
         }
     )
     

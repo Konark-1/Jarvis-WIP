@@ -4,7 +4,7 @@ Execution system that handles task execution and error recovery.
 
 from typing import Dict, Any, List, Optional, Tuple, TYPE_CHECKING
 from datetime import datetime
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, PrivateAttr
 from enum import Enum
 import time
 import json
@@ -84,6 +84,8 @@ class ExecutionSystem(BaseModel):
     skill_registry: 'SkillRegistry'
     planning_system: Optional['PlanningSystem'] = None
     strategies: Dict[str, ExecutionStrategy] = Field(default_factory=dict)
+    # <<< ADD internal result storage >>>
+    _last_run_results: Dict[str, ExecutionResult] = PrivateAttr(default_factory=dict)
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
@@ -128,12 +130,14 @@ class ExecutionSystem(BaseModel):
         self._load_execution_strategies()
     
     def execute_task(self, task: 'Task', state: Optional[Any] = None) -> ExecutionResult:
-        """Execute a task with error recovery, handling skill-less reasoning tasks first."""
+        """Execute a task, store full result internally, return simplified dict."""
         start_time = time.time()
         self.logger.info(f"Executing task {task.task_id}: '{task.description}'")
+        
+        final_execution_result: Optional[ExecutionResult] = None
 
-        # --- Check for No-Skill Reasoning Task FIRST --- 
-        if task.skill == "reasoning_skill": 
+        # --- Check for Reasoning Task --- 
+        if task.skill == "reasoning_skill":
             self.logger.info(f"Task {task.task_id} identified as reasoning task. Performing direct LLM reasoning.")
             if not self.llm:
                 error_msg = "LLM not available to execute reasoning_skill task."
@@ -170,125 +174,154 @@ class ExecutionSystem(BaseModel):
                 
                 self.logger.info(f"LLM reasoning for task {task.task_id} completed.")
                 exec_time = time.time() - start_time
-                return ExecutionResult(
+                final_execution_result = ExecutionResult(
                     task_id=task.task_id,
                     success=True,
                     output=llm_output,
                     error=None,
                     execution_time=exec_time,
-                    metadata={'executed_by': 'llm_reasoning'}
+                    metadata={'executed_by': 'llm_reasoning'},
+                    task=task
                 )
             except Exception as llm_err:
                 error_msg = f"LLM reasoning execution failed for task {task.task_id}: {llm_err}"
                 self.logger.error(error_msg, exc_info=True)
-                return ExecutionResult(task_id=task.task_id, success=False, output=None, error=error_msg, execution_time=time.time()-start_time)
-        # --- END No-Skill Task Handling ---
-
-        # --- Existing Logic for Skill-Based Tasks ---
-        try:
-            strategy = self._get_execution_strategy(task)
-            execution_result = None
-
-            for attempt in range(strategy.max_retries + 1): # +1 for initial try
-                self.logger.info(f"Attempt {attempt + 1}/{strategy.max_retries + 1} for task {task.task_id}")
-                try:
-                    execution_result = self._execute_with_strategy(task, strategy)
-                    if execution_result.success:
-                        self.logger.info(f"Task {task.task_id} completed successfully in attempt {attempt + 1}.")
-                        break # Exit retry loop on success
-
-                    self.logger.warning(f"Attempt {attempt + 1} failed for task {task.task_id}: {execution_result.error}")
-                    # Increment task's internal error count (if Task model allows)
-                    # task.error_count += 1
-
-                    if attempt < strategy.max_retries:
-                        delay = strategy.retry_delay * (2 ** attempt) # Exponential backoff
-                        self.logger.info(f"Retrying task {task.task_id} in {delay:.2f} seconds...")
-                        time.sleep(delay)
-                    else:
-                        self.logger.error(f"Task {task.task_id} failed after maximum retries ({strategy.max_retries}).")
-                        break # Exit loop after max retries
-
-                except Exception as e:
-                    # Catch errors during the execution attempt itself
-                    self.logger.error(f"Exception during attempt {attempt + 1} for task {task.task_id}: {e}", exc_info=True)
-                    execution_result = ExecutionResult(
-                        task_id=task.task_id,
-                        success=False,
-                        output=None,
-                        error=f"Exception during execution attempt: {str(e)}",
-                        execution_time=time.time() - start_time # Partial time
-                    )
-                    if attempt >= strategy.max_retries:
-                         self.logger.error(f"Task {task.task_id} failed due to exception after maximum retries.")
-                         break # Exit loop after max retries
-                    # Wait before retrying after an exception
-                    delay = strategy.retry_delay * (2 ** attempt)
-                    self.logger.info(f"Retrying task {task.task_id} in {delay:.2f} seconds after exception...")
-                    time.sleep(delay)
-
-            # Fallback strategies (if primary + retries failed)
-            if not execution_result or not execution_result.success:
-                self.logger.info(f"Primary execution failed for task {task.task_id}. Trying fallback strategies...")
-                for fallback_name in strategy.fallback_strategies:
-                    fallback_strategy = self.strategies.get(fallback_name)
-                    if fallback_strategy:
-                        self.logger.info(f"Attempting fallback strategy '{fallback_name}' for task {task.task_id}")
-                        try:
-                            fallback_result = self._execute_with_strategy(task, fallback_strategy)
-                            if fallback_result.success:
-                                self.logger.info(f"Task {task.task_id} completed successfully with fallback strategy '{fallback_name}'.")
-                                execution_result = fallback_result
-                                break # Exit fallback loop on success
-                            else:
-                                self.logger.warning(f"Fallback strategy '{fallback_name}' failed for task {task.task_id}: {fallback_result.error}")
-                        except Exception as e:
-                            self.logger.error(f"Exception during fallback strategy '{fallback_name}' for task {task.task_id}: {e}", exc_info=True)
-                            # Store the error from the fallback attempt
-                            execution_result = ExecutionResult(
-                                task_id=task.task_id,
-                                success=False,
-                                output=None,
-                                error=f"Exception during fallback '{fallback_name}': {str(e)}",
-                                execution_time=time.time() - start_time
-                            )
-
-            # Final result creation
-            final_execution_time = time.time() - start_time
-            if not execution_result:
-                # Should not happen if loop logic is correct, but as a safeguard
-                error_msg = "All execution strategies failed without producing a result."
-                self.logger.error(f"Task {task.task_id}: {error_msg}")
-                execution_result = ExecutionResult(
-                    task_id=task.task_id, success=False, output=None,
-                    error=error_msg, execution_time=final_execution_time
+                final_execution_result = ExecutionResult(
+                    task_id=task.task_id,
+                    success=False,
+                    output=None,
+                    error=error_msg,
+                    execution_time=time.time()-start_time,
+                    metadata={'executed_by': 'llm_reasoning'},
+                    task=task
                 )
-            else:
-                # Update execution time to final value
-                execution_result.execution_time = final_execution_time
+        # --- END Reasoning Task ---
+        else:
+            # --- Existing Logic for Skill-Based Tasks ---
+            try:
+                strategy = self._get_execution_strategy(task)
+                execution_result = None
 
-            # Log final status
-            self.logger.info(f"Finished execution for task {task.task_id}. Success: {execution_result.success}, Time: {final_execution_time:.2f}s")
-            
-            # If failed, attempt diagnosis
-            if not execution_result.success and execution_result.error:
-                 diagnosis = self._diagnose_execution_error(task, execution_result.error)
-                 execution_result.metadata['diagnosis'] = diagnosis # Add diagnosis to result metadata
-                 self.logger.info(f"Task {task.task_id} failure diagnosis: {diagnosis}")
-            
-            return execution_result
+                for attempt in range(strategy.max_retries + 1): # +1 for initial try
+                    self.logger.info(f"Attempt {attempt + 1}/{strategy.max_retries + 1} for task {task.task_id}")
+                    try:
+                        execution_result = self._execute_with_strategy(task, strategy)
+                        if execution_result.success:
+                            self.logger.info(f"Task {task.task_id} completed successfully in attempt {attempt + 1}.")
+                            break # Exit retry loop on success
 
-        except Exception as e:
-            # Catch errors in the main execute_task orchestration
-            error_msg = f"Fatal error executing task {task.task_id}: {str(e)}"
-            self.logger.error(error_msg, exc_info=True)
-            final_execution_time = time.time() - start_time
-            # Attempt diagnosis even for fatal errors
-            diagnosis = self._diagnose_execution_error(task, error_msg)
-            return ExecutionResult(
-                task_id=task.task_id, success=False, output=None, error=error_msg,
-                execution_time=final_execution_time, metadata={'diagnosis': diagnosis}
-            )
+                        self.logger.warning(f"Attempt {attempt + 1} failed for task {task.task_id}: {execution_result.error}")
+                        # Increment task's internal error count (if Task model allows)
+                        # task.error_count += 1
+
+                        if attempt < strategy.max_retries:
+                            delay = strategy.retry_delay * (2 ** attempt) # Exponential backoff
+                            self.logger.info(f"Retrying task {task.task_id} in {delay:.2f} seconds...")
+                            time.sleep(delay)
+                        else:
+                            self.logger.error(f"Task {task.task_id} failed after maximum retries ({strategy.max_retries}).")
+                            break # Exit loop after max retries
+
+                    except Exception as e:
+                        # Catch errors during the execution attempt itself
+                        self.logger.error(f"Exception during attempt {attempt + 1} for task {task.task_id}: {e}", exc_info=True)
+                        execution_result = ExecutionResult(
+                            task_id=task.task_id,
+                            success=False,
+                            output=None,
+                            error=f"Exception during execution attempt: {str(e)}",
+                            execution_time=time.time() - start_time # Partial time
+                        )
+                        if attempt >= strategy.max_retries:
+                             self.logger.error(f"Task {task.task_id} failed due to exception after maximum retries.")
+                             break # Exit loop after max retries
+                        # Wait before retrying after an exception
+                        delay = strategy.retry_delay * (2 ** attempt)
+                        self.logger.info(f"Retrying task {task.task_id} in {delay:.2f} seconds after exception...")
+                        time.sleep(delay)
+
+                # Fallback strategies (if primary + retries failed)
+                if not execution_result or not execution_result.success:
+                    self.logger.info(f"Primary execution failed for task {task.task_id}. Trying fallback strategies...")
+                    for fallback_name in strategy.fallback_strategies:
+                        fallback_strategy = self.strategies.get(fallback_name)
+                        if fallback_strategy:
+                            self.logger.info(f"Attempting fallback strategy '{fallback_name}' for task {task.task_id}")
+                            try:
+                                fallback_result = self._execute_with_strategy(task, fallback_strategy)
+                                if fallback_result.success:
+                                    self.logger.info(f"Task {task.task_id} completed successfully with fallback strategy '{fallback_name}'.")
+                                    execution_result = fallback_result
+                                    break # Exit fallback loop on success
+                                else:
+                                    self.logger.warning(f"Fallback strategy '{fallback_name}' failed for task {task.task_id}: {fallback_result.error}")
+                            except Exception as e:
+                                self.logger.error(f"Exception during fallback strategy '{fallback_name}' for task {task.task_id}: {e}", exc_info=True)
+                                # Store the error from the fallback attempt
+                                execution_result = ExecutionResult(
+                                    task_id=task.task_id,
+                                    success=False,
+                                    output=None,
+                                    error=f"Exception during fallback '{fallback_name}': {str(e)}",
+                                    execution_time=time.time() - start_time
+                                )
+
+                # Final result creation
+                final_execution_time = time.time() - start_time
+                if not execution_result:
+                    # Should not happen if loop logic is correct, but as a safeguard
+                    error_msg = "All execution strategies failed without producing a result."
+                    self.logger.error(f"Task {task.task_id}: {error_msg}")
+                    execution_result = ExecutionResult(
+                        task_id=task.task_id, success=False, output=None,
+                        error=error_msg, execution_time=final_execution_time
+                    )
+                else:
+                    # Update execution time to final value
+                    execution_result.execution_time = final_execution_time
+
+                # Log final status
+                self.logger.info(f"Finished execution for task {task.task_id}. Success: {execution_result.success}, Time: {final_execution_time:.2f}s")
+                
+                # If failed, attempt diagnosis
+                if not execution_result.success and execution_result.error:
+                     diagnosis = self._diagnose_execution_error(task, execution_result.error)
+                     execution_result.metadata['diagnosis'] = diagnosis # Add diagnosis to result metadata
+                     self.logger.info(f"Task {task.task_id} failure diagnosis: {diagnosis}")
+                
+                final_execution_result = execution_result # Assign result from skill execution
+                # Add the task object to the result if not already there
+                if final_execution_result and not final_execution_result.task:
+                    final_execution_result.task = task
+            except Exception as e:
+                # Catch errors in the main execute_task orchestration
+                error_msg = f"Fatal error executing task {task.task_id}: {str(e)}"
+                self.logger.error(error_msg, exc_info=True)
+                final_execution_time = time.time() - start_time
+                # Attempt diagnosis even for fatal errors
+                diagnosis = self._diagnose_execution_error(task, error_msg)
+                final_execution_result = ExecutionResult(
+                    task_id=task.task_id, success=False, output=None, error=error_msg,
+                    execution_time=final_execution_time, metadata={'diagnosis': diagnosis},
+                    task=task
+                )
+            # --- END Skill-Based Task Logic ---
+
+        # --- Store Full Result Internally and Return Simplified Dict --- 
+        if final_execution_result:
+             self.logger.debug(f"Storing full result for task {task.task_id} internally.")
+             self._last_run_results[task.task_id] = final_execution_result
+             # Return simplified dict (excluding output) for graph state
+             return final_execution_result.model_dump(mode='json', exclude={'output', 'task'}) # Also exclude task obj from dict state
+        else:
+             # Should not happen if logic above is correct
+             error_msg = f"Execution failed to produce any result for task {task.task_id}"
+             self.logger.error(error_msg)
+             # Store a basic failure result internally
+             fallback_result = ExecutionResult(task_id=task.task_id, success=False, output=None, error=error_msg, execution_time=time.time()-start_time, task=task)
+             self._last_run_results[task.task_id] = fallback_result
+             return fallback_result.model_dump(mode='json', exclude={'output', 'task'})
+        # -------------------------------------------------------------
 
     def _diagnose_execution_error(self, task: 'Task', error_message: str) -> str:
         """Use LLM to diagnose task execution errors."""
@@ -713,8 +746,16 @@ class ExecutionSystem(BaseModel):
                 metadata={'executed_by': 'synthesis'} # Still mark as synthesis attempt
             )
 
-    # _store_execution_result and _reflect_on_execution (optional, can be added later)
-    # ... 
+    # <<< ADD method to retrieve stored result >>>
+    def get_result_by_task_id(self, task_id: str) -> Optional[ExecutionResult]:
+        """Retrieves the full ExecutionResult object stored internally."""
+        return self._last_run_results.get(task_id)
+
+    # <<< ADD method to clear stored results (optional, good practice) >>>
+    def clear_run_results(self): 
+        """Clears the internally stored results from the last run."""
+        self.logger.debug("Clearing internal execution results.")
+        self._last_run_results.clear()
 
 # <<< End of ExecutionSystem class definition >>>
 

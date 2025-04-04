@@ -984,5 +984,180 @@
         }
       }
     ]
+  },
+  "obj_20250405033922": {
+    "objective_id": "obj_20250405033922",
+    "description": "Check XAUUSD price and then try to run 'non_existent_script.py'",
+    "created_at": "2025-04-05T03:39:22.825486",
+    "completed_at": null,
+    "status": "active",
+    "progress": [
+      {
+        "step": "Created plan plan_obj_20250405033922 with 2 tasks",
+        "status": "completed",
+        "timestamp": "2025-04-05T03:39:26.382805",
+        "metadata": {
+          "plan_id": "plan_obj_20250405033922"
+        }
+      },
+      {
+        "step": "Created plan plan_obj_20250405033922 with 2 tasks",
+        "status": "completed",
+        "timestamp": "2025-04-05T03:39:34.250249",
+        "metadata": {
+          "plan_id": "plan_obj_20250405033922"
+        }
+      }
+    ]
+  },
+  "obj_20250405034044": {
+    "objective_id": "obj_20250405034044",
+    "description": "Check XAUUSD price and then try to run 'non_existent_script.py'",
+    "created_at": "2025-04-05T03:40:44.359657",
+    "completed_at": null,
+    "status": "active",
+    "progress": [
+      {
+        "step": "Created plan plan_obj_20250405034044 with 2 tasks",
+        "status": "completed",
+        "timestamp": "2025-04-05T03:40:48.248880",
+        "metadata": {
+          "plan_id": "plan_obj_20250405034044"
+        }
+      },
+      {
+        "step": "Created plan plan_obj_20250405034044 with 2 tasks",
+        "status": "completed",
+        "timestamp": "2025-04-05T03:40:56.074256",
+        "metadata": {
+          "plan_id": "plan_obj_20250405034044"
+        }
+      }
+    ]
+  },
+  "obj_20250405034445": {
+    "objective_id": "obj_20250405034445",
+    "description": "Check for XAUUSD price and then open 'non_existent_script.py'",
+    "created_at": "2025-04-05T03:44:45.336640",
+    "completed_at": null,
+    "status": "active",
+    "progress": [
+      {
+        "step": "Created plan plan_obj_20250405034445 with 2 tasks",
+        "status": "completed",
+        "timestamp": "2025-04-05T03:44:49.209496",
+        "metadata": {
+          "plan_id": "plan_obj_20250405034445"
+        }
+      },
+      {
+        "step": "Created plan plan_obj_20250405034445 with 2 tasks",
+        "status": "completed",
+        "timestamp": "2025-04-05T03:44:57.403810",
+        "metadata": {
+          "plan_id": "plan_obj_20250405034445"
+        }
+      }
+    ]
+  },
+  "obj_20250405034628": {
+    "objective_id": "obj_20250405034628",
+    "description": "Check for XAUUSD price and then create a real time price analysis report",
+    "created_at": "2025-04-05T03:46:28.307505",
+    "completed_at": null,
+    "status": "active",
+    "progress": [
+      {
+        "step": "Created plan plan_obj_20250405034628 with 2 tasks",
+        "status": "completed",
+        "timestamp": "2025-04-05T03:46:33.003541",
+        "metadata": {
+          "plan_id": "plan_obj_20250405034628"
+        }
+      },
+      {
+        "step": "Created plan plan_obj_20250405034628 with 2 tasks",
+        "status": "completed",
+        "timestamp": "2025-04-05T03:46:33.682019",
+        "metadata": {
+          "plan_id": "plan_obj_20250405034628"
+        }
+      }
+    ]
+  },
+  "obj_20250405034829": {
+    "objective_id": "obj_20250405034829",
+    "description": "Check for XAUUSD price and then create a real time price analysis report",
+    "created_at": "2025-04-05T03:48:29.188663",
+    "completed_at": null,
+    "status": "active",
+    "progress": []
+  },
+  "obj_20250405034925": {
+    "objective_id": "obj_20250405034925",
+    "description": "Check for XAUUSD price and then create a real time price analysis report",
+    "created_at": "2025-04-05T03:49:25.221200",
+    "completed_at": null,
+    "status": "active",
+    "progress": [
+      {
+        "step": "Created plan plan_obj_20250405034925 with 2 tasks",
+        "status": "completed",
+        "timestamp": "2025-04-05T03:49:28.656838",
+        "metadata": {
+          "plan_id": "plan_obj_20250405034925"
+        }
+      },
+      {
+        "step": "Created plan plan_obj_20250405034925 with 2 tasks",
+        "status": "completed",
+        "timestamp": "2025-04-05T03:49:29.318104",
+        "metadata": {
+          "plan_id": "plan_obj_20250405034925"
+        }
+      }
+    ]
+  },
+  "obj_20250405035335": {
+    "objective_id": "obj_20250405035335",
+    "description": "Check for XAUUSD price and then create a real time price analysis report",
+    "created_at": "2025-04-05T03:53:35.552728",
+    "completed_at": null,
+    "status": "active",
+    "progress": [
+      {
+        "step": "Created plan plan_obj_20250405035335 with 2 tasks",
+        "status": "completed",
+        "timestamp": "2025-04-05T03:53:39.617965",
+        "metadata": {
+          "plan_id": "plan_obj_20250405035335"
+        }
+      },
+      {
+        "step": "Created plan plan_obj_20250405035335 with 2 tasks",
+        "status": "completed",
+        "timestamp": "2025-04-05T03:53:40.263545",
+        "metadata": {
+          "plan_id": "plan_obj_20250405035335"
+        }
+      }
+    ]
+  },
+  "obj_20250405035542": {
+    "objective_id": "obj_20250405035542",
+    "description": "Read the first 2 lines of test_read.txt",
+    "created_at": "2025-04-05T03:55:42.952580",
+    "completed_at": null,
+    "status": "active",
+    "progress": [
+      {
+        "step": "Created plan plan_obj_20250405035542 with 1 tasks",
+        "status": "completed",
+        "timestamp": "2025-04-05T03:55:45.790888",
+        "metadata": {
+          "plan_id": "plan_obj_20250405035542"
+        }
+      }
+    ]
   }
 }

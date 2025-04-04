@@ -13864,3 +13864,99 @@ During task with name 'synthesize_final_response' and id 'a4e327b7-41a3-29ef-bcf
 2025-04-05 03:36:55 - main - INFO - Jarvis agent graph built successfully.
 2025-04-05 03:37:31 - main - INFO - Received objective: Check XAUUSD price and then try to run 'non_existent_script.py'
 2025-04-05 03:37:31 - main - INFO - Invoking Jarvis agent graph...
+2025-04-05 03:38:54 - main - INFO - Pydantic Settings will handle .env loading internally.
+2025-04-05 03:38:54 - main - INFO - Initializing Jarvis components...
+2025-04-05 03:38:54 - main - INFO - Discovered skills: ['execute_python_file', 'read_file', 'web_search']
+2025-04-05 03:38:54 - main - INFO - Jarvis agent graph built successfully.
+2025-04-05 03:39:22 - main - INFO - Received objective: Check XAUUSD price and then try to run 'non_existent_script.py'
+2025-04-05 03:39:22 - main - INFO - Invoking Jarvis agent graph...
+2025-04-05 03:40:40 - main - INFO - Pydantic Settings will handle .env loading internally.
+2025-04-05 03:40:40 - main - INFO - Initializing Jarvis components...
+2025-04-05 03:40:41 - main - INFO - Discovered skills: ['execute_python_file', 'read_file', 'web_search']
+2025-04-05 03:40:41 - main - INFO - Jarvis agent graph built successfully.
+2025-04-05 03:40:44 - main - INFO - Received objective: Check XAUUSD price and then try to run 'non_existent_script.py'
+2025-04-05 03:40:44 - main - INFO - Invoking Jarvis agent graph...
+2025-04-05 03:42:27 - main - INFO - Pydantic Settings will handle .env loading internally.
+2025-04-05 03:42:27 - main - INFO - Initializing Jarvis components...
+2025-04-05 03:42:28 - main - INFO - Discovered skills: ['execute_python_file', 'read_file', 'web_search']
+2025-04-05 03:42:28 - main - INFO - Jarvis agent graph built successfully.
+2025-04-05 03:43:50 - main - INFO - Pydantic Settings will handle .env loading internally.
+2025-04-05 03:43:50 - main - INFO - Initializing Jarvis components...
+2025-04-05 03:43:50 - main - INFO - Discovered skills: ['execute_python_file', 'read_file', 'web_search']
+2025-04-05 03:43:50 - main - INFO - Jarvis agent graph built successfully.
+2025-04-05 03:44:45 - main - INFO - Received objective: Check for XAUUSD price and then open 'non_existent_script.py'
+2025-04-05 03:44:45 - main - INFO - Invoking Jarvis agent graph...
+2025-04-05 03:45:59 - main - INFO - Pydantic Settings will handle .env loading internally.
+2025-04-05 03:45:59 - main - INFO - Initializing Jarvis components...
+2025-04-05 03:45:59 - main - INFO - Discovered skills: ['execute_python_file', 'read_file', 'web_search']
+2025-04-05 03:45:59 - main - INFO - Jarvis agent graph built successfully.
+2025-04-05 03:45:59 - main - INFO - Received objective: ^C
+2025-04-05 03:45:59 - main - INFO - Invoking Jarvis agent graph...
+2025-04-05 03:46:13 - main - INFO - Pydantic Settings will handle .env loading internally.
+2025-04-05 03:46:13 - main - INFO - Initializing Jarvis components...
+2025-04-05 03:46:14 - main - INFO - Discovered skills: ['execute_python_file', 'read_file', 'web_search']
+2025-04-05 03:46:14 - main - INFO - Jarvis agent graph built successfully.
+2025-04-05 03:46:28 - main - INFO - Received objective: Check for XAUUSD price and then create a real time price analysis report
+2025-04-05 03:46:28 - main - INFO - Invoking Jarvis agent graph...
+2025-04-05 03:48:20 - main - INFO - Pydantic Settings will handle .env loading internally.
+2025-04-05 03:48:20 - main - INFO - Initializing Jarvis components...
+2025-04-05 03:48:20 - main - INFO - Discovered skills: ['execute_python_file', 'read_file', 'web_search']
+2025-04-05 03:48:20 - main - INFO - Jarvis agent graph built successfully.
+2025-04-05 03:48:29 - main - INFO - Received objective: Check for XAUUSD price and then create a real time price analysis report
+2025-04-05 03:48:29 - main - INFO - Invoking Jarvis agent graph...
+2025-04-05 03:48:32 - main - ERROR - Error during graph execution: 'dict' object has no attribute 'model_dump'
+Traceback (most recent call last):
+  File "C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\jarvis\main.py", line 258, in main
+    final_state = await app.ainvoke(inputs)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\langgraph\pregel\__init__.py", line 2741, in ainvoke
+    async for chunk in self.astream(
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\langgraph\pregel\__init__.py", line 2626, in astream
+    async for _ in runner.atick(
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\langgraph\pregel\runner.py", line 288, in atick
+    await arun_with_retry(
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\langgraph\pregel\retry.py", line 128, in arun_with_retry
+    return await task.proc.ainvoke(task.input, config)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\langgraph\utils\runnable.py", line 643, in ainvoke
+    input = await step.ainvoke(input, config, **kwargs)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\langgraph\utils\runnable.py", line 431, in ainvoke
+    ret = await asyncio.create_task(coro, context=context)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\langchain_core\runnables\config.py", line 616, in run_in_executor
+    return await asyncio.get_running_loop().run_in_executor(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\thread.py", line 59, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\langchain_core\runnables\config.py", line 607, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\jarvis\graph_nodes.py", line 430, in execute_tool_node
+    result_dict = execution_result.model_dump(mode='json', exclude={'output'})
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'dict' object has no attribute 'model_dump'
+During task with name 'execute_tool' and id 'bcd76582-9f42-5ec3-b0f6-4bcf39942531'
+2025-04-05 03:49:06 - main - INFO - Pydantic Settings will handle .env loading internally.
+2025-04-05 03:49:06 - main - INFO - Initializing Jarvis components...
+2025-04-05 03:49:07 - main - INFO - Discovered skills: ['execute_python_file', 'read_file', 'web_search']
+2025-04-05 03:49:07 - main - INFO - Jarvis agent graph built successfully.
+2025-04-05 03:49:25 - main - INFO - Received objective: Check for XAUUSD price and then create a real time price analysis report
+2025-04-05 03:49:25 - main - INFO - Invoking Jarvis agent graph...
+2025-04-05 03:53:32 - main - INFO - Pydantic Settings will handle .env loading internally.
+2025-04-05 03:53:32 - main - INFO - Initializing Jarvis components...
+2025-04-05 03:53:33 - main - INFO - Discovered skills: ['execute_python_file', 'read_file', 'web_search']
+2025-04-05 03:53:33 - main - INFO - Jarvis agent graph built successfully.
+2025-04-05 03:53:35 - main - INFO - Received objective: Check for XAUUSD price and then create a real time price analysis report
+2025-04-05 03:53:35 - main - INFO - Invoking Jarvis agent graph...
+2025-04-05 03:54:42 - main - INFO - Pydantic Settings will handle .env loading internally.
+2025-04-05 03:54:42 - main - INFO - Initializing Jarvis components...
+2025-04-05 03:54:42 - main - INFO - Discovered skills: ['execute_python_file', 'read_file', 'web_search']
+2025-04-05 03:54:42 - main - INFO - Jarvis agent graph built successfully.
+2025-04-05 03:55:17 - main - INFO - Pydantic Settings will handle .env loading internally.
+2025-04-05 03:55:17 - main - INFO - Initializing Jarvis components...
+2025-04-05 03:55:17 - main - INFO - Discovered skills: ['execute_python_file', 'read_file', 'web_search']
+2025-04-05 03:55:17 - main - INFO - Jarvis agent graph built successfully.
+2025-04-05 03:55:42 - main - INFO - Received objective: Read the first 2 lines of test_read.txt
+2025-04-05 03:55:42 - main - INFO - Invoking Jarvis agent graph...

@@ -1697,3 +1697,199 @@ Suggestion: The recovery strategy would be to check if the file actually exists 
 2025-04-05 03:37:43 - jarvis.execution - INFO - Task plan_obj_20250405033731_task_1 failure diagnosis: Diagnosis: The likely cause of the failure is that the script 'non_existent_script.py' does not exist in the specified workspace sandbox directory.
 
 Suggestion: The recovery strategy would be to either create the script file 'non_existent_script.py' in the specified workspace sandbox directory or modify the task description to use a valid script file. If the script is intentionally not present, the task plan should be updated to handle this scenario or use a fallback skill to handle the task.
+2025-04-05 03:38:54 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-05 03:39:23 - jarvis.execution - INFO - Executing task plan_obj_20250405033922_task_0: 'Check XAUUSD price'
+2025-04-05 03:39:23 - jarvis.execution - INFO - Attempt 1/4 for task plan_obj_20250405033922_task_0
+2025-04-05 03:39:23 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='web_search', Type=<class 'str'>, Args='{'query': 'XAUUSD price'}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 03:39:23 - jarvis.execution - INFO - DEBUG: Explicit skill condition TRUE. Skill found: True
+2025-04-05 03:39:23 - jarvis.execution - INFO - Task 'plan_obj_20250405033922_task_0' specifies skill 'web_search'. Attempting direct execution.
+2025-04-05 03:39:26 - jarvis.execution - INFO - Task plan_obj_20250405033922_task_0 completed successfully in attempt 1.
+2025-04-05 03:39:26 - jarvis.execution - INFO - Finished execution for task plan_obj_20250405033922_task_0. Success: True, Time: 2.53s
+2025-04-05 03:39:26 - jarvis.execution - INFO - Executing task plan_obj_20250405033922_task_1: 'Try to run 'non_existent_script.py''
+2025-04-05 03:39:26 - jarvis.execution - INFO - Attempt 1/4 for task plan_obj_20250405033922_task_1
+2025-04-05 03:39:26 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='execute_python_file', Type=<class 'str'>, Args='{'file_path': 'non_existent_script.py'}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 03:39:26 - jarvis.execution - INFO - DEBUG: Explicit skill condition TRUE. Skill found: True
+2025-04-05 03:39:26 - jarvis.execution - INFO - Task 'plan_obj_20250405033922_task_1' specifies skill 'execute_python_file'. Attempting direct execution.
+2025-04-05 03:39:26 - jarvis.execution - WARNING - Attempt 1 failed for task plan_obj_20250405033922_task_1: Python file not found within 'workspace_sandbox' at specified path: non_existent_script.py (resolved to: C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\workspace_sandbox\non_existent_script.py)
+2025-04-05 03:39:26 - jarvis.execution - INFO - Retrying task plan_obj_20250405033922_task_1 in 1.00 seconds...
+2025-04-05 03:39:27 - jarvis.execution - INFO - Attempt 2/4 for task plan_obj_20250405033922_task_1
+2025-04-05 03:39:27 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='execute_python_file', Type=<class 'str'>, Args='{'file_path': 'non_existent_script.py'}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 03:39:27 - jarvis.execution - INFO - DEBUG: Explicit skill condition TRUE. Skill found: True
+2025-04-05 03:39:27 - jarvis.execution - INFO - Task 'plan_obj_20250405033922_task_1' specifies skill 'execute_python_file'. Attempting direct execution.
+2025-04-05 03:39:27 - jarvis.execution - WARNING - Attempt 2 failed for task plan_obj_20250405033922_task_1: Python file not found within 'workspace_sandbox' at specified path: non_existent_script.py (resolved to: C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\workspace_sandbox\non_existent_script.py)
+2025-04-05 03:39:27 - jarvis.execution - INFO - Retrying task plan_obj_20250405033922_task_1 in 2.00 seconds...
+2025-04-05 03:39:29 - jarvis.execution - INFO - Attempt 3/4 for task plan_obj_20250405033922_task_1
+2025-04-05 03:39:29 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='execute_python_file', Type=<class 'str'>, Args='{'file_path': 'non_existent_script.py'}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 03:39:29 - jarvis.execution - INFO - DEBUG: Explicit skill condition TRUE. Skill found: True
+2025-04-05 03:39:29 - jarvis.execution - INFO - Task 'plan_obj_20250405033922_task_1' specifies skill 'execute_python_file'. Attempting direct execution.
+2025-04-05 03:39:29 - jarvis.execution - WARNING - Attempt 3 failed for task plan_obj_20250405033922_task_1: Python file not found within 'workspace_sandbox' at specified path: non_existent_script.py (resolved to: C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\workspace_sandbox\non_existent_script.py)
+2025-04-05 03:39:29 - jarvis.execution - INFO - Retrying task plan_obj_20250405033922_task_1 in 4.00 seconds...
+2025-04-05 03:39:33 - jarvis.execution - INFO - Attempt 4/4 for task plan_obj_20250405033922_task_1
+2025-04-05 03:39:33 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='execute_python_file', Type=<class 'str'>, Args='{'file_path': 'non_existent_script.py'}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 03:39:33 - jarvis.execution - INFO - DEBUG: Explicit skill condition TRUE. Skill found: True
+2025-04-05 03:39:33 - jarvis.execution - INFO - Task 'plan_obj_20250405033922_task_1' specifies skill 'execute_python_file'. Attempting direct execution.
+2025-04-05 03:39:33 - jarvis.execution - WARNING - Attempt 4 failed for task plan_obj_20250405033922_task_1: Python file not found within 'workspace_sandbox' at specified path: non_existent_script.py (resolved to: C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\workspace_sandbox\non_existent_script.py)
+2025-04-05 03:39:33 - jarvis.execution - ERROR - Task plan_obj_20250405033922_task_1 failed after maximum retries (3).
+2025-04-05 03:39:33 - jarvis.execution - INFO - Primary execution failed for task plan_obj_20250405033922_task_1. Trying fallback strategies...
+2025-04-05 03:39:33 - jarvis.execution - INFO - Attempting fallback strategy 'simple' for task plan_obj_20250405033922_task_1
+2025-04-05 03:39:33 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='execute_python_file', Type=<class 'str'>, Args='{'file_path': 'non_existent_script.py'}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 03:39:33 - jarvis.execution - INFO - DEBUG: Explicit skill condition TRUE. Skill found: True
+2025-04-05 03:39:33 - jarvis.execution - INFO - Task 'plan_obj_20250405033922_task_1' specifies skill 'execute_python_file'. Attempting direct execution.
+2025-04-05 03:39:33 - jarvis.execution - WARNING - Fallback strategy 'simple' failed for task plan_obj_20250405033922_task_1: Python file not found within 'workspace_sandbox' at specified path: non_existent_script.py (resolved to: C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\workspace_sandbox\non_existent_script.py)
+2025-04-05 03:39:33 - jarvis.execution - INFO - Attempting fallback strategy 'robust' for task plan_obj_20250405033922_task_1
+2025-04-05 03:39:33 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='execute_python_file', Type=<class 'str'>, Args='{'file_path': 'non_existent_script.py'}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 03:39:33 - jarvis.execution - INFO - DEBUG: Explicit skill condition TRUE. Skill found: True
+2025-04-05 03:39:33 - jarvis.execution - INFO - Task 'plan_obj_20250405033922_task_1' specifies skill 'execute_python_file'. Attempting direct execution.
+2025-04-05 03:39:33 - jarvis.execution - WARNING - Fallback strategy 'robust' failed for task plan_obj_20250405033922_task_1: Python file not found within 'workspace_sandbox' at specified path: non_existent_script.py (resolved to: C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\workspace_sandbox\non_existent_script.py)
+2025-04-05 03:39:33 - jarvis.execution - INFO - Finished execution for task plan_obj_20250405033922_task_1. Success: False, Time: 7.03s
+2025-04-05 03:39:34 - jarvis.execution - INFO - Task plan_obj_20250405033922_task_1 failure diagnosis: Diagnosis: The likely cause of the failure is that the script 'non_existent_script.py' does not exist in the specified path 'C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\workspace_sandbox'.
+
+Suggestion: The recovery strategy would be to check if the script actually exists in the specified path and if not, provide the correct path or file name. If the script does exist, then there might be an issue with the script itself, such as a syntax error or incorrect import statements. In that case, it would be necessary to debug the script or provide more context about the script's purpose and expected behavior to help identify the issue.
+2025-04-05 03:40:41 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-05 03:40:45 - jarvis.execution - INFO - Executing task plan_obj_20250405034044_task_0: 'Check XAUUSD price'
+2025-04-05 03:40:45 - jarvis.execution - INFO - Attempt 1/4 for task plan_obj_20250405034044_task_0
+2025-04-05 03:40:45 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='web_search', Type=<class 'str'>, Args='{'query': 'XAUUSD price'}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 03:40:45 - jarvis.execution - INFO - DEBUG: Explicit skill condition TRUE. Skill found: True
+2025-04-05 03:40:45 - jarvis.execution - INFO - Task 'plan_obj_20250405034044_task_0' specifies skill 'web_search'. Attempting direct execution.
+2025-04-05 03:40:48 - jarvis.execution - INFO - Task plan_obj_20250405034044_task_0 completed successfully in attempt 1.
+2025-04-05 03:40:48 - jarvis.execution - INFO - Finished execution for task plan_obj_20250405034044_task_0. Success: True, Time: 2.83s
+2025-04-05 03:40:48 - jarvis.execution - INFO - Executing task plan_obj_20250405034044_task_1: 'Try to run 'non_existent_script.py''
+2025-04-05 03:40:48 - jarvis.execution - INFO - Attempt 1/4 for task plan_obj_20250405034044_task_1
+2025-04-05 03:40:48 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='execute_python_file', Type=<class 'str'>, Args='{'file_path': 'non_existent_script.py'}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 03:40:48 - jarvis.execution - INFO - DEBUG: Explicit skill condition TRUE. Skill found: True
+2025-04-05 03:40:48 - jarvis.execution - INFO - Task 'plan_obj_20250405034044_task_1' specifies skill 'execute_python_file'. Attempting direct execution.
+2025-04-05 03:40:48 - jarvis.execution - WARNING - Attempt 1 failed for task plan_obj_20250405034044_task_1: Python file not found within 'workspace_sandbox' at specified path: non_existent_script.py (resolved to: C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\workspace_sandbox\non_existent_script.py)
+2025-04-05 03:40:48 - jarvis.execution - INFO - Retrying task plan_obj_20250405034044_task_1 in 1.00 seconds...
+2025-04-05 03:40:49 - jarvis.execution - INFO - Attempt 2/4 for task plan_obj_20250405034044_task_1
+2025-04-05 03:40:49 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='execute_python_file', Type=<class 'str'>, Args='{'file_path': 'non_existent_script.py'}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 03:40:49 - jarvis.execution - INFO - DEBUG: Explicit skill condition TRUE. Skill found: True
+2025-04-05 03:40:49 - jarvis.execution - INFO - Task 'plan_obj_20250405034044_task_1' specifies skill 'execute_python_file'. Attempting direct execution.
+2025-04-05 03:40:49 - jarvis.execution - WARNING - Attempt 2 failed for task plan_obj_20250405034044_task_1: Python file not found within 'workspace_sandbox' at specified path: non_existent_script.py (resolved to: C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\workspace_sandbox\non_existent_script.py)
+2025-04-05 03:40:49 - jarvis.execution - INFO - Retrying task plan_obj_20250405034044_task_1 in 2.00 seconds...
+2025-04-05 03:40:51 - jarvis.execution - INFO - Attempt 3/4 for task plan_obj_20250405034044_task_1
+2025-04-05 03:40:51 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='execute_python_file', Type=<class 'str'>, Args='{'file_path': 'non_existent_script.py'}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 03:40:51 - jarvis.execution - INFO - DEBUG: Explicit skill condition TRUE. Skill found: True
+2025-04-05 03:40:51 - jarvis.execution - INFO - Task 'plan_obj_20250405034044_task_1' specifies skill 'execute_python_file'. Attempting direct execution.
+2025-04-05 03:40:51 - jarvis.execution - WARNING - Attempt 3 failed for task plan_obj_20250405034044_task_1: Python file not found within 'workspace_sandbox' at specified path: non_existent_script.py (resolved to: C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\workspace_sandbox\non_existent_script.py)
+2025-04-05 03:40:51 - jarvis.execution - INFO - Retrying task plan_obj_20250405034044_task_1 in 4.00 seconds...
+2025-04-05 03:40:55 - jarvis.execution - INFO - Attempt 4/4 for task plan_obj_20250405034044_task_1
+2025-04-05 03:40:55 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='execute_python_file', Type=<class 'str'>, Args='{'file_path': 'non_existent_script.py'}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 03:40:55 - jarvis.execution - INFO - DEBUG: Explicit skill condition TRUE. Skill found: True
+2025-04-05 03:40:55 - jarvis.execution - INFO - Task 'plan_obj_20250405034044_task_1' specifies skill 'execute_python_file'. Attempting direct execution.
+2025-04-05 03:40:55 - jarvis.execution - WARNING - Attempt 4 failed for task plan_obj_20250405034044_task_1: Python file not found within 'workspace_sandbox' at specified path: non_existent_script.py (resolved to: C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\workspace_sandbox\non_existent_script.py)
+2025-04-05 03:40:55 - jarvis.execution - ERROR - Task plan_obj_20250405034044_task_1 failed after maximum retries (3).
+2025-04-05 03:40:55 - jarvis.execution - INFO - Primary execution failed for task plan_obj_20250405034044_task_1. Trying fallback strategies...
+2025-04-05 03:40:55 - jarvis.execution - INFO - Attempting fallback strategy 'simple' for task plan_obj_20250405034044_task_1
+2025-04-05 03:40:55 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='execute_python_file', Type=<class 'str'>, Args='{'file_path': 'non_existent_script.py'}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 03:40:55 - jarvis.execution - INFO - DEBUG: Explicit skill condition TRUE. Skill found: True
+2025-04-05 03:40:55 - jarvis.execution - INFO - Task 'plan_obj_20250405034044_task_1' specifies skill 'execute_python_file'. Attempting direct execution.
+2025-04-05 03:40:55 - jarvis.execution - WARNING - Fallback strategy 'simple' failed for task plan_obj_20250405034044_task_1: Python file not found within 'workspace_sandbox' at specified path: non_existent_script.py (resolved to: C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\workspace_sandbox\non_existent_script.py)
+2025-04-05 03:40:55 - jarvis.execution - INFO - Attempting fallback strategy 'robust' for task plan_obj_20250405034044_task_1
+2025-04-05 03:40:55 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='execute_python_file', Type=<class 'str'>, Args='{'file_path': 'non_existent_script.py'}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 03:40:55 - jarvis.execution - INFO - DEBUG: Explicit skill condition TRUE. Skill found: True
+2025-04-05 03:40:55 - jarvis.execution - INFO - Task 'plan_obj_20250405034044_task_1' specifies skill 'execute_python_file'. Attempting direct execution.
+2025-04-05 03:40:55 - jarvis.execution - WARNING - Fallback strategy 'robust' failed for task plan_obj_20250405034044_task_1: Python file not found within 'workspace_sandbox' at specified path: non_existent_script.py (resolved to: C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\workspace_sandbox\non_existent_script.py)
+2025-04-05 03:40:55 - jarvis.execution - INFO - Finished execution for task plan_obj_20250405034044_task_1. Success: False, Time: 7.02s
+2025-04-05 03:40:56 - jarvis.execution - INFO - Task plan_obj_20250405034044_task_1 failure diagnosis: Diagnosis: The likely cause of the failure is that the script 'non_existent_script.py' does not exist in the specified 'workspace_sandbox' directory.
+
+Suggestion: The recovery strategy would be to check if the script actually exists in the specified directory and if not, provide the correct path to the script or modify the plan to use a different script that exists in the workspace. If the script is supposed to be generated or created dynamically, the plan should be modified to handle this scenario and provide the necessary inputs to generate the script.
+2025-04-05 03:42:28 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-05 03:43:50 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-05 03:44:46 - jarvis.execution - INFO - Executing task plan_obj_20250405034445_task_0: 'Check for XAUUSD price'
+2025-04-05 03:44:46 - jarvis.execution - INFO - Attempt 1/4 for task plan_obj_20250405034445_task_0
+2025-04-05 03:44:46 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='web_search', Type=<class 'str'>, Args='{'query': 'XAUUSD price'}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 03:44:46 - jarvis.execution - INFO - DEBUG: Explicit skill condition TRUE. Skill found: True
+2025-04-05 03:44:46 - jarvis.execution - INFO - Task 'plan_obj_20250405034445_task_0' specifies skill 'web_search'. Attempting direct execution.
+2025-04-05 03:44:49 - jarvis.execution - INFO - Task plan_obj_20250405034445_task_0 completed successfully in attempt 1.
+2025-04-05 03:44:49 - jarvis.execution - INFO - Finished execution for task plan_obj_20250405034445_task_0. Success: True, Time: 2.72s
+2025-04-05 03:44:49 - jarvis.execution - INFO - Executing task plan_obj_20250405034445_task_1: 'Open 'non_existent_script.py''
+2025-04-05 03:44:49 - jarvis.execution - INFO - Attempt 1/4 for task plan_obj_20250405034445_task_1
+2025-04-05 03:44:49 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='execute_python_file', Type=<class 'str'>, Args='{'file_path': 'non_existent_script.py'}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 03:44:49 - jarvis.execution - INFO - DEBUG: Explicit skill condition TRUE. Skill found: True
+2025-04-05 03:44:49 - jarvis.execution - INFO - Task 'plan_obj_20250405034445_task_1' specifies skill 'execute_python_file'. Attempting direct execution.
+2025-04-05 03:44:49 - jarvis.execution - WARNING - Attempt 1 failed for task plan_obj_20250405034445_task_1: Python file not found within 'workspace_sandbox' at specified path: non_existent_script.py (resolved to: C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\workspace_sandbox\non_existent_script.py)
+2025-04-05 03:44:49 - jarvis.execution - INFO - Retrying task plan_obj_20250405034445_task_1 in 1.00 seconds...
+2025-04-05 03:44:50 - jarvis.execution - INFO - Attempt 2/4 for task plan_obj_20250405034445_task_1
+2025-04-05 03:44:50 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='execute_python_file', Type=<class 'str'>, Args='{'file_path': 'non_existent_script.py'}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 03:44:50 - jarvis.execution - INFO - DEBUG: Explicit skill condition TRUE. Skill found: True
+2025-04-05 03:44:50 - jarvis.execution - INFO - Task 'plan_obj_20250405034445_task_1' specifies skill 'execute_python_file'. Attempting direct execution.
+2025-04-05 03:44:50 - jarvis.execution - WARNING - Attempt 2 failed for task plan_obj_20250405034445_task_1: Python file not found within 'workspace_sandbox' at specified path: non_existent_script.py (resolved to: C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\workspace_sandbox\non_existent_script.py)
+2025-04-05 03:44:50 - jarvis.execution - INFO - Retrying task plan_obj_20250405034445_task_1 in 2.00 seconds...
+2025-04-05 03:44:52 - jarvis.execution - INFO - Attempt 3/4 for task plan_obj_20250405034445_task_1
+2025-04-05 03:44:52 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='execute_python_file', Type=<class 'str'>, Args='{'file_path': 'non_existent_script.py'}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 03:44:52 - jarvis.execution - INFO - DEBUG: Explicit skill condition TRUE. Skill found: True
+2025-04-05 03:44:52 - jarvis.execution - INFO - Task 'plan_obj_20250405034445_task_1' specifies skill 'execute_python_file'. Attempting direct execution.
+2025-04-05 03:44:52 - jarvis.execution - WARNING - Attempt 3 failed for task plan_obj_20250405034445_task_1: Python file not found within 'workspace_sandbox' at specified path: non_existent_script.py (resolved to: C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\workspace_sandbox\non_existent_script.py)
+2025-04-05 03:44:52 - jarvis.execution - INFO - Retrying task plan_obj_20250405034445_task_1 in 4.00 seconds...
+2025-04-05 03:44:56 - jarvis.execution - INFO - Attempt 4/4 for task plan_obj_20250405034445_task_1
+2025-04-05 03:44:56 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='execute_python_file', Type=<class 'str'>, Args='{'file_path': 'non_existent_script.py'}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 03:44:56 - jarvis.execution - INFO - DEBUG: Explicit skill condition TRUE. Skill found: True
+2025-04-05 03:44:56 - jarvis.execution - INFO - Task 'plan_obj_20250405034445_task_1' specifies skill 'execute_python_file'. Attempting direct execution.
+2025-04-05 03:44:56 - jarvis.execution - WARNING - Attempt 4 failed for task plan_obj_20250405034445_task_1: Python file not found within 'workspace_sandbox' at specified path: non_existent_script.py (resolved to: C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\workspace_sandbox\non_existent_script.py)
+2025-04-05 03:44:56 - jarvis.execution - ERROR - Task plan_obj_20250405034445_task_1 failed after maximum retries (3).
+2025-04-05 03:44:56 - jarvis.execution - INFO - Primary execution failed for task plan_obj_20250405034445_task_1. Trying fallback strategies...
+2025-04-05 03:44:56 - jarvis.execution - INFO - Attempting fallback strategy 'simple' for task plan_obj_20250405034445_task_1
+2025-04-05 03:44:56 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='execute_python_file', Type=<class 'str'>, Args='{'file_path': 'non_existent_script.py'}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 03:44:56 - jarvis.execution - INFO - DEBUG: Explicit skill condition TRUE. Skill found: True
+2025-04-05 03:44:56 - jarvis.execution - INFO - Task 'plan_obj_20250405034445_task_1' specifies skill 'execute_python_file'. Attempting direct execution.
+2025-04-05 03:44:56 - jarvis.execution - WARNING - Fallback strategy 'simple' failed for task plan_obj_20250405034445_task_1: Python file not found within 'workspace_sandbox' at specified path: non_existent_script.py (resolved to: C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\workspace_sandbox\non_existent_script.py)
+2025-04-05 03:44:56 - jarvis.execution - INFO - Attempting fallback strategy 'robust' for task plan_obj_20250405034445_task_1
+2025-04-05 03:44:56 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='execute_python_file', Type=<class 'str'>, Args='{'file_path': 'non_existent_script.py'}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 03:44:56 - jarvis.execution - INFO - DEBUG: Explicit skill condition TRUE. Skill found: True
+2025-04-05 03:44:56 - jarvis.execution - INFO - Task 'plan_obj_20250405034445_task_1' specifies skill 'execute_python_file'. Attempting direct execution.
+2025-04-05 03:44:56 - jarvis.execution - WARNING - Fallback strategy 'robust' failed for task plan_obj_20250405034445_task_1: Python file not found within 'workspace_sandbox' at specified path: non_existent_script.py (resolved to: C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\workspace_sandbox\non_existent_script.py)
+2025-04-05 03:44:56 - jarvis.execution - INFO - Finished execution for task plan_obj_20250405034445_task_1. Success: False, Time: 7.02s
+2025-04-05 03:44:57 - jarvis.execution - INFO - Task plan_obj_20250405034445_task_1 failure diagnosis: Diagnosis: The likely cause of the failure is that the file 'non_existent_script.py' does not exist in the specified path 'C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\workspace_sandbox'.
+
+Suggestion: The recovery strategy is to check if the file actually exists in the specified path and if not, either create the file or modify the task to use a different file path that exists. If the file does exist, then the issue might be with the file's contents or the script itself, and further debugging would be required to identify the root cause.
+2025-04-05 03:45:59 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-05 03:46:14 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-05 03:46:29 - jarvis.execution - INFO - Executing task plan_obj_20250405034628_task_0: 'Check for XAUUSD price'
+2025-04-05 03:46:29 - jarvis.execution - INFO - Attempt 1/4 for task plan_obj_20250405034628_task_0
+2025-04-05 03:46:29 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='web_search', Type=<class 'str'>, Args='{'query': 'XAUUSD price'}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 03:46:29 - jarvis.execution - INFO - DEBUG: Explicit skill condition TRUE. Skill found: True
+2025-04-05 03:46:29 - jarvis.execution - INFO - Task 'plan_obj_20250405034628_task_0' specifies skill 'web_search'. Attempting direct execution.
+2025-04-05 03:46:33 - jarvis.execution - INFO - Task plan_obj_20250405034628_task_0 completed successfully in attempt 1.
+2025-04-05 03:46:33 - jarvis.execution - INFO - Finished execution for task plan_obj_20250405034628_task_0. Success: True, Time: 3.63s
+2025-04-05 03:46:33 - jarvis.execution - INFO - Executing task plan_obj_20250405034628_task_1: 'Create a real-time price analysis report'
+2025-04-05 03:46:33 - jarvis.execution - INFO - Task plan_obj_20250405034628_task_1 identified as reasoning task. Performing direct LLM reasoning.
+2025-04-05 03:46:33 - jarvis.execution - INFO - LLM reasoning for task plan_obj_20250405034628_task_1 completed.
+2025-04-05 03:48:20 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-05 03:48:30 - jarvis.execution - INFO - Executing task plan_obj_20250405034829_task_0: 'Check for XAUUSD price'
+2025-04-05 03:48:30 - jarvis.execution - INFO - Attempt 1/4 for task plan_obj_20250405034829_task_0
+2025-04-05 03:48:30 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='web_search', Type=<class 'str'>, Args='{'query': 'XAUUSD price'}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 03:48:30 - jarvis.execution - INFO - DEBUG: Explicit skill condition TRUE. Skill found: True
+2025-04-05 03:48:30 - jarvis.execution - INFO - Task 'plan_obj_20250405034829_task_0' specifies skill 'web_search'. Attempting direct execution.
+2025-04-05 03:48:32 - jarvis.execution - INFO - Task plan_obj_20250405034829_task_0 completed successfully in attempt 1.
+2025-04-05 03:48:32 - jarvis.execution - INFO - Finished execution for task plan_obj_20250405034829_task_0. Success: True, Time: 2.23s
+2025-04-05 03:49:07 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-05 03:49:26 - jarvis.execution - INFO - Executing task plan_obj_20250405034925_task_0: 'Check for XAUUSD price'
+2025-04-05 03:49:26 - jarvis.execution - INFO - Attempt 1/4 for task plan_obj_20250405034925_task_0
+2025-04-05 03:49:26 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='web_search', Type=<class 'str'>, Args='{'query': 'XAUUSD price'}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 03:49:26 - jarvis.execution - INFO - DEBUG: Explicit skill condition TRUE. Skill found: True
+2025-04-05 03:49:26 - jarvis.execution - INFO - Task 'plan_obj_20250405034925_task_0' specifies skill 'web_search'. Attempting direct execution.
+2025-04-05 03:49:28 - jarvis.execution - INFO - Task plan_obj_20250405034925_task_0 completed successfully in attempt 1.
+2025-04-05 03:49:28 - jarvis.execution - INFO - Finished execution for task plan_obj_20250405034925_task_0. Success: True, Time: 2.39s
+2025-04-05 03:49:28 - jarvis.execution - INFO - Executing task plan_obj_20250405034925_task_1: 'Create a real-time price analysis report'
+2025-04-05 03:49:28 - jarvis.execution - INFO - Task plan_obj_20250405034925_task_1 identified as reasoning task. Performing direct LLM reasoning.
+2025-04-05 03:49:29 - jarvis.execution - INFO - LLM reasoning for task plan_obj_20250405034925_task_1 completed.
+2025-04-05 03:53:33 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-05 03:53:36 - jarvis.execution - INFO - Executing task plan_obj_20250405035335_task_0: 'Check for XAUUSD price'
+2025-04-05 03:53:36 - jarvis.execution - INFO - Attempt 1/4 for task plan_obj_20250405035335_task_0
+2025-04-05 03:53:36 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='web_search', Type=<class 'str'>, Args='{'query': 'XAUUSD price'}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 03:53:36 - jarvis.execution - INFO - DEBUG: Explicit skill condition TRUE. Skill found: True
+2025-04-05 03:53:36 - jarvis.execution - INFO - Task 'plan_obj_20250405035335_task_0' specifies skill 'web_search'. Attempting direct execution.
+2025-04-05 03:53:39 - jarvis.execution - INFO - Task plan_obj_20250405035335_task_0 completed successfully in attempt 1.
+2025-04-05 03:53:39 - jarvis.execution - INFO - Finished execution for task plan_obj_20250405035335_task_0. Success: True, Time: 3.07s
+2025-04-05 03:53:39 - jarvis.execution - INFO - Executing task plan_obj_20250405035335_task_1: 'Create a real-time price analysis report'
+2025-04-05 03:53:39 - jarvis.execution - INFO - Task plan_obj_20250405035335_task_1 identified as reasoning task. Performing direct LLM reasoning.
+2025-04-05 03:53:40 - jarvis.execution - INFO - LLM reasoning for task plan_obj_20250405035335_task_1 completed.
+2025-04-05 03:54:42 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-05 03:55:17 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-05 03:55:45 - jarvis.execution - INFO - Executing task plan_obj_20250405035542_task_0: 'Read the first 2 lines of test_read.txt'
+2025-04-05 03:55:45 - jarvis.execution - INFO - Attempt 1/4 for task plan_obj_20250405035542_task_0
+2025-04-05 03:55:45 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='read_file', Type=<class 'str'>, Args='{'file_path': 'test_read.txt', 'start_line': 1, 'end_line': 2}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 03:55:45 - jarvis.execution - INFO - DEBUG: Explicit skill condition TRUE. Skill found: True
+2025-04-05 03:55:45 - jarvis.execution - INFO - Task 'plan_obj_20250405035542_task_0' specifies skill 'read_file'. Attempting direct execution.
+2025-04-05 03:55:45 - jarvis.execution - INFO - Task plan_obj_20250405035542_task_0 completed successfully in attempt 1.
+2025-04-05 03:55:45 - jarvis.execution - INFO - Finished execution for task plan_obj_20250405035542_task_0. Success: True, Time: 0.01s
