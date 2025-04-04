@@ -4559,3 +4559,5 @@ groq.BadRequestError: Error code: 400 - {'error': {'message': "'messages' : mini
 2025-04-05 04:08:26 - jarvis.llm - INFO - LLMClient initialized successfully. Available providers: groq
 2025-04-05 04:09:11 - jarvis.llm - INFO - Groq client initialized successfully.
 2025-04-05 04:09:11 - jarvis.llm - INFO - LLMClient initialized successfully. Available providers: groq
+2025-04-05 04:14:40 - jarvis.llm - INFO - Groq client initialized successfully.
+2025-04-05 04:14:40 - jarvis.llm - INFO - LLMClient initialized successfully. Available providers: groq
