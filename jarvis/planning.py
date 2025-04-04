@@ -8,9 +8,9 @@ from typing import Dict, Any, List, Optional, Tuple
 from datetime import datetime
 from pydantic import BaseModel, Field
 
-from jarvis.memory.medium_term import Objective, MediumTermMemory
-from jarvis.memory.long_term import LongTermMemory
-from jarvis.memory.short_term import ShortTermMemory
+from memory.medium_term import Objective, MediumTermMemory
+from memory.long_term import LongTermMemory
+from memory.short_term import ShortTermMemory
 from utils.logger import setup_logger
 
 class Task(BaseModel):
@@ -166,9 +166,11 @@ class PlanningSystem(BaseModel):
                         # Store this decomposition for future reference
                         self._store_decomposition(objective_description, dynamic_tasks)
                         return dynamic_tasks
-                except Exception as e:
-                    self.logger.error(f"Error parsing LLM task decomposition: {e}")
-                    # Fall back to rule-based decomposition
+                except Exception as e: # Catch other potential errors during parsing/processing
+                    self.logger.error(f"Error processing LLM task decomposition: {e}")
+            except Exception as e:
+                 self.logger.error(f"Error during LLM task decomposition attempt: {e}")
+                 # Fall through to rule-based decomposition
         
         # Fall back to rule-based decomposition if LLM fails or is not available
         dynamic_tasks = []

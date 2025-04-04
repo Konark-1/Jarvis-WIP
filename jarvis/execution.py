@@ -8,8 +8,25 @@ from pydantic import BaseModel, Field
 from enum import Enum
 import time
 import json
+import logging
 
 from utils.logger import setup_logger
+# Import skill components
+from jarvis.skills import skill_registry, SkillResult
+
+# Assume Task structure is defined elsewhere (e.g., planning.py)
+# For type hinting here:
+class Task(BaseModel):
+    task_id: str
+    description: str
+    status: str = "pending"
+    dependencies: List[str] = Field(default_factory=list)
+    created_at: datetime = Field(default_factory=datetime.now)
+    completed_at: Optional[datetime] = None
+    error_count: int = 0
+    max_retries: int = 3
+    metadata: Dict[str, Any] = Field(default_factory=dict)
+
 
 class ExecutionResult(BaseModel):
     """Result of executing a task"""
@@ -31,18 +48,19 @@ class ExecutionStrategy(BaseModel):
     metadata: Dict[str, Any] = Field(default_factory=dict)
 
 class ExecutionSystem(BaseModel):
-    """System for executing tasks with error recovery"""
-    
+    """System for executing tasks with error recovery and skill dispatch."""
+
     logger: Any = None
-    llm: Any = None
-    
+    llm: Any = None # LLMClient expected here
+    skill_registry: Any = None # SkillRegistry expected here
+
     class Config:
         arbitrary_types_allowed = True
-    
+
     def __init__(self, **data):
         super().__init__(**data)
         self.logger = setup_logger("execution_system")
-        
+
         # Initialize LLM client if not provided
         if not self.llm:
             try:
@@ -51,76 +69,156 @@ class ExecutionSystem(BaseModel):
             except Exception as e:
                 self.logger.warning(f"Could not initialize LLM client: {e}")
         
+        # Use the globally discovered skill registry
+        from jarvis.skills import skill_registry as default_skill_registry
+        self.skill_registry = data.get('skill_registry', default_skill_registry)
+
         # Initialize strategies
         self._strategies = {}
         self._load_execution_strategies()
     
-    def execute_task(self, task: Any) -> ExecutionResult:
-        """Execute a task with error recovery"""
+    def execute_task(self, task: Task) -> ExecutionResult:
+        """Execute a task with error recovery, attempting skill dispatch first."""
+        start_time = time.time()
+        self.logger.info(f"Executing task {task.task_id}: '{task.description}'")
         try:
-            # Get execution strategy
             strategy = self._get_execution_strategy(task)
-            
-            # Start execution
-            start_time = time.time()
-            result = None
-            
-            # Try primary strategy
-            for attempt in range(strategy.max_retries):
+            execution_result = None
+
+            for attempt in range(strategy.max_retries + 1): # +1 for initial try
+                self.logger.info(f"Attempt {attempt + 1}/{strategy.max_retries + 1} for task {task.task_id}")
                 try:
-                    result = self._execute_with_strategy(task, strategy)
-                    if result.success:
-                        break
-                    
-                    # Wait before retry
-                    delay = strategy.retry_delay * (2 ** attempt)  # Exponential backoff
-                    time.sleep(delay)
-                    
+                    execution_result = self._execute_with_strategy(task, strategy)
+                    if execution_result.success:
+                        self.logger.info(f"Task {task.task_id} completed successfully in attempt {attempt + 1}.")
+                        break # Exit retry loop on success
+
+                    self.logger.warning(f"Attempt {attempt + 1} failed for task {task.task_id}: {execution_result.error}")
+                    # Increment task's internal error count (if Task model allows)
+                    # task.error_count += 1
+
+                    if attempt < strategy.max_retries:
+                        delay = strategy.retry_delay * (2 ** attempt) # Exponential backoff
+                        self.logger.info(f"Retrying task {task.task_id} in {delay:.2f} seconds...")
+                        time.sleep(delay)
+                    else:
+                        self.logger.error(f"Task {task.task_id} failed after maximum retries ({strategy.max_retries}).")
+                        break # Exit loop after max retries
+
                 except Exception as e:
-                    self.logger.error(f"Error in attempt {attempt + 1}: {e}")
-                    if attempt == strategy.max_retries - 1:
-                        raise
-            
-            # If primary strategy failed, try fallbacks
-            if not result or not result.success:
+                    # Catch errors during the execution attempt itself
+                    self.logger.error(f"Exception during attempt {attempt + 1} for task {task.task_id}: {e}", exc_info=True)
+                    execution_result = ExecutionResult(
+                        task_id=task.task_id,
+                        success=False,
+                        output=None,
+                        error=f"Exception during execution attempt: {str(e)}",
+                        execution_time=time.time() - start_time # Partial time
+                    )
+                    if attempt >= strategy.max_retries:
+                         self.logger.error(f"Task {task.task_id} failed due to exception after maximum retries.")
+                         break # Exit loop after max retries
+                    # Wait before retrying after an exception
+                    delay = strategy.retry_delay * (2 ** attempt)
+                    self.logger.info(f"Retrying task {task.task_id} in {delay:.2f} seconds after exception...")
+                    time.sleep(delay)
+
+            # Fallback strategies (if primary + retries failed)
+            if not execution_result or not execution_result.success:
+                self.logger.info(f"Primary execution failed for task {task.task_id}. Trying fallback strategies...")
                 for fallback_name in strategy.fallback_strategies:
-                    fallback = self._strategies.get(fallback_name)
-                    if fallback:
-                        result = self._try_fallback_strategy(task, fallback)
-                        if result and result.success:
-                            break
-            
-            # Calculate execution time
-            execution_time = time.time() - start_time
-            
-            # Create result
-            if not result:
-                result = ExecutionResult(
-                    task_id=task.task_id,
-                    success=False,
-                    output=None,
-                    error="All execution strategies failed",
-                    execution_time=execution_time
+                    fallback_strategy = self._strategies.get(fallback_name)
+                    if fallback_strategy:
+                        self.logger.info(f"Attempting fallback strategy '{fallback_name}' for task {task.task_id}")
+                        try:
+                            fallback_result = self._execute_with_strategy(task, fallback_strategy)
+                            if fallback_result.success:
+                                self.logger.info(f"Task {task.task_id} completed successfully with fallback strategy '{fallback_name}'.")
+                                execution_result = fallback_result
+                                break # Exit fallback loop on success
+                            else:
+                                self.logger.warning(f"Fallback strategy '{fallback_name}' failed for task {task.task_id}: {fallback_result.error}")
+                        except Exception as e:
+                            self.logger.error(f"Exception during fallback strategy '{fallback_name}' for task {task.task_id}: {e}", exc_info=True)
+                            # Store the error from the fallback attempt
+                            execution_result = ExecutionResult(
+                                task_id=task.task_id,
+                                success=False,
+                                output=None,
+                                error=f"Exception during fallback '{fallback_name}': {str(e)}",
+                                execution_time=time.time() - start_time
+                            )
+
+            # Final result creation
+            final_execution_time = time.time() - start_time
+            if not execution_result:
+                # Should not happen if loop logic is correct, but as a safeguard
+                error_msg = "All execution strategies failed without producing a result."
+                self.logger.error(f"Task {task.task_id}: {error_msg}")
+                execution_result = ExecutionResult(
+                    task_id=task.task_id, success=False, output=None,
+                    error=error_msg, execution_time=final_execution_time
                 )
+            else:
+                # Update execution time to final value
+                execution_result.execution_time = final_execution_time
+
+            # Log final status
+            self.logger.info(f"Finished execution for task {task.task_id}. Success: {execution_result.success}, Time: {final_execution_time:.2f}s")
             
-            # Store execution result
-            self._store_execution_result(result)
+            # If failed, attempt diagnosis
+            if not execution_result.success and execution_result.error:
+                 diagnosis = self._diagnose_execution_error(task, execution_result.error)
+                 execution_result.metadata['diagnosis'] = diagnosis # Add diagnosis to result metadata
+                 self.logger.info(f"Task {task.task_id} failure diagnosis: {diagnosis}")
             
-            # Reflect on execution
-            self._reflect_on_execution(result)
-            
-            return result
-            
+            return execution_result
+
         except Exception as e:
-            self.logger.error(f"Error executing task: {e}")
+            # Catch errors in the main execute_task orchestration
+            error_msg = f"Fatal error executing task {task.task_id}: {str(e)}"
+            self.logger.error(error_msg, exc_info=True)
+            final_execution_time = time.time() - start_time
+            # Attempt diagnosis even for fatal errors
+            diagnosis = self._diagnose_execution_error(task, error_msg)
             return ExecutionResult(
-                task_id=task.task_id,
-                success=False,
-                output=None,
-                error=str(e),
-                execution_time=time.time() - start_time
+                task_id=task.task_id, success=False, output=None, error=error_msg,
+                execution_time=final_execution_time, metadata={'diagnosis': diagnosis}
             )
-    
+
+    def _diagnose_execution_error(self, task: Task, error_message: str) -> str:
+        """Use LLM to diagnose task execution errors."""
+        diagnosis = "Diagnosis unavailable."
+        if self.llm:
+            try:
+                # Note: assemble_context might not be available here directly
+                # Construct basic context for diagnosis
+                context = f"Task Description: {task.description}\n"
+                context += f"Task Metadata: {json.dumps(task.metadata)}\n"
+                context += f"Error Encountered: {error_message}\n"
+                
+                # Include skill definitions if parsing failed within execution?
+                # skill_defs = self.skill_registry.get_skill_definitions()
+                # context += f"Available Skills: {json.dumps(skill_defs)}\n"
+                
+                system_prompt = """
+                You are an error analysis assistant for the Jarvis agent's execution system.
+                A task failed during execution.
+                Analyze the task details (description, metadata) and the error message.
+                Provide a brief diagnosis of the likely cause (e.g., bad parameters, skill bug, external API issue, LLM hallucination).
+                Suggest a recovery strategy if possible (e.g., retry with different parameters, modify plan, use fallback skill, report bug).
+                Format as: "Diagnosis: [Your diagnosis]. Suggestion: [Your suggestion]"
+                """
+                prompt = f"""
+                {context}
+                Analyze the execution failure and provide a diagnosis and suggestion.
+                """
+                
+                diagnosis = self.llm.process_with_llm(prompt, system_prompt, temperature=0.4, max_tokens=150).strip()
+            except Exception as diag_err:
+                self.logger.error(f"LLM diagnosis for task {task.task_id} failed: {diag_err}")
+        return diagnosis
+
     def _load_execution_strategies(self):
         """Load execution strategies from memory"""
         try:
@@ -162,7 +260,7 @@ class ExecutionSystem(BaseModel):
                 )
             }
     
-    def _get_execution_strategy(self, task: Any) -> ExecutionStrategy:
+    def _get_execution_strategy(self, task: Task) -> ExecutionStrategy:
         """Get the appropriate execution strategy for a task"""
         try:
             # Check task metadata for strategy
@@ -177,190 +275,174 @@ class ExecutionSystem(BaseModel):
             self.logger.error(f"Error getting execution strategy: {e}")
             return self._strategies["default"]
     
-    def _execute_with_strategy(self, task: Any, strategy: ExecutionStrategy) -> ExecutionResult:
-        """Execute a task using a specific strategy"""
+    def _execute_with_strategy(self, task: Task, strategy: ExecutionStrategy) -> ExecutionResult:
+        """Execute a task using a specific strategy, attempting skill dispatch first."""
+        start_time = time.time()
         try:
-            # Start execution
-            start_time = time.time()
-            output = None
-            success = False
-            error = None
-            
-            # Execute based on task type
-            if hasattr(task, "execute") and callable(task.execute):
-                # Task has its own execution method
-                output = task.execute()
-                success = True
-            else:
-                # Try using LLM to execute the task if available
-                if self.llm:
+            # --- Skill Dispatch Attempt ---
+            skill_name, params = self._parse_task_for_skill(task)
+
+            if skill_name and self.skill_registry:
+                skill = self.skill_registry.get_skill(skill_name)
+                if skill:
+                    self.logger.info(f"Attempting to execute task '{task.task_id}' using skill: '{skill_name}'")
+                    validation_error = skill.validate_parameters(params) # Note: validate_parameters might modify params (e.g., type conversion)
+                    if validation_error:
+                        error_msg = f"Parameter validation failed for skill '{skill_name}': {validation_error}"
+                        self.logger.error(error_msg)
+                        # Don't immediately fail execution, let LLM fallback handle it maybe?
+                        # Or return failure directly:
+                        return ExecutionResult(task_id=task.task_id, success=False, output=None, error=error_msg, execution_time=time.time()-start_time)
+
                     try:
-                        system_prompt = """
-                        You are Jarvis, an AI assistant that executes tasks. For the given task:
-                        1. Analyze what the task requires
-                        2. Determine the best approach to complete it
-                        3. Execute the task by describing exactly what you would do
-                        4. Summarize the results of your execution
-                        
-                        Be concise but thorough in your execution summary.
-                        """
-                        
-                        prompt = f"""
-                        Task to execute: {task.description}
-                        
-                        Task metadata: {json.dumps(task.metadata, indent=2)}
-                        
-                        Execute this task and provide a summary of the results.
-                        """
-                        
-                        llm_output = self.llm.process_with_llm(
-                            prompt=prompt,
-                            system_prompt=system_prompt,
-                            temperature=0.7,
-                            max_tokens=500
+                        skill_result: SkillResult = skill.execute(**params)
+                        exec_time = time.time() - start_time
+                        return ExecutionResult(
+                            task_id=task.task_id,
+                            success=skill_result.success,
+                            output=skill_result.data or skill_result.message,
+                            error=skill_result.error,
+                            execution_time=exec_time,
+                            metadata={'executed_by': 'skill', 'skill_name': skill_name}
                         )
-                        
-                        output = llm_output
-                        success = True
-                        
-                    except Exception as e:
-                        self.logger.error(f"Error executing task with LLM: {e}")
-                        # Fall back to rule-based execution
-                
-                # If LLM failed or isn't available, fall back to rule-based execution
-                if not success:
-                    # Handle execution based on task metadata
-                    task_type = task.metadata.get("type", "unknown")
-                    task_phase = task.metadata.get("phase", "unknown")
-                    
-                    if task_type == "planning":
-                        # Planning tasks - analyze the objective or problem
-                        if task_phase == "preparation":
-                            output = f"Analyzed requirements for task: {task.description}"
-                            success = True
-                        elif task_phase == "design":
-                            output = f"Designed solution architecture for: {task.description}"
-                            success = True
-                        elif task_phase == "decomposition":
-                            output = f"Decomposed objective into specific tasks"
-                            success = True
-                        elif task_phase == "organization":
-                            output = f"Created organization scheme for: {task.description}"
-                            success = True
-                        elif task_phase == "solution_design":
-                            output = f"Developed solution approach for: {task.description}"
-                            success = True
-                        else:
-                            output = f"Completed planning task: {task.description}"
-                            success = True
-                            
-                    elif task_type == "research":
-                        # Research tasks - gather information
-                        if task_phase == "information_gathering":
-                            output = f"Gathered information on: {task.description}"
-                            success = True
-                        else:
-                            output = f"Completed research task: {task.description}"
-                            success = True
-                            
-                    elif task_type == "execution":
-                        # Execution tasks - implement or apply something
-                        if task_phase == "implementation":
-                            output = f"Implemented functionality for: {task.description}"
-                            success = True
-                        elif task_phase == "analysis":
-                            output = f"Analyzed items for: {task.description}"
-                            success = True
-                        else:
-                            output = f"Executed task: {task.description}"
-                            success = True
-                            
-                    elif task_type == "validation":
-                        # Validation tasks - verify results
-                        if task_phase == "verification":
-                            output = f"Verified completion of: {task.description}"
-                            success = True
-                        else:
-                            output = f"Validated results for: {task.description}"
-                            success = True
-                            
-                    else:
-                        # Generic task execution
-                        output = f"Completed task: {task.description}"
-                        success = True
-            
-            # Calculate execution time
-            execution_time = time.time() - start_time
-            
-            # Create and return result
+                    except Exception as skill_exec_err:
+                        error_msg = f"Skill '{skill_name}' execution failed: {skill_exec_err}"
+                        self.logger.error(error_msg, exc_info=True)
+                        return ExecutionResult(task_id=task.task_id, success=False, output=None, error=error_msg, execution_time=time.time()-start_time)
+                else:
+                    self.logger.warning(f"Parsed skill '{skill_name}' not found in registry.")
+            # --- End Skill Dispatch Attempt ---
+
+            # --- LLM Execution Fallback ---
+            self.logger.info(f"No skill dispatched for task {task.task_id}. Attempting LLM execution.")
+            if self.llm:
+                try:
+                    # Existing LLM execution logic (can be refined)
+                    system_prompt = """
+                    You are Jarvis, an AI assistant executing a planned task.
+                    Analyze the task description and metadata.
+                    Describe the exact steps you would take to accomplish this task.
+                    Summarize the outcome or result of performing these steps.
+                    Be concise and focus on the execution and result.
+                    """
+
+                    prompt = f"""
+                    Task to execute: {task.description}
+                    Task Metadata: {json.dumps(task.metadata, indent=2)}
+
+                    Execute this task and provide a summary of the steps and results.
+                    """
+
+                    llm_output = self.llm.process_with_llm(
+                        prompt=prompt,
+                        system_prompt=system_prompt,
+                        temperature=0.5, # Lower temp for execution description
+                        max_tokens=500
+                    )
+                    exec_time = time.time() - start_time
+                    return ExecutionResult(
+                        task_id=task.task_id,
+                        success=True, # Assume success if LLM provides output
+                        output=llm_output,
+                        execution_time=exec_time,
+                        metadata={'executed_by': 'llm'}
+                    )
+                except Exception as llm_err:
+                    error_msg = f"Error executing task {task.task_id} with LLM: {llm_err}"
+                    self.logger.error(error_msg)
+                    return ExecutionResult(task_id=task.task_id, success=False, output=None, error=error_msg, execution_time=time.time()-start_time)
+
+            # --- Final Fallback (If no skill and no LLM) ---
+            self.logger.warning(f"No skill or LLM available for task {task.task_id}. Using basic fallback.")
+            output = f"Placeholder execution for task: {task.description}"
+            success = True # Basic fallback assumes success
+            exec_time = time.time() - start_time
             return ExecutionResult(
                 task_id=task.task_id,
                 success=success,
                 output=output,
-                error=error,
-                execution_time=execution_time
+                execution_time=exec_time,
+                metadata={'executed_by': 'fallback'}
             )
-            
+
         except Exception as e:
-            self.logger.error(f"Error in task execution: {e}")
-            return ExecutionResult(
-                task_id=task.task_id,
-                success=False,
-                output=None,
-                error=str(e),
-                execution_time=time.time() - start_time
-            )
-    
-    def _try_fallback_strategy(self, task: Any, strategy: ExecutionStrategy) -> Optional[ExecutionResult]:
-        """Try executing a task with a fallback strategy"""
-        try:
-            # Execute with fallback strategy
-            result = self._execute_with_strategy(task, strategy)
-            
-            # Update metadata
-            result.metadata["is_fallback"] = True
-            result.metadata["fallback_strategy"] = strategy.name
-            
-            return result
-            
-        except Exception as e:
-            self.logger.error(f"Error in fallback strategy: {e}")
-            return None
-    
-    def _store_execution_result(self, result: ExecutionResult):
-        """Store execution result for future reference"""
-        try:
-            # Add timestamp
-            result.metadata["timestamp"] = datetime.now().isoformat()
-            
-            # Store in memory or database
-            # This is a placeholder - implement actual storage
-            self.logger.info(f"Stored execution result: {result.dict()}")
-            
-        except Exception as e:
-            self.logger.error(f"Error storing execution result: {e}")
-    
-    def _reflect_on_execution(self, result: ExecutionResult):
-        """Reflect on task execution and update strategies"""
-        try:
-            # Analyze execution result
-            if result.success:
-                # Update strategy on success
-                strategy = self._get_execution_strategy(result)
-                strategy.metadata["success_count"] = strategy.metadata.get("success_count", 0) + 1
+            # Catch errors within the _execute_with_strategy scope
+            error_msg = f"Unexpected error in strategy execution for task {task.task_id}: {e}"
+            self.logger.error(error_msg, exc_info=True)
+            return ExecutionResult(task_id=task.task_id, success=False, output=None, error=error_msg, execution_time=time.time()-start_time)
+
+    def _parse_task_for_skill(self, task: Task) -> Tuple[Optional[str], Optional[Dict[str, Any]]]:
+        """Attempts to parse the task to identify a skill and its parameters."""
+        # Strategy 1: Check metadata first
+        if "skill_name" in task.metadata:
+            skill_name = task.metadata["skill_name"]
+            params = task.metadata.get("parameters", {})
+            if isinstance(params, dict):
+                self.logger.info(f"Found skill '{skill_name}' in task metadata.")
+                return skill_name, params
             else:
-                # Update strategy on failure
-                strategy = self._get_execution_strategy(result)
-                strategy.metadata["failure_count"] = strategy.metadata.get("failure_count", 0) + 1
-                
-                # Add error to history
-                strategy.metadata.setdefault("error_history", []).append({
-                    "timestamp": datetime.now().isoformat(),
-                    "error": result.error
-                })
-            
-            # Log reflection
-            self.logger.info(f"Reflected on execution: {result.dict()}")
-            
-        except Exception as e:
-            self.logger.error(f"Error reflecting on execution: {e}") 
+                 self.logger.warning(f"Task metadata has skill_name '{skill_name}' but parameters are not a dict.")
+
+        # Strategy 2: Use LLM to parse description (if LLM available)
+        if self.llm and self.skill_registry:
+            try:
+                # Get available skill definitions for the LLM
+                skill_defs = self.skill_registry.get_skill_definitions()
+                if not skill_defs:
+                    return None, None # No skills to match against
+
+                skill_defs_json = json.dumps(skill_defs, indent=2)
+
+                system_prompt = """
+                You are an expert system analyzing task descriptions to identify the appropriate skill and extract its parameters.
+                Given a task description and a list of available skills (with their descriptions and parameters),
+                determine which single skill is the best match for the task.
+                Extract the necessary parameters for that skill from the task description.
+
+                Available Skills:
+                {skill_defs_json}
+
+                Respond ONLY with a JSON object with this exact structure:
+                {
+                    "skill_name": "<name_of_the_best_matching_skill_or_null>",
+                    "parameters": { <key_value_pairs_of_extracted_parameters_or_empty_dict> }
+                }
+                If no single skill is a clear match for the task description, return skill_name as null.
+                Ensure parameter keys match the definition exactly.
+                Infer parameter values from the task description.
+                """
+                prompt = f"Task Description: {task.description}"
+
+                response = self.llm.process_with_llm(
+                    prompt=prompt,
+                    system_prompt=system_prompt,
+                    temperature=0.1, # Low temp for precise parsing
+                    max_tokens=300
+                )
+
+                parsed_data = json.loads(response)
+                skill_name = parsed_data.get("skill_name")
+                params = parsed_data.get("parameters", {})
+
+                if skill_name and isinstance(params, dict):
+                    self.logger.info(f"LLM parsed task description to skill: '{skill_name}', params: {params}")
+                    return skill_name, params
+                else:
+                    self.logger.info("LLM could not identify a suitable skill for the task description.")
+                    return None, None
+
+            except json.JSONDecodeError:
+                self.logger.error(f"Failed to parse LLM response for skill parsing. Response: {response[:200]}...")
+                return None, None
+            except Exception as e:
+                self.logger.error(f"Error using LLM for skill parsing: {e}")
+                return None, None
+
+        # Strategy 3: Simple keyword matching (optional basic fallback)
+        # Add simple logic here if needed, e.g., if 'search web' in task.description.lower() -> return "web_search", {}
+
+        self.logger.info(f"Could not parse skill from task: {task.task_id}")
+        return None, None
+
+    # _store_execution_result and _reflect_on_execution (optional, can be added later)
+    # ... 

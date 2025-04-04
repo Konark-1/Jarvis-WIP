@@ -81,6 +81,9 @@ class LLMClient(BaseModel):
     # Tracking
     last_response: Optional[LLMResponse] = None
     
+    class Config:
+        arbitrary_types_allowed = True
+    
     def __init__(self, **data):
         super().__init__(**data)
         self._initialize_clients()

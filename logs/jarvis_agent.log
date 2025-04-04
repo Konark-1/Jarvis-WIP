@@ -2,3 +2,5 @@
 2025-04-04 03:51:03 - jarvis_agent - ERROR - Error processing input: Objective obj_20250404035103 not found
 2025-04-04 03:52:00 - jarvis_agent - ERROR - Error creating plan for objective: Objective obj_20250404035159 not found
 2025-04-04 03:52:28 - jarvis_agent - ERROR - Error creating plan for objective: Objective obj_20250404035227 not found
+2025-04-04 07:48:05 - jarvis_agent - ERROR - Error generating response with LLM: RetryError[<Future at 0x1f7c2f6c350 state=finished raised ValueError>]
+2025-04-04 07:51:59 - jarvis_agent - ERROR - Error generating response with LLM: RetryError[<Future at 0x1ef08a89ac0 state=finished raised ValueError>]
