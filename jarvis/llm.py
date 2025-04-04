@@ -5,7 +5,7 @@ This module provides integration with Large Language Models,
 with a primary focus on Groq API.
 """
 
-from typing import Dict, List, Any, Optional, Union, Type
+from typing import Dict, List, Any, Optional, Union, Type, TYPE_CHECKING
 import os
 import json
 import time
@@ -14,6 +14,50 @@ import logging
 from tenacity import retry, stop_after_attempt, wait_exponential
 import tiktoken
 import instructor
+
+# <<< ADDED TYPE_CHECKING block >>>
+if TYPE_CHECKING:
+    from jarvis.planning import PlanningSystem, Task
+    from jarvis.execution import ExecutionSystem
+    from jarvis.memory.unified_memory import UnifiedMemorySystem
+    from jarvis.skills.registry import SkillRegistry
+# <<< END TYPE_CHECKING block >>>
+
+from utils.logger import setup_logger
+# from jarvis.config import settings # <<< REMOVE top-level import
+
+# Initialize logger EARLY
+logger = logging.getLogger("jarvis.llm")
+
+# --- LangChain Imports --- (Simplified for Groq)
+try:
+    from langchain_groq import ChatGroq
+    LANGCHAIN_GROQ_AVAILABLE = True
+except ImportError:
+    LANGCHAIN_GROQ_AVAILABLE = False
+    ChatGroq = None # Define as None if not available
+    logger.warning("Langchain Groq integration not available. Install with 'pip install langchain-groq'")
+
+# Remove OpenAI/Anthropic langchain imports
+# try:
+#     from langchain_openai import ChatOpenAI
+#     LANGCHAIN_OPENAI_AVAILABLE = True
+# except ImportError:
+#     LANGCHAIN_OPENAI_AVAILABLE = False
+#     ChatOpenAI = None
+# 
+# try:
+#     from langchain_anthropic import ChatAnthropic
+#     LANGCHAIN_ANTHROPIC_AVAILABLE = True
+# except ImportError:
+#     LANGCHAIN_ANTHROPIC_AVAILABLE = False
+#     ChatAnthropic = None
+
+# Define BaseChatModel for type hinting
+try:
+    from langchain_core.language_models import BaseChatModel
+except ImportError:
+    BaseChatModel = Any # Fallback if langchain_core is not available
 
 # Custom Exceptions
 class LLMError(Exception):
@@ -45,25 +89,24 @@ except ImportError:
     GROQ_AVAILABLE = False
     logger.warning("Groq Python SDK not available. Install with 'pip install groq'")
 
-try:
-    import openai
-    from openai import OpenAI
-    OPENAI_AVAILABLE = True
-except ImportError:
-    OPENAI_AVAILABLE = False
-    # Keep OpenAI class defined for type hinting even if not available
-    class OpenAI: pass
-    logger.warning("OpenAI Python SDK not available")
-
-try:
-    import anthropic
-    from anthropic import Anthropic
-    ANTHROPIC_AVAILABLE = True
-except ImportError:
-    ANTHROPIC_AVAILABLE = False
-    # Keep Anthropic class defined for type hinting even if not available
-    class Anthropic: pass
-    logger.warning("Anthropic Python SDK not available")
+# Remove OpenAI/Anthropic SDK imports
+# try:
+#     import openai
+#     from openai import OpenAI
+#     OPENAI_AVAILABLE = True
+# except ImportError:
+#     OPENAI_AVAILABLE = False
+#     class OpenAI: pass
+#     logger.warning("OpenAI Python SDK not available")
+# 
+# try:
+#     import anthropic
+#     from anthropic import Anthropic
+#     ANTHROPIC_AVAILABLE = True
+# except ImportError:
+#     ANTHROPIC_AVAILABLE = False
+#     class Anthropic: pass
+#     logger.warning("Anthropic Python SDK not available")
 
 class Message(BaseModel):
     """A message in a conversation with an LLM."""
@@ -75,640 +118,264 @@ class LLMResponse(BaseModel):
     content: str
     model: str
     provider: str
-    usage: Dict[str, int] = Field(default_factory=dict)
+    usage: Dict[str, float] = Field(default_factory=dict)
     metadata: Dict[str, Any] = Field(default_factory=dict)
     timestamp: float = Field(default_factory=time.time)
 
 class LLMClient(BaseModel):
-    """Client for interacting with LLMs."""
+    """Client for interacting with LLMs (Groq Only)."""
     
     model_config = ConfigDict(arbitrary_types_allowed=True)
     
-    primary_provider: str = "groq"  # groq, openai, anthropic
+    primary_provider: str = "groq" # Fixed to groq
     groq_api_key: Optional[str] = None
-    openai_api_key: Optional[str] = None
-    anthropic_api_key: Optional[str] = None
+    # Remove OpenAI/Anthropic fields
+    # openai_api_key: Optional[str] = None
+    # anthropic_api_key: Optional[str] = None
     
     # Default models
-    groq_model: str = "llama-3.3-70b-versatile"  # Updated default to 70b
-    openai_model: str = "gpt-4o-mini"  # Updated default model
-    anthropic_model: str = "claude-3-haiku-20240307"
+    groq_model: str = "llama3-8b-8192" # Switch default to 8b
+    # Remove OpenAI/Anthropic defaults
+    # openai_model: str = "gpt-4o-mini"
+    # anthropic_model: str = "claude-3-haiku-20240307"
     
     # Clients
     groq_client: Optional[groq.Client] = None
-    openai_client: Optional[OpenAI] = None
-    anthropic_client: Optional[Anthropic] = None
+    # Remove OpenAI/Anthropic clients
+    # openai_client: Optional[OpenAI] = None
+    # anthropic_client: Optional[Anthropic] = None
     
     # Tokenizer
-    tokenizer: Any = None  # To store the tiktoken tokenizer
+    tokenizer: Any = None
     
     # Tracking
     last_response: Optional[LLMResponse] = None
+    available_clients: Dict[str, bool] = Field(default_factory=dict)
+    logger: logging.Logger
     
     def __init__(self, **data):
+        # Ensure logger exists before Pydantic validation
+        if 'logger' not in data:
+            from utils.logger import setup_logger
+            data['logger'] = setup_logger("jarvis.llm")
+            
+        # <<< ADDED: Import settings inside __init__ >>>
+        from jarvis.config import settings
+        
+        # <<< ADDED: Set fields directly from settings >>>
+        data['groq_api_key'] = settings.groq.api_key
+        data['groq_model'] = settings.groq.default_model
+        data['primary_provider'] = "groq" # Keep fixed for now
+
         super().__init__(**data)
+        
+        # Post-Pydantic initialization steps
         self._initialize_clients()
         # Initialize tokenizer
         try:
             self.tokenizer = tiktoken.get_encoding("cl100k_base")
         except Exception as e:
-            logger.warning(f"Could not initialize tiktoken tokenizer: {e}. Token estimation will be basic.")
+            self.logger.warning(f"Could not initialize tiktoken tokenizer: {e}. Token estimation will be basic.")
             self.tokenizer = None
         
         # Patch clients with instructor if available
-        self._patch_clients_with_instructor()
+        # self._patch_clients_with_instructor() # <<< TEMPORARILY COMMENTED OUT
+
+        # Check if Groq client was successfully initialized
+        self.available_clients = {"groq": self.groq_client is not None}
+        
+        if not self.available_clients["groq"]:
+            # Error logged in _initialize_clients if key missing
+            # Re-raise here if initialization failed for other reasons
+            if not self.groq_client:
+                 raise LLMConfigurationError("Groq LLM provider initialization failed (client object is None).")
+        else:
+            self.logger.info(f"LLMClient initialized successfully. Available providers: groq")
     
     def _patch_clients_with_instructor(self):
-        """Applies instructor patch to compatible LLM clients."""
-        logger.info("Attempting to patch LLM clients with Instructor...")
-        patched_any = False
+        """Applies instructor patch to the Groq client."""
+        self.logger.info("Attempting to patch Groq client with Instructor...")
         try:
-            if self.openai_client:
-                self.openai_client = instructor.patch(self.openai_client)
-                logger.info("OpenAI client patched with Instructor.")
-                patched_any = True
-            if self.anthropic_client:
-                 # Check instructor version compatibility or specific patching method if needed
-                 try:
-                     self.anthropic_client = instructor.patch(self.anthropic_client)
-                     logger.info("Anthropic client patched with Instructor.")
-                     patched_any = True
-                 except Exception as e:
-                      logger.warning(f"Could not patch Anthropic client with Instructor (may require specific setup): {e}")
             if self.groq_client:
-                 # Groq might need specific handling or might work if OpenAI compatible
-                 try:
-                     self.groq_client = instructor.patch(self.groq_client)
-                     logger.info("Groq client patched with Instructor.")
-                     patched_any = True
-                 except Exception as e:
-                      logger.warning(f"Could not patch Groq client with Instructor (may require specific setup or be incompatible): {e}")
-            
-            if not patched_any:
-                 logger.warning("Instructor could not patch any available LLM clients.")
-                 
+                # Groq might need specific handling or might work if OpenAI compatible
+                try:
+                    self.groq_client = instructor.patch(self.groq_client)
+                    self.logger.info("Groq client patched with Instructor.")
+                except Exception as e:
+                    self.logger.warning(f"Could not patch Groq client with Instructor (may require specific setup): {e}")
         except Exception as e:
-             logger.error(f"Error during Instructor client patching: {e}", exc_info=True)
-    
+            self.logger.error(f"Error during instructor patching: {e}", exc_info=True)
+
     def _initialize_clients(self):
-        """Initialize the LLM clients."""
-        logger.debug("Attempting to initialize LLM clients...")
-
-        # Try loading API keys from environment if not provided
-        if not self.groq_api_key:
-            logger.debug("Groq API key not provided directly, attempting to load from env...")
-            self.groq_api_key = os.getenv("GROQ_API_KEY")
-            logger.debug(f"GROQ_API_KEY loaded from env: {'Exists' if self.groq_api_key else 'Not Found'}")
-        else:
-            logger.debug("Groq API key provided directly.")
-
-        if not self.openai_api_key:
-            logger.debug("OpenAI API key not provided directly, attempting to load from env...")
-            self.openai_api_key = os.getenv("OPENAI_API_KEY")
-            logger.debug(f"OPENAI_API_KEY loaded from env: {'Exists' if self.openai_api_key else 'Not Found'}")
-        else:
-            logger.debug("OpenAI API key provided directly.")
-
-        if not self.anthropic_api_key:
-            logger.debug("Anthropic API key not provided directly, attempting to load from env...")
-            self.anthropic_api_key = os.getenv("ANTHROPIC_API_KEY")
-            logger.debug(f"ANTHROPIC_API_KEY loaded from env: {'Exists' if self.anthropic_api_key else 'Not Found'}")
-        else:
-            logger.debug("Anthropic API key provided directly.")
-
-        # Initialize Groq
-        logger.debug(f"Checking Groq: Key provided? {'Yes' if self.groq_api_key else 'No'}, Library available? {GROQ_AVAILABLE}")
-        if self.groq_api_key and GROQ_AVAILABLE:
+        """Initialize the Groq client."""
+        # Only initialize Groq
+        if GROQ_AVAILABLE and self.groq_api_key:
             try:
-                logger.debug("Attempting to initialize Groq client...")
                 self.groq_client = groq.Client(api_key=self.groq_api_key)
-                logger.info("Groq client initialized successfully.") # Changed log level for success
+                self.logger.info("Groq client initialized successfully.")
             except Exception as e:
-                logger.error(f"Error initializing Groq client: {e}", exc_info=True) # Added exc_info
-                self.groq_client = None # Ensure client is None on error
-        else:
-            logger.info("Groq client not initialized (key missing or library unavailable).")
+                self.logger.error(f"Failed to initialize Groq client: {e}", exc_info=True)
+                # Keep self.groq_client as None
+        elif not GROQ_AVAILABLE:
+            self.logger.warning("Groq SDK not installed, cannot initialize Groq client.")
+        elif not self.groq_api_key:
+            self.logger.error("Groq API key not found (check GROQ_API_KEY env var or .env). Cannot initialize Groq client.")
+            # Raise error? Yes, critical.
+            raise LLMConfigurationError("Groq API key not found.")
 
-        # Initialize OpenAI
-        logger.debug(f"Checking OpenAI: Key provided? {'Yes' if self.openai_api_key else 'No'}, Library available? {OPENAI_AVAILABLE}")
-        if self.openai_api_key and OPENAI_AVAILABLE:
-            try:
-                logger.debug("Attempting to initialize OpenAI client...")
-                self.openai_client = OpenAI(api_key=self.openai_api_key)
-                logger.info("OpenAI client initialized successfully.") # Changed log level for success
-            except Exception as e:
-                logger.error(f"Error initializing OpenAI client: {e}", exc_info=True) # Added exc_info
-                self.openai_client = None # Ensure client is None on error
-        else:
-            logger.info("OpenAI client not initialized (key missing or library unavailable).")
-
-        # Initialize Anthropic
-        logger.debug(f"Checking Anthropic: Key provided? {'Yes' if self.anthropic_api_key else 'No'}, Library available? {ANTHROPIC_AVAILABLE}")
-        if self.anthropic_api_key and ANTHROPIC_AVAILABLE:
-            try:
-                logger.debug("Attempting to initialize Anthropic client...")
-                self.anthropic_client = Anthropic(api_key=self.anthropic_api_key)
-                logger.info("Anthropic client initialized successfully.") # Changed log level for success
-            except Exception as e:
-                logger.error(f"Error initializing Anthropic client: {e}", exc_info=True) # Added exc_info
-                self.anthropic_client = None # Ensure client is None on error
-        else:
-            logger.info("Anthropic client not initialized (key missing or library unavailable).")
-
-        # Log the available providers
-        available_providers = []
-        if self.groq_client:
-            available_providers.append("groq")
-        if self.openai_client:
-            available_providers.append("openai")
-        if self.anthropic_client:
-            available_providers.append("anthropic")
-
-        logger.debug(f"Final check - Initialized clients: groq={bool(self.groq_client)}, openai={bool(self.openai_client)}, anthropic={bool(self.anthropic_client)}")
-
-        if available_providers:
-            logger.info(f"Successfully initialized LLM providers: {', '.join(available_providers)}")
-        else:
-            logger.error("Failed to initialize any LLM providers!") # Changed level to ERROR
-
-        # Validate primary provider
-        if self.primary_provider not in available_providers:
-            logger.warning(f"Configured primary provider '{self.primary_provider}' is not available.")
-            if available_providers:
-                self.primary_provider = available_providers[0]
-                logger.warning(f"Switching primary provider to the first available: '{self.primary_provider}'.")
+    def _prepare_messages(self, messages: List[Union[Message, Dict]]) -> List[Dict]:
+        """Ensures messages are in the dictionary format expected by APIs."""
+        prepared_messages = []
+        
+        # <<< ADDED: Input type check >>>
+        if not isinstance(messages, list):
+            self.logger.error(f"_prepare_messages received non-list input: type={type(messages)}, value={messages}")
+            return [] # Return empty list to prevent errors downstream
+            
+        for msg in messages:
+            if isinstance(msg, Message):
+                prepared_messages.append(msg.model_dump())
+            elif isinstance(msg, dict) and 'role' in msg and 'content' in msg:
+                prepared_messages.append(msg)
             else:
-                logger.error("CRITICAL: No LLM providers could be initialized, and no primary provider can be set.")
-    
-    def get_model_name(self) -> str:
-        """Returns the model name configured for the primary provider."""
-        if self.primary_provider == "groq":
-            return self.groq_model
-        elif self.primary_provider == "openai":
-            return self.openai_model
-        elif self.primary_provider == "anthropic":
-            return self.anthropic_model
-        else:
-            return "unknown_model"
-    
-    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=1, max=10))
-    def _call_llm(self,
-                 provider: str,
-                 model: str,
-                 messages: List[Message],
-                 max_tokens: int = 1000,
-                 temperature: float = 0.7) -> LLMResponse:
+                self.logger.warning(f"Skipping invalid message format: {msg}")
+        return prepared_messages
+
+    def estimate_tokens(self, text: Union[str, List[Dict]]) -> int:
+        """Estimates the number of tokens for a given text or message list."""
+        if not self.tokenizer:
+            # Basic estimation if tokenizer is unavailable
+            return len(str(text).split())
+
+        try:
+            if isinstance(text, str):
+                return len(self.tokenizer.encode(text))
+            elif isinstance(text, list):
+                # Estimate tokens for a list of message dictionaries
+                # Based on OpenAI's cookbook example
+                num_tokens = 0
+                for message in text:
+                    num_tokens += 4  # Every message follows <im_start>{role/name}\n{content}<im_end>\n
+                    for key, value in message.items():
+                        if value:
+                             num_tokens += len(self.tokenizer.encode(str(value)))
+                        if key == "name":  # If there's a name, the role is omitted
+                            num_tokens -= 1  # Role is always required and always 1 token
+                num_tokens += 2  # Every reply is primed with <im_start>assistant
+
+                return num_tokens
+            else:
+                return len(str(text).split()) # Fallback
+        except Exception as e:
+            self.logger.warning(f"Token estimation failed: {e}. Falling back to basic word count.")
+            return len(str(text).split())
+
+    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
+    def process_with_llm(self, 
+                         prompt: Optional[str] = None, # Added for compatibility 
+                         messages: Optional[List[Union[Message, Dict]]] = None, 
+                         model: Optional[str] = None, 
+                         system_prompt: Optional[str] = None, # Added for compatibility
+                         max_tokens: Optional[int] = 1000, # Added for compatibility
+                         temperature: Optional[float] = 0.7, # Added for compatibility
+                         **kwargs) -> Union[str, LLMResponse]: # Return string for compatibility
+        """Invokes the Groq LLM with retry logic. (Renamed from invoke)
+           Added parameters for compatibility with ExecutionSystem calls.
         """
-        Make the actual API call to the LLM provider with retry logic.
-
-        Args:
-            provider: The LLM provider to use
-            model: The specific model to use
-            messages: List of messages for the conversation
-            max_tokens: Maximum tokens in the response
-            temperature: Temperature for generation (0-1)
-
-        Returns:
-            An LLMResponse object
-
-        Raises:
-            LLMCommunicationError: If there's an issue communicating with the API.
-            LLMTokenLimitError: If the request exceeds token limits.
-            ValueError: If the provider is not supported or client not initialized.
-            LLMConfigurationError: If the client for the provider is missing.
-        """
-        start_time = time.time()
-        logger.debug(f"Calling LLM provider: {provider}, model: {model}")
-
-        client = None
-        if provider == "groq":
-            client = self.groq_client
-        elif provider == "openai":
-            client = self.openai_client
-        elif provider == "anthropic":
-            client = self.anthropic_client
+        
+        provider = "groq"
+        effective_model = model or self.groq_model
+        client = self.groq_client
+        prepared_messages: List[Dict] = [] # Initialize prepared_messages
 
         if not client:
-            logger.error(f"Client for provider {provider} is not initialized.")
-            raise LLMConfigurationError(f"Client for provider {provider} is not initialized.")
+            raise LLMConfigurationError(f"Groq client is not available or configured.")
+
+        # Determine message source
+        if messages is not None:
+            # Use provided messages list directly
+            self.logger.debug("Using provided messages list for LLM call.")
+            prepared_messages = self._prepare_messages(messages)
+        elif prompt is not None:
+            # Construct messages from prompt and system_prompt
+            self.logger.debug("Constructing messages from prompt/system_prompt for LLM call.")
+            constructed_messages = []
+            if system_prompt:
+                 constructed_messages.append(Message(role="system", content=system_prompt))
+            constructed_messages.append(Message(role="user", content=prompt))
+            prepared_messages = self._prepare_messages(constructed_messages)
+        else:
+             # No valid input provided
+             raise ValueError("Either 'prompt' or 'messages' must be provided.")
+             
+        # Ensure prepared_messages is not empty before proceeding
+        if not prepared_messages:
+             logger.error("Message preparation resulted in an empty list. Check input prompt/messages.")
+             # Returning an empty string or raising might be appropriate depending on caller expectation
+             # For now, let the API call fail with Groq's error message.
+             # Or raise LLMError("Prepared message list is empty.")
+             pass # Let Groq API handle the empty list error for now
 
         try:
-            if provider == "groq":
-                groq_messages = [
-                    {"role": msg.role, "content": msg.content}
-                    for msg in messages
-                ]
-                response = client.chat.completions.create(
-                    model=model,
-                    messages=groq_messages,
-                    max_tokens=max_tokens,
-                    temperature=temperature
-                )
-                content = response.choices[0].message.content
-                usage = {
-                    "prompt_tokens": getattr(response.usage, 'prompt_tokens', 0),
-                    "completion_tokens": getattr(response.usage, 'completion_tokens', 0),
-                    "total_tokens": getattr(response.usage, 'total_tokens', 0)
-                }
-                finish_reason = response.choices[0].finish_reason
-
-            elif provider == "openai":
-                openai_messages = [
-                    {"role": msg.role, "content": msg.content}
-                    for msg in messages
-                ]
-                response = client.chat.completions.create(
-                    model=model,
-                    messages=openai_messages,
-                    max_tokens=max_tokens,
-                    temperature=temperature
-                )
-                content = response.choices[0].message.content
-                usage = {
-                    "prompt_tokens": getattr(response.usage, 'prompt_tokens', 0),
-                    "completion_tokens": getattr(response.usage, 'completion_tokens', 0),
-                    "total_tokens": getattr(response.usage, 'total_tokens', 0)
-                }
-                finish_reason = response.choices[0].finish_reason
-
-            elif provider == "anthropic":
-                system_prompt = None
-                anthropic_messages = []
-                for msg in messages:
-                    if msg.role == "system":
-                        system_prompt = msg.content
-                    else:
-                        anthropic_messages.append({"role": msg.role, "content": msg.content})
-
-                response = client.messages.create(
-                    model=model,
-                    system=system_prompt,
-                    messages=anthropic_messages,
-                    max_tokens=max_tokens,
-                    temperature=temperature
-                )
-                content = response.content[0].text
-                usage = {
-                    "prompt_tokens": getattr(response.usage, 'input_tokens', 0),
-                    "completion_tokens": getattr(response.usage, 'output_tokens', 0),
-                    "total_tokens": getattr(response.usage, 'input_tokens', 0) + getattr(response.usage, 'output_tokens', 0)
-                }
-                finish_reason = response.stop_reason
-            else:
-                # This case should theoretically not be reached due to the initial check
-                raise ValueError(f"Provider {provider} not supported.")
-
-            response_time = time.time() - start_time
-            logger.debug(f"LLM call successful. Provider: {provider}, Time: {response_time:.2f}s")
-
-            return LLMResponse(
+            start_time = time.time()
+            # --- Direct synchronous call to Groq --- 
+            groq_params = {
+                "messages": prepared_messages,
+                "model": effective_model,
+                "max_tokens": max_tokens,
+                "temperature": temperature,
+                **kwargs
+            }
+            self.logger.debug(f"Calling Groq sync with params: {groq_params}")
+            api_response = client.chat.completions.create(**groq_params)
+            # ---------------------------------------
+            duration = time.time() - start_time
+            
+            content = api_response.choices[0].message.content
+            usage = api_response.usage.model_dump() if api_response.usage else {}
+            metadata = {"duration_ms": int(duration * 1000)}
+            
+            response_obj = LLMResponse(
                 content=content,
-                model=model,
+                model=effective_model,
                 provider=provider,
                 usage=usage,
-                metadata={
-                    "response_time": response_time,
-                    "finish_reason": finish_reason
-                }
+                metadata=metadata
             )
-
-        # Specific SDK Error Handling
-        except (groq.APIError if GROQ_AVAILABLE else Exception) as e:
-            response_time = time.time() - start_time
-            if provider == "groq":
-                 logger.error(f"Groq API Error after {response_time:.2f}s: {e}")
-                 # Check for specific Groq error types if needed (e.g., RateLimitError)
-                 if isinstance(e, groq.RateLimitError):
-                     logger.warning("Groq rate limit exceeded. Consider backoff.")
-                 elif isinstance(e, groq.AuthenticationError):
-                     logger.error("Groq authentication failed. Check API key.")
-                 # Re-raise as our custom error for consistent handling
-                 raise LLMCommunicationError(provider, e) from e
-            else: # Should not happen if provider matches
-                logger.error(f"Caught Groq error for non-Groq provider {provider}? Error: {e}")
-                raise LLMCommunicationError(provider, e) from e
-
-        except (openai.APIError if OPENAI_AVAILABLE else Exception) as e:
-            response_time = time.time() - start_time
-            if provider == "openai":
-                logger.error(f"OpenAI API Error after {response_time:.2f}s: {e}")
-                # Example specific OpenAI error checks
-                if isinstance(e, openai.RateLimitError):
-                     logger.warning("OpenAI rate limit exceeded. Consider backoff.")
-                elif isinstance(e, openai.AuthenticationError):
-                     logger.error("OpenAI authentication failed. Check API key.")
-                elif isinstance(e, openai.BadRequestError) and 'context_length_exceeded' in str(e):
-                     logger.error("OpenAI context length exceeded.")
-                     raise LLMTokenLimitError("OpenAI context length exceeded.") from e
-                raise LLMCommunicationError(provider, e) from e
-            else:
-                logger.error(f"Caught OpenAI error for non-OpenAI provider {provider}? Error: {e}")
-                raise LLMCommunicationError(provider, e) from e
-
-        except (anthropic.APIError if ANTHROPIC_AVAILABLE else Exception) as e:
-            response_time = time.time() - start_time
-            if provider == "anthropic":
-                logger.error(f"Anthropic API Error after {response_time:.2f}s: {e}")
-                if isinstance(e, anthropic.RateLimitError):
-                    logger.warning("Anthropic rate limit exceeded. Consider backoff.")
-                elif isinstance(e, anthropic.AuthenticationError):
-                    logger.error("Anthropic authentication failed. Check API key.")
-                elif isinstance(e, anthropic.BadRequestError) and 'max_tokens' in str(e):
-                     logger.error("Anthropic context length potentially exceeded.")
-                     # Anthropic might not have a specific token limit error type easily distinguishable
-                     raise LLMTokenLimitError("Anthropic request potentially exceeded context limits.") from e
-                raise LLMCommunicationError(provider, e) from e
-            else:
-                logger.error(f"Caught Anthropic error for non-Anthropic provider {provider}? Error: {e}")
-                raise LLMCommunicationError(provider, e) from e
-
-        # Catch-all for other unexpected errors during the API call phase
+            self.last_response = response_obj
+            # Return only content string for compatibility with callers
+            return response_obj.content 
+            # return response_obj # Original return
         except Exception as e:
-            response_time = time.time() - start_time
-            logger.error(f"Unexpected LLM call error after {response_time:.2f}s. Provider: {provider}, Error: {type(e).__name__}: {e}")
-            # Re-raise as a generic communication error, but log specifics
-            raise LLMCommunicationError(provider, e) from e
-    
-    def process_with_llm(self, 
-                         prompt: str, 
-                         system_prompt: Optional[str] = None,
-                         provider: Optional[str] = None,
-                         model: Optional[str] = None,
-                         max_tokens: int = 1000,
-                         temperature: float = 0.7) -> str:
-        """
-        Process a prompt with an LLM.
-        
-        Args:
-            prompt: The user prompt to process
-            system_prompt: Optional system prompt for context
-            provider: The LLM provider to use (groq, openai, anthropic)
-            model: The specific model to use
-            max_tokens: Maximum tokens in the response
-            temperature: Temperature for generation (0-1)
-            
-        Returns:
-            The LLM response content as a string
-        """
-        # Use the specified provider or fall back to primary
-        provider = provider or self.primary_provider
-        
-        # Set the appropriate model based on provider
-        if model is None:
-            if provider == "groq":
-                model = self.groq_model
-            elif provider == "openai":
-                model = self.openai_model
-            elif provider == "anthropic":
-                model = self.anthropic_model
-        
-        # Format messages
-        messages = []
-        if system_prompt:
-            messages.append(Message(role="system", content=system_prompt))
-        messages.append(Message(role="user", content=prompt))
-        
-        response = self._call_llm(
-            provider=provider, 
-            model=model, 
-            messages=messages,
-            max_tokens=max_tokens,
-            temperature=temperature
-        )
-        
-        # Store the response
-        self.last_response = response
-        
-        # Return just the content
-        return response.content
-    
-    def chat(self, 
-             messages: List[Dict[str, str]], 
-             provider: Optional[str] = None,
-             model: Optional[str] = None) -> str:
-        """
-        Have a chat conversation with the LLM.
-        
-        Args:
-            messages: List of message dictionaries with 'role' and 'content'
-            provider: The LLM provider to use (groq, openai, anthropic)
-            model: The specific model to use
-            
-        Returns:
-            The LLM response content as a string
-        """
-        # Convert dict messages to Message objects
-        formatted_messages = [
-            Message(role=msg["role"], content=msg["content"])
-            for msg in messages
-        ]
-        
-        # Use the last user message as the prompt
-        user_messages = [msg for msg in messages if msg["role"] == "user"]
-        prompt = user_messages[-1]["content"] if user_messages else ""
-        
-        # Extract system prompt if present
-        system_messages = [msg for msg in messages if msg["role"] == "system"]
-        system_prompt = system_messages[0]["content"] if system_messages else None
-        
-        # Call the LLM
-        response = self._call_llm(
-            provider=provider or self.primary_provider,
-            model=model or getattr(self, f"{self.primary_provider}_model"),
-            messages=formatted_messages
-        )
-        
-        # Store the response
-        self.last_response = response
-        
-        # Return just the content
-        return response.content
-    
-    def get_token_estimate(self, text: str) -> int:
-        """
-        Estimate the number of tokens in a given text using tiktoken if available.
-        Falls back to a simple heuristic if tiktoken is not available.
-        
-        Args:
-            text: The text to estimate tokens for
-            
-        Returns:
-            Estimated token count
-        """
-        if self.tokenizer:
-            try:
-                return len(self.tokenizer.encode(text))
-            except Exception as e:
-                logger.warning(f"Tiktoken encoding failed: {e}. Falling back to heuristic.")
-                # Fallback heuristic
-                return len(text) // 4
+            logger.error(f"Error invoking {provider} model {effective_model}: {e}", exc_info=True)
+            raise LLMCommunicationError(provider, e)
+
+    async def _call_groq(self, client: groq.Client, messages: List[Dict], model: str, **kwargs) -> Any:
+        """Makes the actual API call to Groq."""
+        # Add default parameters or handle kwargs specific to Groq
+        params = {
+            "messages": messages,
+            "model": model,
+            **kwargs # Allow overriding defaults
+        }
+        self.logger.debug(f"Calling Groq with params: {params}")
+        response = await client.chat.completions.create(**params)
+        return response
+
+    # Remove _call_openai and _call_anthropic methods
+
+    def get_token_limit(self, model_name: Optional[str] = None) -> int:
+        """Gets the approximate context window size (token limit) for a given model (Groq only)."""
+        # Simplifed for Groq, using known limits. Refine as needed.
+        model = model_name or self.groq_model
+        if "llama3-70b" in model:
+            return 8192
+        elif "llama3-8b" in model:
+            return 8192
+        elif "mixtral-8x7b" in model:
+            return 32768 # Groq's Mixtral limit
+        elif "gemma-7b" in model:
+            return 8192
         else:
-            # Fallback heuristic
-            return len(text) // 4
-
-    def get_langchain_llm(self, provider: Optional[str] = None) -> Optional[Any]:
-        """Returns the initialized LangChain-compatible LLM client object for the specified provider.
-
-        Args:
-            provider: The LLM provider ("groq", "openai", "anthropic"). 
-                      Defaults to self.primary_provider.
-
-        Returns:
-            The initialized client object (e.g., groq.Client, openai.OpenAI) or None if unavailable.
-        """
-        target_provider = provider or self.primary_provider
-        client = None
-        if target_provider == "groq":
-            client = self.groq_client
-        elif target_provider == "openai":
-            client = self.openai_client
-        elif target_provider == "anthropic":
-            client = self.anthropic_client
-        
-        if not client:
-            logger.warning(f"LangChain-compatible client requested for provider '{target_provider}', but it is not initialized or available.")
-            return None
-            
-        # CrewAI often expects specific LangChain wrappers (e.g., ChatGroq, ChatOpenAI)
-        # We might need to wrap the raw client here, or ensure CrewAI handles the raw SDK client.
-        # For now, return the raw client, assuming CrewAI/LangChain might handle it or 
-        # specific wrappers might be needed later.
-        logger.debug(f"Providing LangChain LLM client instance for '{target_provider}'")
-        return client
-
-    def process_structured_output(self,
-                                  prompt: str,
-                                  system_prompt: Optional[str] = None,
-                                  provider: Optional[str] = None,
-                                  model: Optional[str] = None,
-                                  max_tokens: int = 1000,
-                                  temperature: float = 0.7,
-                                  response_model: Optional[Type[BaseModel]] = None) -> Union[str, BaseModel]:
-        """Processes a prompt with the primary LLM, optionally enforcing a Pydantic model.
-
-        Args:
-            prompt: The user prompt.
-            system_prompt: An optional system prompt.
-            provider: Override the primary provider.
-            model: Override the default model for the provider.
-            max_tokens: Max tokens for the response.
-            temperature: Generation temperature.
-            response_model: Optional Pydantic model to enforce on the response.
-
-        Returns:
-            The LLM response content as a string, or an instance of response_model if provided.
-
-        Raises:
-            LLMConfigurationError: If no provider is available.
-            LLMCommunicationError: If API communication fails.
-            LLMTokenLimitError: If token limits are hit.
-            ValueError: If response_model is provided but instructor patching failed.
-            Exception: For other unexpected errors.
-        """
-        target_provider = provider or self.primary_provider
-        
-        if target_provider == "groq":
-            target_model = model or self.groq_model
-        elif target_provider == "openai":
-            target_model = model or self.openai_model
-        elif target_provider == "anthropic":
-            target_model = model or self.anthropic_model
-        else:
-            logger.error(f"Unsupported provider specified: {target_provider}")
-            raise LLMConfigurationError(f"Unsupported provider: {target_provider}")
-
-        # Construct messages
-        messages = []
-        if system_prompt:
-            messages.append(Message(role="system", content=system_prompt))
-        messages.append(Message(role="user", content=prompt))
-
-        # --- Call LLM --- 
-        # Use the internal _call_llm method, potentially adapted for instructor
-        logger.info(f"Processing prompt with {target_provider}/{target_model}. Response model: {response_model.__name__ if response_model else 'None'}")
-
-        try:
-            # Determine the correct client
-            client = None
-            if target_provider == "groq": client = self.groq_client
-            elif target_provider == "openai": client = self.openai_client
-            elif target_provider == "anthropic": client = self.anthropic_client
-
-            if not client:
-                 raise LLMConfigurationError(f"Client for provider {target_provider} not initialized.")
-
-            # Prepare API messages format
-            api_messages = [{"role": m.role, "content": m.content} for m in messages]
-
-            if response_model:
-                 # Check if the client was successfully patched
-                 # This check assumes instructor adds a specific attribute or method, adjust if needed
-                 # A simple check might be if the object's class name contains 'Instructor'
-                 client_type_str = str(type(client))
-                 if "instructor" not in client_type_str.lower() and not hasattr(client, '_instructor_is_patched'): # Basic check
-                      logger.error(f"Instructor response_model requested, but client '{target_provider}' appears unpatched.")
-                      raise ValueError(f"Cannot use response_model with unpatched {target_provider} client.")
-                 
-                 # Use the patched client's create method with response_model
-                 structured_response = client.chat.completions.create(
-                     model=target_model,
-                     messages=api_messages,
-                     max_tokens=max_tokens,
-                     temperature=temperature,
-                     response_model=response_model # Pass the model to instructor
-                 )
-                 # Store minimal response info (usage might not be standard)
-                 self.last_response = LLMResponse(
-                      content=str(structured_response), # Store Pydantic model as string? Or handle separately?
-                      model=target_model,
-                      provider=target_provider,
-                      usage={}, # Usage info might be different/absent
-                      metadata={'response_type': 'structured', 'model_name': response_model.__name__}
-                 )
-                 return structured_response
-                 
-            else:
-                 # Standard call without response_model (use existing _call_llm for consistency?)
-                 # Replicating _call_llm logic here for simplicity, could refactor later
-                 response = client.chat.completions.create(
-                     model=target_model,
-                     messages=api_messages,
-                     max_tokens=max_tokens,
-                     temperature=temperature
-                 )
-                 content = response.choices[0].message.content
-                 usage = getattr(response, 'usage', None)
-                 usage_dict = {
-                    "prompt_tokens": getattr(usage, 'prompt_tokens', 0),
-                    "completion_tokens": getattr(usage, 'completion_tokens', 0),
-                    "total_tokens": getattr(usage, 'total_tokens', 0)
-                 } if usage else {}
-                 finish_reason = response.choices[0].finish_reason
-
-                 self.last_response = LLMResponse(
-                      content=content,
-                      model=target_model,
-                      provider=target_provider,
-                      usage=usage_dict,
-                      metadata={'finish_reason': finish_reason}
-                 )
-                 return content
-
-        # --- Error Handling --- (Simplified from _call_llm for this method)
-        except (groq.APIConnectionError, openai.APIConnectionError, anthropic.APIConnectionError) as e:
-            raise LLMCommunicationError(target_provider, e)
-        except (groq.RateLimitError, openai.RateLimitError, anthropic.RateLimitError) as e:
-            logger.warning(f"Rate limit exceeded for {target_provider}. Retrying...")
-            raise LLMCommunicationError(target_provider, e) # Let retry handle
-        except (groq.APIStatusError, openai.APIStatusError, anthropic.APIStatusError) as e:
-             # Handle specific errors like token limits if possible
-             # Example for OpenAI:
-             if hasattr(e, 'code') and e.code == 'context_length_exceeded':
-                  logger.error(f"Token limit likely exceeded for {target_provider}: {e}")
-                  raise LLMTokenLimitError(f"Context length exceeded: {e}")
-             else:
-                  logger.error(f"API Error from {target_provider}: {e}")
-                  raise LLMCommunicationError(target_provider, e)
-        except Exception as e:
-            logger.exception(f"Unexpected error during LLM call ({target_provider}): {e}")
-            raise LLMError(f"Unexpected LLM error: {e}") 
+            self.logger.warning(f"Unknown token limit for Groq model: {model}. Returning default 8192.")
+            return 8192 # Default fallback 

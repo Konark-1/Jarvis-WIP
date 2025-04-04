@@ -316,3 +316,656 @@ Suggestion: Retry the task with an updated plan that includes error handling and
 2025-04-04 21:50:16 - jarvis.execution - INFO - Loaded 3 execution strategies.
 2025-04-04 22:14:01 - jarvis.execution - INFO - Loaded 3 execution strategies.
 2025-04-04 22:14:33 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-04 22:17:38 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-04 22:48:31 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-04 22:49:27 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-04 22:49:55 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-04 22:50:43 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-04 22:51:38 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-04 22:52:10 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-04 22:53:48 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-04 22:54:31 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-04 22:55:17 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-04 22:57:27 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-04 22:59:24 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-04 23:03:34 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-04 23:04:25 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-04 23:06:09 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-04 23:07:17 - jarvis.execution - INFO - Executing task plan_obj_20250404230717_task_0: 'Search the web for: Check for nvidia stock prices and any related news'
+2025-04-04 23:07:17 - jarvis.execution - INFO - Attempt 1/4 for task plan_obj_20250404230717_task_0
+2025-04-04 23:07:17 - jarvis.execution - WARNING - Instructor response_model requested, but client 'groq' appears unpatched. Falling back to manual JSON parsing.
+2025-04-04 23:07:18 - jarvis.execution - INFO - Attempting to execute task 'plan_obj_20250404230717_task_0' using skill: 'web_search'
+2025-04-04 23:07:21 - jarvis.execution - INFO - Task plan_obj_20250404230717_task_0 completed successfully in attempt 1.
+2025-04-04 23:07:21 - jarvis.execution - INFO - Finished execution for task plan_obj_20250404230717_task_0. Success: True, Time: 4.13s
+2025-04-04 23:08:25 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-04 23:09:43 - jarvis.execution - INFO - Executing task plan_obj_20250404230942_task_0: 'Search the web for: Check for nvidia stock price and create a report for the relvant new regarding the stocl'
+2025-04-04 23:09:43 - jarvis.execution - INFO - Attempt 1/4 for task plan_obj_20250404230942_task_0
+2025-04-04 23:09:43 - jarvis.execution - INFO - Task 'plan_obj_20250404230942_task_0' identified as synthesis task based on description. Executing internal synthesis logic...
+2025-04-04 23:09:43 - jarvis.execution - ERROR - Missing plan_id in metadata for synthesis task plan_obj_20250404230942_task_0
+2025-04-04 23:09:43 - jarvis.execution - WARNING - Attempt 1 failed for task plan_obj_20250404230942_task_0: Missing plan_id in metadata for synthesis task plan_obj_20250404230942_task_0
+2025-04-04 23:09:43 - jarvis.execution - INFO - Retrying task plan_obj_20250404230942_task_0 in 1.00 seconds...
+2025-04-04 23:09:44 - jarvis.execution - INFO - Attempt 2/4 for task plan_obj_20250404230942_task_0
+2025-04-04 23:09:44 - jarvis.execution - INFO - Task 'plan_obj_20250404230942_task_0' identified as synthesis task based on description. Executing internal synthesis logic...
+2025-04-04 23:09:44 - jarvis.execution - ERROR - Missing plan_id in metadata for synthesis task plan_obj_20250404230942_task_0
+2025-04-04 23:09:44 - jarvis.execution - WARNING - Attempt 2 failed for task plan_obj_20250404230942_task_0: Missing plan_id in metadata for synthesis task plan_obj_20250404230942_task_0
+2025-04-04 23:09:44 - jarvis.execution - INFO - Retrying task plan_obj_20250404230942_task_0 in 2.00 seconds...
+2025-04-04 23:09:46 - jarvis.execution - INFO - Attempt 3/4 for task plan_obj_20250404230942_task_0
+2025-04-04 23:09:46 - jarvis.execution - INFO - Task 'plan_obj_20250404230942_task_0' identified as synthesis task based on description. Executing internal synthesis logic...
+2025-04-04 23:09:46 - jarvis.execution - ERROR - Missing plan_id in metadata for synthesis task plan_obj_20250404230942_task_0
+2025-04-04 23:09:46 - jarvis.execution - WARNING - Attempt 3 failed for task plan_obj_20250404230942_task_0: Missing plan_id in metadata for synthesis task plan_obj_20250404230942_task_0
+2025-04-04 23:09:46 - jarvis.execution - INFO - Retrying task plan_obj_20250404230942_task_0 in 4.00 seconds...
+2025-04-04 23:09:50 - jarvis.execution - INFO - Attempt 4/4 for task plan_obj_20250404230942_task_0
+2025-04-04 23:09:50 - jarvis.execution - INFO - Task 'plan_obj_20250404230942_task_0' identified as synthesis task based on description. Executing internal synthesis logic...
+2025-04-04 23:09:50 - jarvis.execution - ERROR - Missing plan_id in metadata for synthesis task plan_obj_20250404230942_task_0
+2025-04-04 23:09:50 - jarvis.execution - WARNING - Attempt 4 failed for task plan_obj_20250404230942_task_0: Missing plan_id in metadata for synthesis task plan_obj_20250404230942_task_0
+2025-04-04 23:09:50 - jarvis.execution - ERROR - Task plan_obj_20250404230942_task_0 failed after maximum retries (3).
+2025-04-04 23:09:50 - jarvis.execution - INFO - Primary execution failed for task plan_obj_20250404230942_task_0. Trying fallback strategies...
+2025-04-04 23:09:50 - jarvis.execution - INFO - Attempting fallback strategy 'simple' for task plan_obj_20250404230942_task_0
+2025-04-04 23:09:50 - jarvis.execution - INFO - Task 'plan_obj_20250404230942_task_0' identified as synthesis task based on description. Executing internal synthesis logic...
+2025-04-04 23:09:50 - jarvis.execution - ERROR - Missing plan_id in metadata for synthesis task plan_obj_20250404230942_task_0
+2025-04-04 23:09:50 - jarvis.execution - WARNING - Fallback strategy 'simple' failed for task plan_obj_20250404230942_task_0: Missing plan_id in metadata for synthesis task plan_obj_20250404230942_task_0
+2025-04-04 23:09:50 - jarvis.execution - INFO - Attempting fallback strategy 'robust' for task plan_obj_20250404230942_task_0
+2025-04-04 23:09:50 - jarvis.execution - INFO - Task 'plan_obj_20250404230942_task_0' identified as synthesis task based on description. Executing internal synthesis logic...
+2025-04-04 23:09:50 - jarvis.execution - ERROR - Missing plan_id in metadata for synthesis task plan_obj_20250404230942_task_0
+2025-04-04 23:09:50 - jarvis.execution - WARNING - Fallback strategy 'robust' failed for task plan_obj_20250404230942_task_0: Missing plan_id in metadata for synthesis task plan_obj_20250404230942_task_0
+2025-04-04 23:09:50 - jarvis.execution - INFO - Finished execution for task plan_obj_20250404230942_task_0. Success: False, Time: 7.03s
+2025-04-04 23:09:51 - jarvis.execution - INFO - Task plan_obj_20250404230942_task_0 failure diagnosis: Diagnosis: The error message indicates that the task failed due to a missing 'plan_id' in the metadata for the synthesis task. This suggests a bad parameters or metadata issue, as the task execution system is unable to proceed without the required plan identifier.
+
+Suggestion: Suggestion: Retry the task with the correct metadata, including the required 'plan_id'. If the plan_id is not available, modify the plan to generate or obtain the necessary plan_id before proceeding with the task execution. Additionally, verify that the task metadata is correctly formatted and populated with all required fields to prevent similar errors in the future. If the issue persists, consider reporting the bug to the development team for further investigation and resolution.
+2025-04-04 23:11:55 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-04 23:12:16 - jarvis.execution - INFO - Executing task plan_obj_20250404231216_task_0: 'Search the web for: Check for nvidia stock price and create a report for the relvant new regarding the stocl'
+2025-04-04 23:12:16 - jarvis.execution - INFO - Attempt 1/4 for task plan_obj_20250404231216_task_0
+2025-04-04 23:12:16 - jarvis.execution - INFO - Task 'plan_obj_20250404231216_task_0' identified as synthesis task (no explicit skill). Executing internal synthesis logic...
+2025-04-04 23:12:16 - jarvis.execution - ERROR - Missing plan_id in metadata for synthesis task plan_obj_20250404231216_task_0
+2025-04-04 23:12:16 - jarvis.execution - WARNING - Attempt 1 failed for task plan_obj_20250404231216_task_0: Missing plan_id in metadata for synthesis task plan_obj_20250404231216_task_0
+2025-04-04 23:12:16 - jarvis.execution - INFO - Retrying task plan_obj_20250404231216_task_0 in 1.00 seconds...
+2025-04-04 23:12:17 - jarvis.execution - INFO - Attempt 2/4 for task plan_obj_20250404231216_task_0
+2025-04-04 23:12:17 - jarvis.execution - INFO - Task 'plan_obj_20250404231216_task_0' identified as synthesis task (no explicit skill). Executing internal synthesis logic...
+2025-04-04 23:12:17 - jarvis.execution - ERROR - Missing plan_id in metadata for synthesis task plan_obj_20250404231216_task_0
+2025-04-04 23:12:17 - jarvis.execution - WARNING - Attempt 2 failed for task plan_obj_20250404231216_task_0: Missing plan_id in metadata for synthesis task plan_obj_20250404231216_task_0
+2025-04-04 23:12:17 - jarvis.execution - INFO - Retrying task plan_obj_20250404231216_task_0 in 2.00 seconds...
+2025-04-04 23:12:19 - jarvis.execution - INFO - Attempt 3/4 for task plan_obj_20250404231216_task_0
+2025-04-04 23:12:19 - jarvis.execution - INFO - Task 'plan_obj_20250404231216_task_0' identified as synthesis task (no explicit skill). Executing internal synthesis logic...
+2025-04-04 23:12:19 - jarvis.execution - ERROR - Missing plan_id in metadata for synthesis task plan_obj_20250404231216_task_0
+2025-04-04 23:12:19 - jarvis.execution - WARNING - Attempt 3 failed for task plan_obj_20250404231216_task_0: Missing plan_id in metadata for synthesis task plan_obj_20250404231216_task_0
+2025-04-04 23:12:19 - jarvis.execution - INFO - Retrying task plan_obj_20250404231216_task_0 in 4.00 seconds...
+2025-04-04 23:12:23 - jarvis.execution - INFO - Attempt 4/4 for task plan_obj_20250404231216_task_0
+2025-04-04 23:12:23 - jarvis.execution - INFO - Task 'plan_obj_20250404231216_task_0' identified as synthesis task (no explicit skill). Executing internal synthesis logic...
+2025-04-04 23:12:23 - jarvis.execution - ERROR - Missing plan_id in metadata for synthesis task plan_obj_20250404231216_task_0
+2025-04-04 23:12:23 - jarvis.execution - WARNING - Attempt 4 failed for task plan_obj_20250404231216_task_0: Missing plan_id in metadata for synthesis task plan_obj_20250404231216_task_0
+2025-04-04 23:12:23 - jarvis.execution - ERROR - Task plan_obj_20250404231216_task_0 failed after maximum retries (3).
+2025-04-04 23:12:23 - jarvis.execution - INFO - Primary execution failed for task plan_obj_20250404231216_task_0. Trying fallback strategies...
+2025-04-04 23:12:23 - jarvis.execution - INFO - Attempting fallback strategy 'simple' for task plan_obj_20250404231216_task_0
+2025-04-04 23:12:23 - jarvis.execution - INFO - Task 'plan_obj_20250404231216_task_0' identified as synthesis task (no explicit skill). Executing internal synthesis logic...
+2025-04-04 23:12:23 - jarvis.execution - ERROR - Missing plan_id in metadata for synthesis task plan_obj_20250404231216_task_0
+2025-04-04 23:12:23 - jarvis.execution - WARNING - Fallback strategy 'simple' failed for task plan_obj_20250404231216_task_0: Missing plan_id in metadata for synthesis task plan_obj_20250404231216_task_0
+2025-04-04 23:12:23 - jarvis.execution - INFO - Attempting fallback strategy 'robust' for task plan_obj_20250404231216_task_0
+2025-04-04 23:12:23 - jarvis.execution - INFO - Task 'plan_obj_20250404231216_task_0' identified as synthesis task (no explicit skill). Executing internal synthesis logic...
+2025-04-04 23:12:23 - jarvis.execution - ERROR - Missing plan_id in metadata for synthesis task plan_obj_20250404231216_task_0
+2025-04-04 23:12:23 - jarvis.execution - WARNING - Fallback strategy 'robust' failed for task plan_obj_20250404231216_task_0: Missing plan_id in metadata for synthesis task plan_obj_20250404231216_task_0
+2025-04-04 23:12:23 - jarvis.execution - INFO - Finished execution for task plan_obj_20250404231216_task_0. Success: False, Time: 7.03s
+2025-04-04 23:12:24 - jarvis.execution - INFO - Task plan_obj_20250404231216_task_0 failure diagnosis: Diagnosis: The error message indicates that the task failed due to a missing 'plan_id' in the metadata for the synthesis task. This suggests a bad parameters or metadata issue, as the task execution system is unable to identify the plan associated with the task.
+
+Suggestion: Retry the task with the correct metadata, including the 'plan_id' for the synthesis task plan_obj_20250404231216_task_0. If the 'plan_id' is not available, modify the plan to include the required metadata or use a fallback skill that can handle the task without the specific 'plan_id'. Additionally, verify that the task description and metadata are correctly formatted and aligned with the expected input for the synthesis task.
+2025-04-04 23:13:07 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-04 23:13:12 - jarvis.execution - INFO - Executing task plan_obj_20250404231312_task_0: 'Search the web for: Check for nvidia stock price and create a report for the relvant new regarding the stocl'
+2025-04-04 23:13:12 - jarvis.execution - INFO - Attempt 1/4 for task plan_obj_20250404231312_task_0
+2025-04-04 23:13:12 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='None', Type=<class 'NoneType'>, Args='None', ArgsType=<class 'NoneType'>, RegistryPresent=True
+2025-04-04 23:13:12 - jarvis.execution - WARNING - DEBUG: Explicit skill condition FALSE. Name='None', ArgsType=<class 'NoneType'>, RegistryPresent=True
+2025-04-04 23:13:12 - jarvis.execution - INFO - Task 'plan_obj_20250404231312_task_0' identified as synthesis task (no explicit skill). Executing internal synthesis logic...
+2025-04-04 23:13:12 - jarvis.execution - ERROR - Missing plan_id in metadata for synthesis task plan_obj_20250404231312_task_0
+2025-04-04 23:13:12 - jarvis.execution - WARNING - Attempt 1 failed for task plan_obj_20250404231312_task_0: Missing plan_id in metadata for synthesis task plan_obj_20250404231312_task_0
+2025-04-04 23:13:12 - jarvis.execution - INFO - Retrying task plan_obj_20250404231312_task_0 in 1.00 seconds...
+2025-04-04 23:13:13 - jarvis.execution - INFO - Attempt 2/4 for task plan_obj_20250404231312_task_0
+2025-04-04 23:13:13 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='None', Type=<class 'NoneType'>, Args='None', ArgsType=<class 'NoneType'>, RegistryPresent=True
+2025-04-04 23:13:13 - jarvis.execution - WARNING - DEBUG: Explicit skill condition FALSE. Name='None', ArgsType=<class 'NoneType'>, RegistryPresent=True
+2025-04-04 23:13:13 - jarvis.execution - INFO - Task 'plan_obj_20250404231312_task_0' identified as synthesis task (no explicit skill). Executing internal synthesis logic...
+2025-04-04 23:13:13 - jarvis.execution - ERROR - Missing plan_id in metadata for synthesis task plan_obj_20250404231312_task_0
+2025-04-04 23:13:13 - jarvis.execution - WARNING - Attempt 2 failed for task plan_obj_20250404231312_task_0: Missing plan_id in metadata for synthesis task plan_obj_20250404231312_task_0
+2025-04-04 23:13:13 - jarvis.execution - INFO - Retrying task plan_obj_20250404231312_task_0 in 2.00 seconds...
+2025-04-04 23:13:15 - jarvis.execution - INFO - Attempt 3/4 for task plan_obj_20250404231312_task_0
+2025-04-04 23:13:15 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='None', Type=<class 'NoneType'>, Args='None', ArgsType=<class 'NoneType'>, RegistryPresent=True
+2025-04-04 23:13:15 - jarvis.execution - WARNING - DEBUG: Explicit skill condition FALSE. Name='None', ArgsType=<class 'NoneType'>, RegistryPresent=True
+2025-04-04 23:13:15 - jarvis.execution - INFO - Task 'plan_obj_20250404231312_task_0' identified as synthesis task (no explicit skill). Executing internal synthesis logic...
+2025-04-04 23:13:15 - jarvis.execution - ERROR - Missing plan_id in metadata for synthesis task plan_obj_20250404231312_task_0
+2025-04-04 23:13:15 - jarvis.execution - WARNING - Attempt 3 failed for task plan_obj_20250404231312_task_0: Missing plan_id in metadata for synthesis task plan_obj_20250404231312_task_0
+2025-04-04 23:13:15 - jarvis.execution - INFO - Retrying task plan_obj_20250404231312_task_0 in 4.00 seconds...
+2025-04-04 23:13:19 - jarvis.execution - INFO - Attempt 4/4 for task plan_obj_20250404231312_task_0
+2025-04-04 23:13:19 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='None', Type=<class 'NoneType'>, Args='None', ArgsType=<class 'NoneType'>, RegistryPresent=True
+2025-04-04 23:13:19 - jarvis.execution - WARNING - DEBUG: Explicit skill condition FALSE. Name='None', ArgsType=<class 'NoneType'>, RegistryPresent=True
+2025-04-04 23:13:19 - jarvis.execution - INFO - Task 'plan_obj_20250404231312_task_0' identified as synthesis task (no explicit skill). Executing internal synthesis logic...
+2025-04-04 23:13:19 - jarvis.execution - ERROR - Missing plan_id in metadata for synthesis task plan_obj_20250404231312_task_0
+2025-04-04 23:13:19 - jarvis.execution - WARNING - Attempt 4 failed for task plan_obj_20250404231312_task_0: Missing plan_id in metadata for synthesis task plan_obj_20250404231312_task_0
+2025-04-04 23:13:19 - jarvis.execution - ERROR - Task plan_obj_20250404231312_task_0 failed after maximum retries (3).
+2025-04-04 23:13:19 - jarvis.execution - INFO - Primary execution failed for task plan_obj_20250404231312_task_0. Trying fallback strategies...
+2025-04-04 23:13:19 - jarvis.execution - INFO - Attempting fallback strategy 'simple' for task plan_obj_20250404231312_task_0
+2025-04-04 23:13:19 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='None', Type=<class 'NoneType'>, Args='None', ArgsType=<class 'NoneType'>, RegistryPresent=True
+2025-04-04 23:13:19 - jarvis.execution - WARNING - DEBUG: Explicit skill condition FALSE. Name='None', ArgsType=<class 'NoneType'>, RegistryPresent=True
+2025-04-04 23:13:19 - jarvis.execution - INFO - Task 'plan_obj_20250404231312_task_0' identified as synthesis task (no explicit skill). Executing internal synthesis logic...
+2025-04-04 23:13:19 - jarvis.execution - ERROR - Missing plan_id in metadata for synthesis task plan_obj_20250404231312_task_0
+2025-04-04 23:13:19 - jarvis.execution - WARNING - Fallback strategy 'simple' failed for task plan_obj_20250404231312_task_0: Missing plan_id in metadata for synthesis task plan_obj_20250404231312_task_0
+2025-04-04 23:13:19 - jarvis.execution - INFO - Attempting fallback strategy 'robust' for task plan_obj_20250404231312_task_0
+2025-04-04 23:13:19 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='None', Type=<class 'NoneType'>, Args='None', ArgsType=<class 'NoneType'>, RegistryPresent=True
+2025-04-04 23:13:19 - jarvis.execution - WARNING - DEBUG: Explicit skill condition FALSE. Name='None', ArgsType=<class 'NoneType'>, RegistryPresent=True
+2025-04-04 23:13:19 - jarvis.execution - INFO - Task 'plan_obj_20250404231312_task_0' identified as synthesis task (no explicit skill). Executing internal synthesis logic...
+2025-04-04 23:13:19 - jarvis.execution - ERROR - Missing plan_id in metadata for synthesis task plan_obj_20250404231312_task_0
+2025-04-04 23:13:19 - jarvis.execution - WARNING - Fallback strategy 'robust' failed for task plan_obj_20250404231312_task_0: Missing plan_id in metadata for synthesis task plan_obj_20250404231312_task_0
+2025-04-04 23:13:19 - jarvis.execution - INFO - Finished execution for task plan_obj_20250404231312_task_0. Success: False, Time: 7.01s
+2025-04-04 23:13:20 - jarvis.execution - INFO - Task plan_obj_20250404231312_task_0 failure diagnosis: Diagnosis: The error message indicates that the task failed due to a missing 'plan_id' in the metadata for the synthesis task. This suggests that the task execution system was unable to retrieve or generate a valid plan ID, which is required for the task to proceed. The likely cause is a bad parameter or a skill bug, as the task description and metadata appear to be correctly formatted for a web search and report generation task.
+
+Suggestion: Retry the task with a modified plan that includes a valid plan ID in the metadata. If the issue persists, consider using a fallback skill that can generate a default plan ID or report the bug to the development team for further investigation and resolution. Additionally, verify that the synthesis task plan_obj_202504042
+2025-04-04 23:14:55 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-04 23:15:04 - jarvis.execution - INFO - Executing task plan_obj_20250404231503_task_0: 'Search the web for: Check for nvidia stock price and create a report for the relvant new regarding the stocl'
+2025-04-04 23:15:04 - jarvis.execution - INFO - Attempt 1/4 for task plan_obj_20250404231503_task_0
+2025-04-04 23:15:04 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='web_search', Type=<class 'str'>, Args='{'query': 'Check for nvidia stock price and create a report for the relvant new regarding the stocl', 'max_results': 3}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-04 23:15:04 - jarvis.execution - INFO - DEBUG: Explicit skill condition TRUE. Skill found: True
+2025-04-04 23:15:04 - jarvis.execution - INFO - Task 'plan_obj_20250404231503_task_0' specifies skill 'web_search'. Attempting direct execution.
+2025-04-04 23:15:07 - jarvis.execution - INFO - Task plan_obj_20250404231503_task_0 completed successfully in attempt 1.
+2025-04-04 23:15:07 - jarvis.execution - INFO - Finished execution for task plan_obj_20250404231503_task_0. Success: True, Time: 2.96s
+2025-04-04 23:17:07 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-04 23:17:12 - jarvis.execution - INFO - Executing task plan_obj_20250404231712_task_0: 'Search the web for: Check for nvidia stock price and create a report for the relvant new regarding the stocl'
+2025-04-04 23:17:12 - jarvis.execution - INFO - Attempt 1/4 for task plan_obj_20250404231712_task_0
+2025-04-04 23:17:12 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='web_search', Type=<class 'str'>, Args='{'query': 'Check for nvidia stock price and create a report for the relvant new regarding the stocl', 'max_results': 3}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-04 23:17:12 - jarvis.execution - INFO - DEBUG: Explicit skill condition TRUE. Skill found: True
+2025-04-04 23:17:12 - jarvis.execution - INFO - Task 'plan_obj_20250404231712_task_0' specifies skill 'web_search'. Attempting direct execution.
+2025-04-04 23:17:16 - jarvis.execution - INFO - Task plan_obj_20250404231712_task_0 completed successfully in attempt 1.
+2025-04-04 23:17:16 - jarvis.execution - INFO - Finished execution for task plan_obj_20250404231712_task_0. Success: True, Time: 3.53s
+2025-04-04 23:17:59 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-04 23:18:01 - jarvis.execution - INFO - Executing task plan_obj_20250404231800_task_0: 'Search the web for: Check for nvidia stock price and create a report for the relvant new regarding the stocl'
+2025-04-04 23:18:01 - jarvis.execution - INFO - Attempt 1/4 for task plan_obj_20250404231800_task_0
+2025-04-04 23:18:01 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='web_search', Type=<class 'str'>, Args='{'query': 'Check for nvidia stock price and create a report for the relvant new regarding the stocl', 'max_results': 3}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-04 23:18:01 - jarvis.execution - INFO - DEBUG: Explicit skill condition TRUE. Skill found: True
+2025-04-04 23:18:01 - jarvis.execution - INFO - Task 'plan_obj_20250404231800_task_0' specifies skill 'web_search'. Attempting direct execution.
+2025-04-04 23:18:04 - jarvis.execution - INFO - Task plan_obj_20250404231800_task_0 completed successfully in attempt 1.
+2025-04-04 23:18:04 - jarvis.execution - INFO - Finished execution for task plan_obj_20250404231800_task_0. Success: True, Time: 3.18s
+2025-04-04 23:20:33 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-04 23:20:34 - jarvis.execution - INFO - Executing task plan_obj_20250404232034_task_0: 'Search the web for: Check for nvidia stock price and create a report for the relvant new regarding the stocl'
+2025-04-04 23:20:34 - jarvis.execution - INFO - Attempt 1/4 for task plan_obj_20250404232034_task_0
+2025-04-04 23:20:34 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='web_search', Type=<class 'str'>, Args='{'query': 'Check for nvidia stock price and create a report for the relvant new regarding the stocl', 'max_results': 3}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-04 23:20:34 - jarvis.execution - INFO - DEBUG: Explicit skill condition TRUE. Skill found: True
+2025-04-04 23:20:34 - jarvis.execution - INFO - Task 'plan_obj_20250404232034_task_0' specifies skill 'web_search'. Attempting direct execution.
+2025-04-04 23:20:37 - jarvis.execution - INFO - Task plan_obj_20250404232034_task_0 completed successfully in attempt 1.
+2025-04-04 23:20:37 - jarvis.execution - INFO - Finished execution for task plan_obj_20250404232034_task_0. Success: True, Time: 2.98s
+2025-04-04 23:21:59 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-04 23:22:50 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-05 01:34:37 - jarvis.execution - INFO - Executing task plan_obj_20250405013437_task_0: 'Formulate final response based on objective.'
+2025-04-05 01:34:37 - jarvis.execution - INFO - Attempt 1/4 for task plan_obj_20250405013437_task_0
+2025-04-05 01:34:37 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='None', Type=<class 'NoneType'>, Args='{}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 01:34:37 - jarvis.execution - WARNING - DEBUG: Explicit skill condition FALSE. Name='None', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 01:34:37 - jarvis.execution - WARNING - Instructor response_model requested, but client 'groq' appears unpatched. Falling back to manual JSON parsing.
+2025-04-05 01:34:37 - jarvis.execution - INFO - No explicit or parsed skill identified for task 'plan_obj_20250405013437_task_0' ('Formulate final response based on objective.') and not identified as a synthesis task. Marking as completed internal step.
+2025-04-05 01:34:37 - jarvis.execution - INFO - Task plan_obj_20250405013437_task_0 completed successfully in attempt 1.
+2025-04-05 01:34:37 - jarvis.execution - INFO - Finished execution for task plan_obj_20250405013437_task_0. Success: True, Time: 0.44s
+2025-04-05 01:34:55 - jarvis.execution - INFO - Executing task plan_obj_20250405013455_task_0: 'Search the web for: Search for nvidia stock and tell me major news'
+2025-04-05 01:34:55 - jarvis.execution - INFO - Attempt 1/4 for task plan_obj_20250405013455_task_0
+2025-04-05 01:34:55 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='web_search', Type=<class 'str'>, Args='{'query': 'Search for nvidia stock and tell me major news', 'max_results': 3}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 01:34:55 - jarvis.execution - INFO - DEBUG: Explicit skill condition TRUE. Skill found: True
+2025-04-05 01:34:55 - jarvis.execution - INFO - Task 'plan_obj_20250405013455_task_0' specifies skill 'web_search'. Attempting direct execution.
+2025-04-05 01:34:58 - jarvis.execution - INFO - Task plan_obj_20250405013455_task_0 completed successfully in attempt 1.
+2025-04-05 01:34:58 - jarvis.execution - INFO - Finished execution for task plan_obj_20250405013455_task_0. Success: True, Time: 3.20s
+2025-04-05 01:37:56 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-05 01:38:14 - jarvis.execution - INFO - Executing task plan_obj_20250405013813_task_0: 'Search the web for: Search for nvidia stock and tell me major news'
+2025-04-05 01:38:14 - jarvis.execution - INFO - Attempt 1/4 for task plan_obj_20250405013813_task_0
+2025-04-05 01:38:14 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='web_search', Type=<class 'str'>, Args='{'query': 'Search for nvidia stock and tell me major news', 'max_results': 3}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 01:38:14 - jarvis.execution - INFO - DEBUG: Explicit skill condition TRUE. Skill found: True
+2025-04-05 01:38:14 - jarvis.execution - INFO - Task 'plan_obj_20250405013813_task_0' specifies skill 'web_search'. Attempting direct execution.
+2025-04-05 01:38:16 - jarvis.execution - INFO - Task plan_obj_20250405013813_task_0 completed successfully in attempt 1.
+2025-04-05 01:38:16 - jarvis.execution - INFO - Finished execution for task plan_obj_20250405013813_task_0. Success: True, Time: 2.47s
+2025-04-05 01:39:00 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-05 01:39:37 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-05 01:40:12 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-05 01:43:10 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-05 01:44:36 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-05 01:46:00 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-05 01:47:07 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-05 01:49:51 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-05 01:51:04 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-05 01:51:34 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-05 01:52:07 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-05 01:52:28 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-05 01:53:17 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-05 01:54:12 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-05 01:54:52 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-05 01:57:20 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-05 01:58:12 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-05 01:59:27 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-05 02:00:34 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-05 02:01:18 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-05 02:01:41 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-05 02:02:34 - jarvis.execution - INFO - Executing task plan_obj_20250405020229_task_0: 'Search for Nvidia's stock price'
+2025-04-05 02:02:34 - jarvis.execution - INFO - Attempt 1/4 for task plan_obj_20250405020229_task_0
+2025-04-05 02:02:34 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='web', Type=<class 'str'>, Args='{'action': 'search', 'query': 'Nvidia stock price'}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:02:34 - jarvis.execution - INFO - DEBUG: Explicit skill condition TRUE. Skill found: True
+2025-04-05 02:02:34 - jarvis.execution - INFO - Task 'plan_obj_20250405020229_task_0' specifies skill 'web'. Attempting direct execution.
+2025-04-05 02:02:35 - jarvis.execution - INFO - Task plan_obj_20250405020229_task_0 completed successfully in attempt 1.
+2025-04-05 02:02:35 - jarvis.execution - INFO - Finished execution for task plan_obj_20250405020229_task_0. Success: True, Time: 1.61s
+2025-04-05 02:02:35 - jarvis.execution - INFO - Executing task plan_obj_20250405020229_task_1: 'Retrieve the stock price'
+2025-04-05 02:02:35 - jarvis.execution - INFO - Attempt 1/4 for task plan_obj_20250405020229_task_1
+2025-04-05 02:02:35 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='None', Type=<class 'NoneType'>, Args='{}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:02:35 - jarvis.execution - WARNING - DEBUG: Explicit skill condition FALSE. Name='None', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:02:35 - jarvis.execution - ERROR - LLMClient does not have 'process_structured_output' method.
+2025-04-05 02:02:35 - jarvis.execution - ERROR - Unexpected error during skill parsing on task plan_obj_20250405020229_task_1: 'LLMClient' object has no attribute 'process_with_llm'
+Traceback (most recent call last):
+  File "C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\jarvis\execution.py", line 526, in _parse_task_for_skill
+    response_content = self.llm.process_with_llm(
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\pydantic\main.py", line 994, in __getattr__
+    raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}')
+AttributeError: 'LLMClient' object has no attribute 'process_with_llm'
+2025-04-05 02:02:36 - jarvis.execution - INFO - No explicit or parsed skill identified for task 'plan_obj_20250405020229_task_1' ('Retrieve the stock price') and not identified as a synthesis task. Marking as completed internal step.
+2025-04-05 02:02:36 - jarvis.execution - INFO - Task plan_obj_20250405020229_task_1 completed successfully in attempt 1.
+2025-04-05 02:02:36 - jarvis.execution - INFO - Finished execution for task plan_obj_20250405020229_task_1. Success: True, Time: 0.01s
+2025-04-05 02:02:36 - jarvis.execution - INFO - Executing task plan_obj_20250405020229_task_2: 'Create a report on the stock price'
+2025-04-05 02:02:36 - jarvis.execution - INFO - Attempt 1/4 for task plan_obj_20250405020229_task_2
+2025-04-05 02:02:36 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='None', Type=<class 'NoneType'>, Args='{}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:02:36 - jarvis.execution - WARNING - DEBUG: Explicit skill condition FALSE. Name='None', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:02:36 - jarvis.execution - INFO - Task 'plan_obj_20250405020229_task_2' identified as synthesis task (no explicit skill). Executing internal synthesis logic...
+2025-04-05 02:02:36 - jarvis.execution - ERROR - Missing plan_id in metadata for synthesis task plan_obj_20250405020229_task_2
+2025-04-05 02:02:36 - jarvis.execution - WARNING - Attempt 1 failed for task plan_obj_20250405020229_task_2: Missing plan_id in metadata for synthesis task plan_obj_20250405020229_task_2
+2025-04-05 02:02:36 - jarvis.execution - INFO - Retrying task plan_obj_20250405020229_task_2 in 1.00 seconds...
+2025-04-05 02:02:37 - jarvis.execution - INFO - Attempt 2/4 for task plan_obj_20250405020229_task_2
+2025-04-05 02:02:37 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='None', Type=<class 'NoneType'>, Args='{}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:02:37 - jarvis.execution - WARNING - DEBUG: Explicit skill condition FALSE. Name='None', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:02:37 - jarvis.execution - INFO - Task 'plan_obj_20250405020229_task_2' identified as synthesis task (no explicit skill). Executing internal synthesis logic...
+2025-04-05 02:02:37 - jarvis.execution - ERROR - Missing plan_id in metadata for synthesis task plan_obj_20250405020229_task_2
+2025-04-05 02:02:37 - jarvis.execution - WARNING - Attempt 2 failed for task plan_obj_20250405020229_task_2: Missing plan_id in metadata for synthesis task plan_obj_20250405020229_task_2
+2025-04-05 02:02:37 - jarvis.execution - INFO - Retrying task plan_obj_20250405020229_task_2 in 2.00 seconds...
+2025-04-05 02:02:39 - jarvis.execution - INFO - Attempt 3/4 for task plan_obj_20250405020229_task_2
+2025-04-05 02:02:39 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='None', Type=<class 'NoneType'>, Args='{}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:02:39 - jarvis.execution - WARNING - DEBUG: Explicit skill condition FALSE. Name='None', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:02:39 - jarvis.execution - INFO - Task 'plan_obj_20250405020229_task_2' identified as synthesis task (no explicit skill). Executing internal synthesis logic...
+2025-04-05 02:02:39 - jarvis.execution - ERROR - Missing plan_id in metadata for synthesis task plan_obj_20250405020229_task_2
+2025-04-05 02:02:39 - jarvis.execution - WARNING - Attempt 3 failed for task plan_obj_20250405020229_task_2: Missing plan_id in metadata for synthesis task plan_obj_20250405020229_task_2
+2025-04-05 02:02:39 - jarvis.execution - INFO - Retrying task plan_obj_20250405020229_task_2 in 4.00 seconds...
+2025-04-05 02:02:43 - jarvis.execution - INFO - Attempt 4/4 for task plan_obj_20250405020229_task_2
+2025-04-05 02:02:43 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='None', Type=<class 'NoneType'>, Args='{}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:02:43 - jarvis.execution - WARNING - DEBUG: Explicit skill condition FALSE. Name='None', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:02:43 - jarvis.execution - INFO - Task 'plan_obj_20250405020229_task_2' identified as synthesis task (no explicit skill). Executing internal synthesis logic...
+2025-04-05 02:02:43 - jarvis.execution - ERROR - Missing plan_id in metadata for synthesis task plan_obj_20250405020229_task_2
+2025-04-05 02:02:43 - jarvis.execution - WARNING - Attempt 4 failed for task plan_obj_20250405020229_task_2: Missing plan_id in metadata for synthesis task plan_obj_20250405020229_task_2
+2025-04-05 02:02:43 - jarvis.execution - ERROR - Task plan_obj_20250405020229_task_2 failed after maximum retries (3).
+2025-04-05 02:02:43 - jarvis.execution - INFO - Primary execution failed for task plan_obj_20250405020229_task_2. Trying fallback strategies...
+2025-04-05 02:02:43 - jarvis.execution - INFO - Attempting fallback strategy 'simple' for task plan_obj_20250405020229_task_2
+2025-04-05 02:02:43 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='None', Type=<class 'NoneType'>, Args='{}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:02:43 - jarvis.execution - WARNING - DEBUG: Explicit skill condition FALSE. Name='None', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:02:43 - jarvis.execution - INFO - Task 'plan_obj_20250405020229_task_2' identified as synthesis task (no explicit skill). Executing internal synthesis logic...
+2025-04-05 02:02:43 - jarvis.execution - ERROR - Missing plan_id in metadata for synthesis task plan_obj_20250405020229_task_2
+2025-04-05 02:02:43 - jarvis.execution - WARNING - Fallback strategy 'simple' failed for task plan_obj_20250405020229_task_2: Missing plan_id in metadata for synthesis task plan_obj_20250405020229_task_2
+2025-04-05 02:02:43 - jarvis.execution - INFO - Attempting fallback strategy 'robust' for task plan_obj_20250405020229_task_2
+2025-04-05 02:02:43 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='None', Type=<class 'NoneType'>, Args='{}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:02:43 - jarvis.execution - WARNING - DEBUG: Explicit skill condition FALSE. Name='None', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:02:43 - jarvis.execution - INFO - Task 'plan_obj_20250405020229_task_2' identified as synthesis task (no explicit skill). Executing internal synthesis logic...
+2025-04-05 02:02:43 - jarvis.execution - ERROR - Missing plan_id in metadata for synthesis task plan_obj_20250405020229_task_2
+2025-04-05 02:02:43 - jarvis.execution - WARNING - Fallback strategy 'robust' failed for task plan_obj_20250405020229_task_2: Missing plan_id in metadata for synthesis task plan_obj_20250405020229_task_2
+2025-04-05 02:02:43 - jarvis.execution - INFO - Finished execution for task plan_obj_20250405020229_task_2. Success: False, Time: 7.03s
+2025-04-05 02:02:43 - jarvis.execution - ERROR - LLM diagnosis for task plan_obj_20250405020229_task_2 failed: 'LLMClient' object has no attribute 'process_with_llm'
+2025-04-05 02:02:43 - jarvis.execution - INFO - Task plan_obj_20250405020229_task_2 failure diagnosis: Diagnosis unavailable.
+2025-04-05 02:03:25 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-05 02:04:40 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-05 02:05:44 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-05 02:06:27 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-05 02:07:26 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-05 02:07:37 - jarvis.execution - INFO - Executing task plan_obj_20250405020732_task_0: 'Retrieve Nvidia stock prices'
+2025-04-05 02:07:37 - jarvis.execution - INFO - Attempt 1/4 for task plan_obj_20250405020732_task_0
+2025-04-05 02:07:37 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='None', Type=<class 'NoneType'>, Args='{}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:07:37 - jarvis.execution - WARNING - DEBUG: Explicit skill condition FALSE. Name='None', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:07:37 - jarvis.execution - ERROR - LLMClient does not have 'process_structured_output' method.
+2025-04-05 02:07:41 - jarvis.execution - ERROR - Unexpected error during skill parsing on task plan_obj_20250405020732_task_0: RetryError[<Future at 0x235f60f9280 state=finished raised LLMCommunicationError>]
+Traceback (most recent call last):
+  File "C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\jarvis\llm.py", line 340, in process_with_llm
+    response_obj = LLMResponse(
+                   ^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\pydantic\main.py", line 253, in __init__
+    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pydantic_core._pydantic_core.ValidationError: 4 validation errors for LLMResponse
+usage.completion_time
+  Input should be a valid integer, got a number with a fractional part [type=int_from_float, input_value=0.099376952, input_type=float]
+    For further information visit https://errors.pydantic.dev/2.11/v/int_from_float
+usage.prompt_time
+  Input should be a valid integer, got a number with a fractional part [type=int_from_float, input_value=0.043520844, input_type=float]
+    For further information visit https://errors.pydantic.dev/2.11/v/int_from_float
+usage.queue_time
+  Input should be a valid integer, got a number with a fractional part [type=int_from_float, input_value=0.059598385000000004, input_type=float]
+    For further information visit https://errors.pydantic.dev/2.11/v/int_from_float
+usage.total_time
+  Input should be a valid integer, got a number with a fractional part [type=int_from_float, input_value=0.142897796, input_type=float]
+    For further information visit https://errors.pydantic.dev/2.11/v/int_from_float
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\tenacity\__init__.py", line 480, in __call__
+    result = fn(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\jarvis\llm.py", line 353, in process_with_llm
+    raise LLMCommunicationError(provider, e)
+jarvis.llm.LLMCommunicationError: Error communicating with groq: 4 validation errors for LLMResponse
+usage.completion_time
+  Input should be a valid integer, got a number with a fractional part [type=int_from_float, input_value=0.099376952, input_type=float]
+    For further information visit https://errors.pydantic.dev/2.11/v/int_from_float
+usage.prompt_time
+  Input should be a valid integer, got a number with a fractional part [type=int_from_float, input_value=0.043520844, input_type=float]
+    For further information visit https://errors.pydantic.dev/2.11/v/int_from_float
+usage.queue_time
+  Input should be a valid integer, got a number with a fractional part [type=int_from_float, input_value=0.059598385000000004, input_type=float]
+    For further information visit https://errors.pydantic.dev/2.11/v/int_from_float
+usage.total_time
+  Input should be a valid integer, got a number with a fractional part [type=int_from_float, input_value=0.142897796, input_type=float]
+    For further information visit https://errors.pydantic.dev/2.11/v/int_from_float
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\jarvis\execution.py", line 526, in _parse_task_for_skill
+    response_content = self.llm.process_with_llm(
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\tenacity\__init__.py", line 338, in wrapped_f
+    return copy(f, *args, **kw)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\tenacity\__init__.py", line 477, in __call__
+    do = self.iter(retry_state=retry_state)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\tenacity\__init__.py", line 378, in iter
+    result = action(retry_state)
+             ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\tenacity\__init__.py", line 421, in exc_check
+    raise retry_exc from fut.exception()
+tenacity.RetryError: RetryError[<Future at 0x235f60f9280 state=finished raised LLMCommunicationError>]
+2025-04-05 02:07:41 - jarvis.execution - INFO - No explicit or parsed skill identified for task 'plan_obj_20250405020732_task_0' ('Retrieve Nvidia stock prices') and not identified as a synthesis task. Marking as completed internal step.
+2025-04-05 02:07:41 - jarvis.execution - INFO - Task plan_obj_20250405020732_task_0 completed successfully in attempt 1.
+2025-04-05 02:07:41 - jarvis.execution - INFO - Finished execution for task plan_obj_20250405020732_task_0. Success: True, Time: 4.81s
+2025-04-05 02:07:41 - jarvis.execution - INFO - Executing task plan_obj_20250405020732_task_1: 'Format data for report'
+2025-04-05 02:07:41 - jarvis.execution - INFO - Attempt 1/4 for task plan_obj_20250405020732_task_1
+2025-04-05 02:07:41 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='None', Type=<class 'NoneType'>, Args='{}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:07:41 - jarvis.execution - WARNING - DEBUG: Explicit skill condition FALSE. Name='None', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:07:41 - jarvis.execution - INFO - Task 'plan_obj_20250405020732_task_1' identified as synthesis task (no explicit skill). Executing internal synthesis logic...
+2025-04-05 02:07:41 - jarvis.execution - ERROR - Missing plan_id in metadata for synthesis task plan_obj_20250405020732_task_1
+2025-04-05 02:07:41 - jarvis.execution - WARNING - Attempt 1 failed for task plan_obj_20250405020732_task_1: Missing plan_id in metadata for synthesis task plan_obj_20250405020732_task_1
+2025-04-05 02:07:41 - jarvis.execution - INFO - Retrying task plan_obj_20250405020732_task_1 in 1.00 seconds...
+2025-04-05 02:07:43 - jarvis.execution - INFO - Attempt 2/4 for task plan_obj_20250405020732_task_1
+2025-04-05 02:07:43 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='None', Type=<class 'NoneType'>, Args='{}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:07:43 - jarvis.execution - WARNING - DEBUG: Explicit skill condition FALSE. Name='None', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:07:43 - jarvis.execution - INFO - Task 'plan_obj_20250405020732_task_1' identified as synthesis task (no explicit skill). Executing internal synthesis logic...
+2025-04-05 02:07:43 - jarvis.execution - ERROR - Missing plan_id in metadata for synthesis task plan_obj_20250405020732_task_1
+2025-04-05 02:07:43 - jarvis.execution - WARNING - Attempt 2 failed for task plan_obj_20250405020732_task_1: Missing plan_id in metadata for synthesis task plan_obj_20250405020732_task_1
+2025-04-05 02:07:43 - jarvis.execution - INFO - Retrying task plan_obj_20250405020732_task_1 in 2.00 seconds...
+2025-04-05 02:07:45 - jarvis.execution - INFO - Attempt 3/4 for task plan_obj_20250405020732_task_1
+2025-04-05 02:07:45 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='None', Type=<class 'NoneType'>, Args='{}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:07:45 - jarvis.execution - WARNING - DEBUG: Explicit skill condition FALSE. Name='None', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:07:45 - jarvis.execution - INFO - Task 'plan_obj_20250405020732_task_1' identified as synthesis task (no explicit skill). Executing internal synthesis logic...
+2025-04-05 02:07:45 - jarvis.execution - ERROR - Missing plan_id in metadata for synthesis task plan_obj_20250405020732_task_1
+2025-04-05 02:07:45 - jarvis.execution - WARNING - Attempt 3 failed for task plan_obj_20250405020732_task_1: Missing plan_id in metadata for synthesis task plan_obj_20250405020732_task_1
+2025-04-05 02:07:45 - jarvis.execution - INFO - Retrying task plan_obj_20250405020732_task_1 in 4.00 seconds...
+2025-04-05 02:07:49 - jarvis.execution - INFO - Attempt 4/4 for task plan_obj_20250405020732_task_1
+2025-04-05 02:07:49 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='None', Type=<class 'NoneType'>, Args='{}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:07:49 - jarvis.execution - WARNING - DEBUG: Explicit skill condition FALSE. Name='None', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:07:49 - jarvis.execution - INFO - Task 'plan_obj_20250405020732_task_1' identified as synthesis task (no explicit skill). Executing internal synthesis logic...
+2025-04-05 02:07:49 - jarvis.execution - ERROR - Missing plan_id in metadata for synthesis task plan_obj_20250405020732_task_1
+2025-04-05 02:07:49 - jarvis.execution - WARNING - Attempt 4 failed for task plan_obj_20250405020732_task_1: Missing plan_id in metadata for synthesis task plan_obj_20250405020732_task_1
+2025-04-05 02:07:49 - jarvis.execution - ERROR - Task plan_obj_20250405020732_task_1 failed after maximum retries (3).
+2025-04-05 02:07:49 - jarvis.execution - INFO - Primary execution failed for task plan_obj_20250405020732_task_1. Trying fallback strategies...
+2025-04-05 02:07:49 - jarvis.execution - INFO - Attempting fallback strategy 'simple' for task plan_obj_20250405020732_task_1
+2025-04-05 02:07:49 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='None', Type=<class 'NoneType'>, Args='{}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:07:49 - jarvis.execution - WARNING - DEBUG: Explicit skill condition FALSE. Name='None', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:07:49 - jarvis.execution - INFO - Task 'plan_obj_20250405020732_task_1' identified as synthesis task (no explicit skill). Executing internal synthesis logic...
+2025-04-05 02:07:49 - jarvis.execution - ERROR - Missing plan_id in metadata for synthesis task plan_obj_20250405020732_task_1
+2025-04-05 02:07:49 - jarvis.execution - WARNING - Fallback strategy 'simple' failed for task plan_obj_20250405020732_task_1: Missing plan_id in metadata for synthesis task plan_obj_20250405020732_task_1
+2025-04-05 02:07:49 - jarvis.execution - INFO - Attempting fallback strategy 'robust' for task plan_obj_20250405020732_task_1
+2025-04-05 02:07:49 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='None', Type=<class 'NoneType'>, Args='{}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:07:49 - jarvis.execution - WARNING - DEBUG: Explicit skill condition FALSE. Name='None', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:07:49 - jarvis.execution - INFO - Task 'plan_obj_20250405020732_task_1' identified as synthesis task (no explicit skill). Executing internal synthesis logic...
+2025-04-05 02:07:49 - jarvis.execution - ERROR - Missing plan_id in metadata for synthesis task plan_obj_20250405020732_task_1
+2025-04-05 02:07:49 - jarvis.execution - WARNING - Fallback strategy 'robust' failed for task plan_obj_20250405020732_task_1: Missing plan_id in metadata for synthesis task plan_obj_20250405020732_task_1
+2025-04-05 02:07:49 - jarvis.execution - INFO - Finished execution for task plan_obj_20250405020732_task_1. Success: False, Time: 7.03s
+2025-04-05 02:07:53 - jarvis.execution - ERROR - LLM diagnosis for task plan_obj_20250405020732_task_1 failed: RetryError[<Future at 0x235f61df680 state=finished raised LLMCommunicationError>]
+2025-04-05 02:07:53 - jarvis.execution - INFO - Task plan_obj_20250405020732_task_1 failure diagnosis: Diagnosis unavailable.
+2025-04-05 02:08:58 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-05 02:09:55 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-05 02:42:10 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-05 02:43:03 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-05 02:43:09 - jarvis.execution - INFO - Executing task plan_obj_20250405024308_task_0: 'Search for the current NVIDIA stock price using a web search'
+2025-04-05 02:43:09 - jarvis.execution - INFO - Attempt 1/4 for task plan_obj_20250405024308_task_0
+2025-04-05 02:43:09 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='web_search', Type=<class 'str'>, Args='{'query': 'NVIDIA stock price'}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:43:09 - jarvis.execution - INFO - DEBUG: Explicit skill condition TRUE. Skill found: True
+2025-04-05 02:43:09 - jarvis.execution - INFO - Task 'plan_obj_20250405024308_task_0' specifies skill 'web_search'. Attempting direct execution.
+2025-04-05 02:43:12 - jarvis.execution - INFO - Task plan_obj_20250405024308_task_0 completed successfully in attempt 1.
+2025-04-05 02:43:12 - jarvis.execution - INFO - Finished execution for task plan_obj_20250405024308_task_0. Success: True, Time: 2.66s
+2025-04-05 02:43:12 - jarvis.execution - INFO - Executing task plan_obj_20250405024308_task_1: 'Extract the current stock price from the search results'
+2025-04-05 02:43:12 - jarvis.execution - INFO - Attempt 1/4 for task plan_obj_20250405024308_task_1
+2025-04-05 02:43:12 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='None', Type=<class 'NoneType'>, Args='{}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:43:12 - jarvis.execution - WARNING - DEBUG: Explicit skill condition FALSE. Name='None', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:43:12 - jarvis.execution - ERROR - LLMClient does not have 'process_structured_output' method.
+2025-04-05 02:43:12 - jarvis.execution - INFO - Attempting to execute task 'plan_obj_20250405024308_task_1' using LLM-parsed skill: 'web_search'
+2025-04-05 02:43:12 - jarvis.execution - WARNING - Attempt 1 failed for task plan_obj_20250405024308_task_1: No search query provided.
+2025-04-05 02:43:12 - jarvis.execution - INFO - Retrying task plan_obj_20250405024308_task_1 in 1.00 seconds...
+2025-04-05 02:43:13 - jarvis.execution - INFO - Attempt 2/4 for task plan_obj_20250405024308_task_1
+2025-04-05 02:43:13 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='None', Type=<class 'NoneType'>, Args='{}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:43:13 - jarvis.execution - WARNING - DEBUG: Explicit skill condition FALSE. Name='None', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:43:13 - jarvis.execution - ERROR - LLMClient does not have 'process_structured_output' method.
+2025-04-05 02:43:13 - jarvis.execution - INFO - Attempting to execute task 'plan_obj_20250405024308_task_1' using LLM-parsed skill: 'web_search'
+2025-04-05 02:43:13 - jarvis.execution - WARNING - Attempt 2 failed for task plan_obj_20250405024308_task_1: No search query provided.
+2025-04-05 02:43:13 - jarvis.execution - INFO - Retrying task plan_obj_20250405024308_task_1 in 2.00 seconds...
+2025-04-05 02:43:15 - jarvis.execution - INFO - Attempt 3/4 for task plan_obj_20250405024308_task_1
+2025-04-05 02:43:15 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='None', Type=<class 'NoneType'>, Args='{}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:43:15 - jarvis.execution - WARNING - DEBUG: Explicit skill condition FALSE. Name='None', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:43:15 - jarvis.execution - ERROR - LLMClient does not have 'process_structured_output' method.
+2025-04-05 02:43:15 - jarvis.execution - INFO - Attempting to execute task 'plan_obj_20250405024308_task_1' using LLM-parsed skill: 'web_search'
+2025-04-05 02:43:15 - jarvis.execution - WARNING - Attempt 3 failed for task plan_obj_20250405024308_task_1: No search query provided.
+2025-04-05 02:43:15 - jarvis.execution - INFO - Retrying task plan_obj_20250405024308_task_1 in 4.00 seconds...
+2025-04-05 02:43:19 - jarvis.execution - INFO - Attempt 4/4 for task plan_obj_20250405024308_task_1
+2025-04-05 02:43:19 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='None', Type=<class 'NoneType'>, Args='{}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:43:19 - jarvis.execution - WARNING - DEBUG: Explicit skill condition FALSE. Name='None', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:43:19 - jarvis.execution - ERROR - LLMClient does not have 'process_structured_output' method.
+2025-04-05 02:43:20 - jarvis.execution - INFO - Attempting to execute task 'plan_obj_20250405024308_task_1' using LLM-parsed skill: 'web_search'
+2025-04-05 02:43:20 - jarvis.execution - WARNING - Attempt 4 failed for task plan_obj_20250405024308_task_1: No search query provided.
+2025-04-05 02:43:20 - jarvis.execution - ERROR - Task plan_obj_20250405024308_task_1 failed after maximum retries (3).
+2025-04-05 02:43:20 - jarvis.execution - INFO - Primary execution failed for task plan_obj_20250405024308_task_1. Trying fallback strategies...
+2025-04-05 02:43:20 - jarvis.execution - INFO - Attempting fallback strategy 'simple' for task plan_obj_20250405024308_task_1
+2025-04-05 02:43:20 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='None', Type=<class 'NoneType'>, Args='{}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:43:20 - jarvis.execution - WARNING - DEBUG: Explicit skill condition FALSE. Name='None', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:43:20 - jarvis.execution - ERROR - LLMClient does not have 'process_structured_output' method.
+2025-04-05 02:43:20 - jarvis.execution - INFO - Attempting to execute task 'plan_obj_20250405024308_task_1' using LLM-parsed skill: 'web_search'
+2025-04-05 02:43:20 - jarvis.execution - WARNING - Fallback strategy 'simple' failed for task plan_obj_20250405024308_task_1: No search query provided.
+2025-04-05 02:43:20 - jarvis.execution - INFO - Attempting fallback strategy 'robust' for task plan_obj_20250405024308_task_1
+2025-04-05 02:43:20 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='None', Type=<class 'NoneType'>, Args='{}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:43:20 - jarvis.execution - WARNING - DEBUG: Explicit skill condition FALSE. Name='None', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:43:20 - jarvis.execution - ERROR - LLMClient does not have 'process_structured_output' method.
+2025-04-05 02:43:29 - jarvis.execution - INFO - Attempting to execute task 'plan_obj_20250405024308_task_1' using LLM-parsed skill: 'web_search'
+2025-04-05 02:43:29 - jarvis.execution - WARNING - Fallback strategy 'robust' failed for task plan_obj_20250405024308_task_1: No search query provided.
+2025-04-05 02:43:29 - jarvis.execution - INFO - Finished execution for task plan_obj_20250405024308_task_1. Success: False, Time: 17.58s
+2025-04-05 02:43:34 - jarvis.execution - ERROR - LLM diagnosis for task plan_obj_20250405024308_task_1 failed: RetryError[<Future at 0x16ba97fdbe0 state=finished raised LLMCommunicationError>]
+2025-04-05 02:43:34 - jarvis.execution - INFO - Task plan_obj_20250405024308_task_1 failure diagnosis: Diagnosis unavailable.
+2025-04-05 02:45:10 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-05 02:45:20 - jarvis.execution - INFO - Executing task plan_obj_20250405024519_task_0: 'Search for the current NVIDIA stock price using a web search'
+2025-04-05 02:45:20 - jarvis.execution - INFO - Attempt 1/4 for task plan_obj_20250405024519_task_0
+2025-04-05 02:45:20 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='web_search', Type=<class 'str'>, Args='{'query': 'NVIDIA stock price'}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:45:20 - jarvis.execution - INFO - DEBUG: Explicit skill condition TRUE. Skill found: True
+2025-04-05 02:45:20 - jarvis.execution - INFO - Task 'plan_obj_20250405024519_task_0' specifies skill 'web_search'. Attempting direct execution.
+2025-04-05 02:45:23 - jarvis.execution - INFO - Task plan_obj_20250405024519_task_0 completed successfully in attempt 1.
+2025-04-05 02:45:23 - jarvis.execution - INFO - Finished execution for task plan_obj_20250405024519_task_0. Success: True, Time: 3.21s
+2025-04-05 02:45:23 - jarvis.execution - INFO - Executing task plan_obj_20250405024519_task_1: 'Extract the current stock price from the search results'
+2025-04-05 02:45:23 - jarvis.execution - INFO - Attempt 1/4 for task plan_obj_20250405024519_task_1
+2025-04-05 02:45:23 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='None', Type=<class 'NoneType'>, Args='{}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:45:23 - jarvis.execution - WARNING - DEBUG: Explicit skill condition FALSE. Name='None', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:45:23 - jarvis.execution - ERROR - LLMClient does not have 'process_structured_output' method.
+2025-04-05 02:45:23 - jarvis.execution - INFO - Attempting to execute task 'plan_obj_20250405024519_task_1' using LLM-parsed skill: 'web_search'
+2025-04-05 02:45:23 - jarvis.execution - WARNING - Attempt 1 failed for task plan_obj_20250405024519_task_1: No search query provided.
+2025-04-05 02:45:23 - jarvis.execution - INFO - Retrying task plan_obj_20250405024519_task_1 in 1.00 seconds...
+2025-04-05 02:45:24 - jarvis.execution - INFO - Attempt 2/4 for task plan_obj_20250405024519_task_1
+2025-04-05 02:45:24 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='None', Type=<class 'NoneType'>, Args='{}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:45:24 - jarvis.execution - WARNING - DEBUG: Explicit skill condition FALSE. Name='None', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:45:24 - jarvis.execution - ERROR - LLMClient does not have 'process_structured_output' method.
+2025-04-05 02:45:25 - jarvis.execution - INFO - Attempting to execute task 'plan_obj_20250405024519_task_1' using LLM-parsed skill: 'web_search'
+2025-04-05 02:45:25 - jarvis.execution - WARNING - Attempt 2 failed for task plan_obj_20250405024519_task_1: No search query provided.
+2025-04-05 02:45:25 - jarvis.execution - INFO - Retrying task plan_obj_20250405024519_task_1 in 2.00 seconds...
+2025-04-05 02:45:27 - jarvis.execution - INFO - Attempt 3/4 for task plan_obj_20250405024519_task_1
+2025-04-05 02:45:27 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='None', Type=<class 'NoneType'>, Args='{}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:45:27 - jarvis.execution - WARNING - DEBUG: Explicit skill condition FALSE. Name='None', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:45:27 - jarvis.execution - ERROR - LLMClient does not have 'process_structured_output' method.
+2025-04-05 02:45:27 - jarvis.execution - INFO - Attempting to execute task 'plan_obj_20250405024519_task_1' using LLM-parsed skill: 'web_search'
+2025-04-05 02:45:27 - jarvis.execution - WARNING - Attempt 3 failed for task plan_obj_20250405024519_task_1: No search query provided.
+2025-04-05 02:45:27 - jarvis.execution - INFO - Retrying task plan_obj_20250405024519_task_1 in 4.00 seconds...
+2025-04-05 02:46:49 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-05 02:47:10 - jarvis.execution - INFO - Executing task plan_obj_20250405024709_task_0: 'Get the current NVIDIA stock price in real-time'
+2025-04-05 02:47:10 - jarvis.execution - INFO - Attempt 1/4 for task plan_obj_20250405024709_task_0
+2025-04-05 02:47:10 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='web', Type=<class 'str'>, Args='{'action': 'browse', 'url': 'https://www.nvidia.com/investor/stock-information/default.aspx', 'timeout': 10}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:47:10 - jarvis.execution - INFO - DEBUG: Explicit skill condition TRUE. Skill found: True
+2025-04-05 02:47:10 - jarvis.execution - INFO - Task 'plan_obj_20250405024709_task_0' specifies skill 'web'. Attempting direct execution.
+2025-04-05 02:47:11 - jarvis.execution - WARNING - Attempt 1 failed for task plan_obj_20250405024709_task_0: Failed to fetch URL https://www.nvidia.com/investor/stock-information/default.aspx: 404 Client Error: Not Found for url: https://www.nvidia.com/investor/stock-information/default.aspx
+2025-04-05 02:47:11 - jarvis.execution - INFO - Retrying task plan_obj_20250405024709_task_0 in 1.00 seconds...
+2025-04-05 02:47:12 - jarvis.execution - INFO - Attempt 2/4 for task plan_obj_20250405024709_task_0
+2025-04-05 02:47:12 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='web', Type=<class 'str'>, Args='{'action': 'browse', 'url': 'https://www.nvidia.com/investor/stock-information/default.aspx', 'timeout': 10}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:47:12 - jarvis.execution - INFO - DEBUG: Explicit skill condition TRUE. Skill found: True
+2025-04-05 02:47:12 - jarvis.execution - INFO - Task 'plan_obj_20250405024709_task_0' specifies skill 'web'. Attempting direct execution.
+2025-04-05 02:47:13 - jarvis.execution - WARNING - Attempt 2 failed for task plan_obj_20250405024709_task_0: Failed to fetch URL https://www.nvidia.com/investor/stock-information/default.aspx: 404 Client Error: Not Found for url: https://www.nvidia.com/investor/stock-information/default.aspx
+2025-04-05 02:47:13 - jarvis.execution - INFO - Retrying task plan_obj_20250405024709_task_0 in 2.00 seconds...
+2025-04-05 02:47:15 - jarvis.execution - INFO - Attempt 3/4 for task plan_obj_20250405024709_task_0
+2025-04-05 02:47:15 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='web', Type=<class 'str'>, Args='{'action': 'browse', 'url': 'https://www.nvidia.com/investor/stock-information/default.aspx', 'timeout': 10}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:47:15 - jarvis.execution - INFO - DEBUG: Explicit skill condition TRUE. Skill found: True
+2025-04-05 02:47:15 - jarvis.execution - INFO - Task 'plan_obj_20250405024709_task_0' specifies skill 'web'. Attempting direct execution.
+2025-04-05 02:47:17 - jarvis.execution - WARNING - Attempt 3 failed for task plan_obj_20250405024709_task_0: Failed to fetch URL https://www.nvidia.com/investor/stock-information/default.aspx: 404 Client Error: Not Found for url: https://www.nvidia.com/investor/stock-information/default.aspx
+2025-04-05 02:47:17 - jarvis.execution - INFO - Retrying task plan_obj_20250405024709_task_0 in 4.00 seconds...
+2025-04-05 02:47:21 - jarvis.execution - INFO - Attempt 4/4 for task plan_obj_20250405024709_task_0
+2025-04-05 02:47:21 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='web', Type=<class 'str'>, Args='{'action': 'browse', 'url': 'https://www.nvidia.com/investor/stock-information/default.aspx', 'timeout': 10}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:47:21 - jarvis.execution - INFO - DEBUG: Explicit skill condition TRUE. Skill found: True
+2025-04-05 02:47:21 - jarvis.execution - INFO - Task 'plan_obj_20250405024709_task_0' specifies skill 'web'. Attempting direct execution.
+2025-04-05 02:47:22 - jarvis.execution - WARNING - Attempt 4 failed for task plan_obj_20250405024709_task_0: Failed to fetch URL https://www.nvidia.com/investor/stock-information/default.aspx: 404 Client Error: Not Found for url: https://www.nvidia.com/investor/stock-information/default.aspx
+2025-04-05 02:47:22 - jarvis.execution - ERROR - Task plan_obj_20250405024709_task_0 failed after maximum retries (3).
+2025-04-05 02:47:22 - jarvis.execution - INFO - Primary execution failed for task plan_obj_20250405024709_task_0. Trying fallback strategies...
+2025-04-05 02:47:22 - jarvis.execution - INFO - Attempting fallback strategy 'simple' for task plan_obj_20250405024709_task_0
+2025-04-05 02:47:22 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='web', Type=<class 'str'>, Args='{'action': 'browse', 'url': 'https://www.nvidia.com/investor/stock-information/default.aspx', 'timeout': 10}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:47:22 - jarvis.execution - INFO - DEBUG: Explicit skill condition TRUE. Skill found: True
+2025-04-05 02:47:22 - jarvis.execution - INFO - Task 'plan_obj_20250405024709_task_0' specifies skill 'web'. Attempting direct execution.
+2025-04-05 02:47:23 - jarvis.execution - WARNING - Fallback strategy 'simple' failed for task plan_obj_20250405024709_task_0: Failed to fetch URL https://www.nvidia.com/investor/stock-information/default.aspx: 404 Client Error: Not Found for url: https://www.nvidia.com/investor/stock-information/default.aspx
+2025-04-05 02:47:23 - jarvis.execution - INFO - Attempting fallback strategy 'robust' for task plan_obj_20250405024709_task_0
+2025-04-05 02:47:23 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='web', Type=<class 'str'>, Args='{'action': 'browse', 'url': 'https://www.nvidia.com/investor/stock-information/default.aspx', 'timeout': 10}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:47:23 - jarvis.execution - INFO - DEBUG: Explicit skill condition TRUE. Skill found: True
+2025-04-05 02:47:23 - jarvis.execution - INFO - Task 'plan_obj_20250405024709_task_0' specifies skill 'web'. Attempting direct execution.
+2025-04-05 02:47:23 - jarvis.execution - WARNING - Fallback strategy 'robust' failed for task plan_obj_20250405024709_task_0: Failed to fetch URL https://www.nvidia.com/investor/stock-information/default.aspx: 404 Client Error: Not Found for url: https://www.nvidia.com/investor/stock-information/default.aspx
+2025-04-05 02:47:23 - jarvis.execution - INFO - Finished execution for task plan_obj_20250405024709_task_0. Success: False, Time: 13.17s
+2025-04-05 02:47:28 - jarvis.execution - ERROR - LLM diagnosis for task plan_obj_20250405024709_task_0 failed: RetryError[<Future at 0x1980b8d5220 state=finished raised LLMCommunicationError>]
+2025-04-05 02:47:28 - jarvis.execution - INFO - Task plan_obj_20250405024709_task_0 failure diagnosis: Diagnosis unavailable.
+2025-04-05 02:48:37 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-05 02:48:41 - jarvis.execution - INFO - Executing task plan_obj_20250405024839_task_0: 'Get the current Nvidia stock price from a reliable source'
+2025-04-05 02:48:41 - jarvis.execution - INFO - Attempt 1/4 for task plan_obj_20250405024839_task_0
+2025-04-05 02:48:41 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='web', Type=<class 'str'>, Args='{'action': 'browse', 'url': 'https://www.nvidia.com/investor/stock-information/', 'timeout': 10}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:48:41 - jarvis.execution - INFO - DEBUG: Explicit skill condition TRUE. Skill found: True
+2025-04-05 02:48:41 - jarvis.execution - INFO - Task 'plan_obj_20250405024839_task_0' specifies skill 'web'. Attempting direct execution.
+2025-04-05 02:48:42 - jarvis.execution - WARNING - Attempt 1 failed for task plan_obj_20250405024839_task_0: Failed to fetch URL https://www.nvidia.com/investor/stock-information/: 404 Client Error: Not Found for url: https://www.nvidia.com/investor/stock-information/
+2025-04-05 02:48:42 - jarvis.execution - INFO - Retrying task plan_obj_20250405024839_task_0 in 1.00 seconds...
+2025-04-05 02:48:43 - jarvis.execution - INFO - Attempt 2/4 for task plan_obj_20250405024839_task_0
+2025-04-05 02:48:43 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='web', Type=<class 'str'>, Args='{'action': 'browse', 'url': 'https://www.nvidia.com/investor/stock-information/', 'timeout': 10}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:48:43 - jarvis.execution - INFO - DEBUG: Explicit skill condition TRUE. Skill found: True
+2025-04-05 02:48:43 - jarvis.execution - INFO - Task 'plan_obj_20250405024839_task_0' specifies skill 'web'. Attempting direct execution.
+2025-04-05 02:48:43 - jarvis.execution - WARNING - Attempt 2 failed for task plan_obj_20250405024839_task_0: Failed to fetch URL https://www.nvidia.com/investor/stock-information/: 404 Client Error: Not Found for url: https://www.nvidia.com/investor/stock-information/
+2025-04-05 02:48:43 - jarvis.execution - INFO - Retrying task plan_obj_20250405024839_task_0 in 2.00 seconds...
+2025-04-05 02:48:45 - jarvis.execution - INFO - Attempt 3/4 for task plan_obj_20250405024839_task_0
+2025-04-05 02:48:45 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='web', Type=<class 'str'>, Args='{'action': 'browse', 'url': 'https://www.nvidia.com/investor/stock-information/', 'timeout': 10}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:48:45 - jarvis.execution - INFO - DEBUG: Explicit skill condition TRUE. Skill found: True
+2025-04-05 02:48:45 - jarvis.execution - INFO - Task 'plan_obj_20250405024839_task_0' specifies skill 'web'. Attempting direct execution.
+2025-04-05 02:48:47 - jarvis.execution - WARNING - Attempt 3 failed for task plan_obj_20250405024839_task_0: Failed to fetch URL https://www.nvidia.com/investor/stock-information/: 404 Client Error: Not Found for url: https://www.nvidia.com/investor/stock-information/
+2025-04-05 02:48:47 - jarvis.execution - INFO - Retrying task plan_obj_20250405024839_task_0 in 4.00 seconds...
+2025-04-05 02:48:51 - jarvis.execution - INFO - Attempt 4/4 for task plan_obj_20250405024839_task_0
+2025-04-05 02:48:51 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='web', Type=<class 'str'>, Args='{'action': 'browse', 'url': 'https://www.nvidia.com/investor/stock-information/', 'timeout': 10}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:48:51 - jarvis.execution - INFO - DEBUG: Explicit skill condition TRUE. Skill found: True
+2025-04-05 02:48:51 - jarvis.execution - INFO - Task 'plan_obj_20250405024839_task_0' specifies skill 'web'. Attempting direct execution.
+2025-04-05 02:48:51 - jarvis.execution - WARNING - Attempt 4 failed for task plan_obj_20250405024839_task_0: Failed to fetch URL https://www.nvidia.com/investor/stock-information/: 404 Client Error: Not Found for url: https://www.nvidia.com/investor/stock-information/
+2025-04-05 02:48:51 - jarvis.execution - ERROR - Task plan_obj_20250405024839_task_0 failed after maximum retries (3).
+2025-04-05 02:48:51 - jarvis.execution - INFO - Primary execution failed for task plan_obj_20250405024839_task_0. Trying fallback strategies...
+2025-04-05 02:48:51 - jarvis.execution - INFO - Attempting fallback strategy 'simple' for task plan_obj_20250405024839_task_0
+2025-04-05 02:48:51 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='web', Type=<class 'str'>, Args='{'action': 'browse', 'url': 'https://www.nvidia.com/investor/stock-information/', 'timeout': 10}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:48:51 - jarvis.execution - INFO - DEBUG: Explicit skill condition TRUE. Skill found: True
+2025-04-05 02:48:51 - jarvis.execution - INFO - Task 'plan_obj_20250405024839_task_0' specifies skill 'web'. Attempting direct execution.
+2025-04-05 02:48:52 - jarvis.execution - WARNING - Fallback strategy 'simple' failed for task plan_obj_20250405024839_task_0: Failed to fetch URL https://www.nvidia.com/investor/stock-information/: 404 Client Error: Not Found for url: https://www.nvidia.com/investor/stock-information/
+2025-04-05 02:48:52 - jarvis.execution - INFO - Attempting fallback strategy 'robust' for task plan_obj_20250405024839_task_0
+2025-04-05 02:48:52 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='web', Type=<class 'str'>, Args='{'action': 'browse', 'url': 'https://www.nvidia.com/investor/stock-information/', 'timeout': 10}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:48:52 - jarvis.execution - INFO - DEBUG: Explicit skill condition TRUE. Skill found: True
+2025-04-05 02:48:52 - jarvis.execution - INFO - Task 'plan_obj_20250405024839_task_0' specifies skill 'web'. Attempting direct execution.
+2025-04-05 02:48:53 - jarvis.execution - WARNING - Fallback strategy 'robust' failed for task plan_obj_20250405024839_task_0: Failed to fetch URL https://www.nvidia.com/investor/stock-information/: 404 Client Error: Not Found for url: https://www.nvidia.com/investor/stock-information/
+2025-04-05 02:48:53 - jarvis.execution - INFO - Finished execution for task plan_obj_20250405024839_task_0. Success: False, Time: 12.63s
+2025-04-05 02:48:54 - jarvis.execution - INFO - Task plan_obj_20250405024839_task_0 failure diagnosis: Diagnosis: The error is likely due to an external API issue or a change in the URL structure of the Nvidia website, resulting in a 404 Not Found error when trying to fetch the URL.
+
+Suggestion: Retry the task with an alternative reliable source for getting the current Nvidia stock price, such as Yahoo Finance or Alpha Vantage APIs, which provide real-time stock information. If the task still fails, consider implementing a fallback skill to retrieve the stock price from a different source or report the issue to the development team to update the URL or API endpoint.
+2025-04-05 02:49:20 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-05 02:50:15 - jarvis.execution - INFO - Executing task plan_obj_20250405025014_task_0: 'Execute the Python script workspace_sandbox/test_script.py'
+2025-04-05 02:50:15 - jarvis.execution - INFO - Attempt 1/4 for task plan_obj_20250405025014_task_0
+2025-04-05 02:50:15 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='execute_python_file', Type=<class 'str'>, Args='{'file_path': 'test_script.py', 'timeout': 60}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:50:15 - jarvis.execution - INFO - DEBUG: Explicit skill condition TRUE. Skill found: True
+2025-04-05 02:50:15 - jarvis.execution - INFO - Task 'plan_obj_20250405025014_task_0' specifies skill 'execute_python_file'. Attempting direct execution.
+2025-04-05 02:50:15 - jarvis.execution - WARNING - Attempt 1 failed for task plan_obj_20250405025014_task_0: Python file not found within 'workspace_sandbox' at specified path: test_script.py (resolved to: C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\workspace_sandbox\test_script.py)
+2025-04-05 02:50:15 - jarvis.execution - INFO - Retrying task plan_obj_20250405025014_task_0 in 1.00 seconds...
+2025-04-05 02:50:16 - jarvis.execution - INFO - Attempt 2/4 for task plan_obj_20250405025014_task_0
+2025-04-05 02:50:16 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='execute_python_file', Type=<class 'str'>, Args='{'file_path': 'test_script.py', 'timeout': 60}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:50:16 - jarvis.execution - INFO - DEBUG: Explicit skill condition TRUE. Skill found: True
+2025-04-05 02:50:16 - jarvis.execution - INFO - Task 'plan_obj_20250405025014_task_0' specifies skill 'execute_python_file'. Attempting direct execution.
+2025-04-05 02:50:16 - jarvis.execution - WARNING - Attempt 2 failed for task plan_obj_20250405025014_task_0: Python file not found within 'workspace_sandbox' at specified path: test_script.py (resolved to: C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\workspace_sandbox\test_script.py)
+2025-04-05 02:50:16 - jarvis.execution - INFO - Retrying task plan_obj_20250405025014_task_0 in 2.00 seconds...
+2025-04-05 02:50:18 - jarvis.execution - INFO - Attempt 3/4 for task plan_obj_20250405025014_task_0
+2025-04-05 02:50:18 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='execute_python_file', Type=<class 'str'>, Args='{'file_path': 'test_script.py', 'timeout': 60}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:50:18 - jarvis.execution - INFO - DEBUG: Explicit skill condition TRUE. Skill found: True
+2025-04-05 02:50:18 - jarvis.execution - INFO - Task 'plan_obj_20250405025014_task_0' specifies skill 'execute_python_file'. Attempting direct execution.
+2025-04-05 02:50:18 - jarvis.execution - WARNING - Attempt 3 failed for task plan_obj_20250405025014_task_0: Python file not found within 'workspace_sandbox' at specified path: test_script.py (resolved to: C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\workspace_sandbox\test_script.py)
+2025-04-05 02:50:18 - jarvis.execution - INFO - Retrying task plan_obj_20250405025014_task_0 in 4.00 seconds...
+2025-04-05 02:50:22 - jarvis.execution - INFO - Attempt 4/4 for task plan_obj_20250405025014_task_0
+2025-04-05 02:50:22 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='execute_python_file', Type=<class 'str'>, Args='{'file_path': 'test_script.py', 'timeout': 60}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:50:22 - jarvis.execution - INFO - DEBUG: Explicit skill condition TRUE. Skill found: True
+2025-04-05 02:50:22 - jarvis.execution - INFO - Task 'plan_obj_20250405025014_task_0' specifies skill 'execute_python_file'. Attempting direct execution.
+2025-04-05 02:50:22 - jarvis.execution - WARNING - Attempt 4 failed for task plan_obj_20250405025014_task_0: Python file not found within 'workspace_sandbox' at specified path: test_script.py (resolved to: C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\workspace_sandbox\test_script.py)
+2025-04-05 02:50:22 - jarvis.execution - ERROR - Task plan_obj_20250405025014_task_0 failed after maximum retries (3).
+2025-04-05 02:50:22 - jarvis.execution - INFO - Primary execution failed for task plan_obj_20250405025014_task_0. Trying fallback strategies...
+2025-04-05 02:50:22 - jarvis.execution - INFO - Attempting fallback strategy 'simple' for task plan_obj_20250405025014_task_0
+2025-04-05 02:50:22 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='execute_python_file', Type=<class 'str'>, Args='{'file_path': 'test_script.py', 'timeout': 60}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:50:22 - jarvis.execution - INFO - DEBUG: Explicit skill condition TRUE. Skill found: True
+2025-04-05 02:50:22 - jarvis.execution - INFO - Task 'plan_obj_20250405025014_task_0' specifies skill 'execute_python_file'. Attempting direct execution.
+2025-04-05 02:50:22 - jarvis.execution - WARNING - Fallback strategy 'simple' failed for task plan_obj_20250405025014_task_0: Python file not found within 'workspace_sandbox' at specified path: test_script.py (resolved to: C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\workspace_sandbox\test_script.py)
+2025-04-05 02:50:22 - jarvis.execution - INFO - Attempting fallback strategy 'robust' for task plan_obj_20250405025014_task_0
+2025-04-05 02:50:22 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='execute_python_file', Type=<class 'str'>, Args='{'file_path': 'test_script.py', 'timeout': 60}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:50:22 - jarvis.execution - INFO - DEBUG: Explicit skill condition TRUE. Skill found: True
+2025-04-05 02:50:22 - jarvis.execution - INFO - Task 'plan_obj_20250405025014_task_0' specifies skill 'execute_python_file'. Attempting direct execution.
+2025-04-05 02:50:22 - jarvis.execution - WARNING - Fallback strategy 'robust' failed for task plan_obj_20250405025014_task_0: Python file not found within 'workspace_sandbox' at specified path: test_script.py (resolved to: C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\workspace_sandbox\test_script.py)
+2025-04-05 02:50:22 - jarvis.execution - INFO - Finished execution for task plan_obj_20250405025014_task_0. Success: False, Time: 7.02s
+2025-04-05 02:50:23 - jarvis.execution - INFO - Task plan_obj_20250405025014_task_0 failure diagnosis: Diagnosis: The error indicates that the Python script "test_script.py" was not found in the specified path "workspace_sandbox". This suggests that either the script does not exist in the specified location or the path is incorrect.
+
+Suggestion: Check if the script "test_script.py" exists in the "workspace_sandbox" directory. If it does, ensure that the path is correct and the script is not corrupted. If the script does not exist, create it or update the task to point to the correct script location. If the issue persists, retry the task with the corrected path or script location.
+2025-04-05 02:50:48 - jarvis.execution - INFO - Loaded 3 execution strategies.
+2025-04-05 02:51:02 - jarvis.execution - INFO - Executing task plan_obj_20250405025102_task_0: 'Read the content of the file test_read.txt'
+2025-04-05 02:51:02 - jarvis.execution - INFO - Attempt 1/4 for task plan_obj_20250405025102_task_0
+2025-04-05 02:51:02 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='read_file', Type=<class 'str'>, Args='{'file_path': 'test_read.txt'}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:51:02 - jarvis.execution - INFO - DEBUG: Explicit skill condition TRUE. Skill found: True
+2025-04-05 02:51:02 - jarvis.execution - INFO - Task 'plan_obj_20250405025102_task_0' specifies skill 'read_file'. Attempting direct execution.
+2025-04-05 02:51:02 - jarvis.execution - WARNING - Attempt 1 failed for task plan_obj_20250405025102_task_0: File not found: C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\test_read.txt
+2025-04-05 02:51:02 - jarvis.execution - INFO - Retrying task plan_obj_20250405025102_task_0 in 1.00 seconds...
+2025-04-05 02:51:03 - jarvis.execution - INFO - Attempt 2/4 for task plan_obj_20250405025102_task_0
+2025-04-05 02:51:03 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='read_file', Type=<class 'str'>, Args='{'file_path': 'test_read.txt'}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:51:03 - jarvis.execution - INFO - DEBUG: Explicit skill condition TRUE. Skill found: True
+2025-04-05 02:51:03 - jarvis.execution - INFO - Task 'plan_obj_20250405025102_task_0' specifies skill 'read_file'. Attempting direct execution.
+2025-04-05 02:51:03 - jarvis.execution - WARNING - Attempt 2 failed for task plan_obj_20250405025102_task_0: File not found: C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\test_read.txt
+2025-04-05 02:51:03 - jarvis.execution - INFO - Retrying task plan_obj_20250405025102_task_0 in 2.00 seconds...
+2025-04-05 02:51:05 - jarvis.execution - INFO - Attempt 3/4 for task plan_obj_20250405025102_task_0
+2025-04-05 02:51:05 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='read_file', Type=<class 'str'>, Args='{'file_path': 'test_read.txt'}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:51:05 - jarvis.execution - INFO - DEBUG: Explicit skill condition TRUE. Skill found: True
+2025-04-05 02:51:05 - jarvis.execution - INFO - Task 'plan_obj_20250405025102_task_0' specifies skill 'read_file'. Attempting direct execution.
+2025-04-05 02:51:05 - jarvis.execution - WARNING - Attempt 3 failed for task plan_obj_20250405025102_task_0: File not found: C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\test_read.txt
+2025-04-05 02:51:05 - jarvis.execution - INFO - Retrying task plan_obj_20250405025102_task_0 in 4.00 seconds...
+2025-04-05 02:51:09 - jarvis.execution - INFO - Attempt 4/4 for task plan_obj_20250405025102_task_0
+2025-04-05 02:51:09 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='read_file', Type=<class 'str'>, Args='{'file_path': 'test_read.txt'}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:51:09 - jarvis.execution - INFO - DEBUG: Explicit skill condition TRUE. Skill found: True
+2025-04-05 02:51:09 - jarvis.execution - INFO - Task 'plan_obj_20250405025102_task_0' specifies skill 'read_file'. Attempting direct execution.
+2025-04-05 02:51:09 - jarvis.execution - WARNING - Attempt 4 failed for task plan_obj_20250405025102_task_0: File not found: C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\test_read.txt
+2025-04-05 02:51:09 - jarvis.execution - ERROR - Task plan_obj_20250405025102_task_0 failed after maximum retries (3).
+2025-04-05 02:51:09 - jarvis.execution - INFO - Primary execution failed for task plan_obj_20250405025102_task_0. Trying fallback strategies...
+2025-04-05 02:51:09 - jarvis.execution - INFO - Attempting fallback strategy 'simple' for task plan_obj_20250405025102_task_0
+2025-04-05 02:51:09 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='read_file', Type=<class 'str'>, Args='{'file_path': 'test_read.txt'}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:51:09 - jarvis.execution - INFO - DEBUG: Explicit skill condition TRUE. Skill found: True
+2025-04-05 02:51:09 - jarvis.execution - INFO - Task 'plan_obj_20250405025102_task_0' specifies skill 'read_file'. Attempting direct execution.
+2025-04-05 02:51:09 - jarvis.execution - WARNING - Fallback strategy 'simple' failed for task plan_obj_20250405025102_task_0: File not found: C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\test_read.txt
+2025-04-05 02:51:09 - jarvis.execution - INFO - Attempting fallback strategy 'robust' for task plan_obj_20250405025102_task_0
+2025-04-05 02:51:09 - jarvis.execution - INFO - DEBUG: Checking explicit skill - Name='read_file', Type=<class 'str'>, Args='{'file_path': 'test_read.txt'}', ArgsType=<class 'dict'>, RegistryPresent=True
+2025-04-05 02:51:09 - jarvis.execution - INFO - DEBUG: Explicit skill condition TRUE. Skill found: True
+2025-04-05 02:51:09 - jarvis.execution - INFO - Task 'plan_obj_20250405025102_task_0' specifies skill 'read_file'. Attempting direct execution.
+2025-04-05 02:51:09 - jarvis.execution - WARNING - Fallback strategy 'robust' failed for task plan_obj_20250405025102_task_0: File not found: C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\test_read.txt
+2025-04-05 02:51:09 - jarvis.execution - INFO - Finished execution for task plan_obj_20250405025102_task_0. Success: False, Time: 7.03s
+2025-04-05 02:51:10 - jarvis.execution - INFO - Task plan_obj_20250405025102_task_0 failure diagnosis: Diagnosis: The error is likely due to the file "test_read.txt" not being present in the specified location "C:\Users\Administrator\Documents\GitHub\Jarvis-WIP\".
+
+Suggestion: Check if the file "test_read.txt" exists in the specified location. If it does not exist, create the file or provide the correct file path. If the file exists, ensure that the file path is correct and the file is not corrupted. If the issue persists, consider retrying the task with the correct file path or modifying the plan to handle file not found exceptions.

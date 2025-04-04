@@ -37,6 +37,8 @@ class Task(BaseModel):
     task_id: str
     description: str
     status: str = "pending"  # pending, in_progress, completed, failed
+    skill: Optional[str] = None # The specific skill name to execute
+    arguments: Optional[Dict[str, Any]] = Field(default_factory=dict) # Arguments for the skill
     dependencies: List[str] = Field(default_factory=list)
     created_at: datetime = Field(default_factory=datetime.now)
     completed_at: Optional[datetime] = None

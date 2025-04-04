@@ -38,4 +38,24 @@ def setup_logger(name: str, log_level: int = logging.INFO) -> logging.Logger:
     logger.addHandler(file_handler)
     logger.addHandler(console_handler)
     
+    # --- ADDED: Configure library log levels ---
+    # Reduce noise from libraries unless in debug mode
+    if log_level > logging.DEBUG:
+        for lib_name in ["httpx", "chromadb", "pydantic", "httpcore", "openai", "groq", "langchain", "crewai"]:
+             lib_logger = logging.getLogger(lib_name)
+             # Check if handlers already exist to avoid duplication if libraries also configure
+             if not lib_logger.hasHandlers(): 
+                 # Add a NullHandler to prevent library logs from propagating to the root logger
+                 # if they don't configure their own handlers.
+                 # Or set a specific level if we *want* to see their warnings/errors.
+                 # lib_logger.addHandler(logging.NullHandler())
+                 lib_logger.setLevel(logging.WARNING) # Only show WARNING and above
+                 # Optionally add our handlers if we want their logs in our files/console
+                 # lib_logger.addHandler(file_handler)
+                 # lib_logger.addHandler(console_handler)
+                 # lib_logger.propagate = False # Prevent double logging if handlers added
+             else:
+                 lib_logger.setLevel(logging.WARNING) # Set level even if handlers exist
+    # --- END ADDED SECTION ---
+    
     return logger 

@@ -3,6 +3,20 @@ from datetime import datetime
 from pydantic import BaseModel, Field, validator, ValidationError
 
 from jarvis.planning import Plan, Task # Assuming Plan and Task are defined here
+from jarvis.execution import ExecutionResult # <<< ADDED Import
+
+# --- Pydantic Models for State Components ---
+class ChatMessage(BaseModel):
+    """Represents a single message in the conversation history."""
+    role: str # e.g., "user", "assistant"
+    content: str
+
+class KnowledgeSnippet(BaseModel):
+    """Represents a piece of knowledge retrieved from memory."""
+    content: str
+    source: str # e.g., "memory_ltm", "memory_stm", "web_search"
+    score: Optional[float] = None
+    metadata: Dict[str, Any] = Field(default_factory=dict)
 
 # --- Input Validation Model ---
 class UserInput(BaseModel):
@@ -37,17 +51,17 @@ class JarvisState(TypedDict):
 
     # Execution
     current_task: Optional[Task]
-    task_queue: Optional[List[Task]] # Or manage queue within Plan object?
-    last_execution_result: Optional[Dict[str, Any]] # Simplified ExecutionResult
-    execution_history: Optional[List[Dict[str, Any]]] # History of task executions
+    # task_queue: Optional[List[Task]] # <<< REMOVED
+    last_execution_result: Optional[ExecutionResult] # <<< Changed to Pydantic model
+    execution_history: Optional[List[ExecutionResult]] # <<< Changed to List of Pydantic models
 
     # Synthesis/Output
     final_response: Optional[str]
-    intermediate_results: Optional[List[Any]]
+    # intermediate_results: Optional[List[Any]] # <<< REMOVED
 
     # Context & Memory
-    conversation_history: Optional[List[Dict[str, str]]] # Simplified STM
-    retrieved_knowledge: Optional[List[Dict[str, Any]]] # Relevant LTM results
+    conversation_history: Optional[List[ChatMessage]] # <<< UPDATED
+    retrieved_knowledge: Optional[List[KnowledgeSnippet]] # <<< UPDATED
     # Add specific context items as needed
 
     # Agent/Workflow State

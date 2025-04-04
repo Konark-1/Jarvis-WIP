@@ -25,6 +25,55 @@ from .skills.registry import SkillRegistry
 from utils.logger import setup_logger
 from jarvis.llm import LLMClient
 
+# --- Conceptual Agent Role Definitions (Phase 1) ---
+# These comments outline the intended roles. Actual implementation will involve
+# structuring code (potentially classes/functions) to fulfill these roles,
+# possibly using CrewAI or LangGraph nodes in later phases.
+
+# 1. User Interface Agent (or Input/Output Manager):
+#    - Goal: Manage interaction with the user (text input/output).
+#    - Responsibilities: Receive user queries, format final responses, handle UI state.
+#    - Tools: Input validation, Output formatting.
+#    - Note: In the current LangGraph setup, this is partially handled by the graph entry/exit points and state.
+
+# 2. Knowledge Retrieval Agent (or Context Manager):
+#    - Goal: Provide relevant information from memory and external sources.
+#    - Responsibilities: Search short/medium/long-term memory, potentially use web search or file reading skills for context.
+#    - Tools: UnifiedMemorySystem search methods, web_search skill, read_file skill.
+#    - Note: This maps roughly to the `retrieve_context_node` in the graph.
+
+# 3. Execution Agent (or Skill Executor):
+#    - Goal: Execute tasks using available tools (skills).
+#    - Responsibilities: Validate skill parameters, call the appropriate skill from the SkillRegistry, handle execution results/errors.
+#    - Tools: SkillRegistry, all registered skills (execute_python_file, web_search, etc.).
+#    - Note: This aligns closely with the `ExecutionSystem` and the `execute_tool_node`.
+
+# 4. Reasoning Agent (or LLM Interaction Manager):
+#    - Goal: Leverage the LLM for tasks requiring understanding, generation, or analysis.
+#    - Responsibilities: Query understanding, planning (currently direct LLM call), synthesis, error diagnosis, potentially other complex reasoning tasks.
+#    - Tools: LLMClient (process_with_llm, process_structured_output if re-enabled).
+#    - Note: Distributed across multiple nodes (`understand_query`, `plan_tasks`, `synthesize_results`, `diagnose_error`).
+
+# 5. Memory Management Agent:
+#    - Goal: Maintain the integrity and efficiency of the memory system.
+#    - Responsibilities: Add new information, perform consolidation (short->medium->long), handle summarization, manage memory limits.
+#    - Tools: UnifiedMemorySystem add/update/consolidation methods.
+#    - Note: Partially implemented within `UnifiedMemorySystem` and nodes interacting with it.
+
+# 6. Response Generation Agent (potentially part of Reasoning/UI):
+#    - Goal: Craft the final response to the user based on task results.
+#    - Responsibilities: Synthesize information from executed tasks/errors into a coherent final answer.
+#    - Tools: LLMClient (process_with_llm).
+#    - Note: Currently handled by the `handle_completion_node` (using LLM synthesis).
+
+# 7. Planner Agent (Simplified for Phase 0):
+#    - Goal: Decompose user objective into executable tasks.
+#    - Responsibilities: Use LLM with context and skills list to generate a plan JSON.
+#    - Tools: LLMClient (process_with_llm), SkillRegistry (get_skill_definitions).
+#    - Note: Replaced CrewAI planner; implemented in `plan_tasks_node`.
+
+# --- End Conceptual Agent Roles ---
+
 # --- Consolidated Model Rebuild --- REMOVED
 # try:
 #     # Dependencies first (if they have forward refs themselves, though unlikely here)

@@ -1,0 +1,613 @@
+{
+  "obj_20250404225046": {
+    "objective_id": "obj_20250404225046",
+    "description": "Check nvidia current stock price and all news related to it",
+    "created_at": "2025-04-04T22:50:46.623259",
+    "completed_at": null,
+    "status": "active",
+    "progress": []
+  },
+  "obj_20250404225140": {
+    "objective_id": "obj_20250404225140",
+    "description": "Check nvidia current stock price and all news related to it",
+    "created_at": "2025-04-04T22:51:40.102631",
+    "completed_at": null,
+    "status": "active",
+    "progress": []
+  },
+  "obj_20250404225316": {
+    "objective_id": "obj_20250404225316",
+    "description": "Check nvidia current stock price and all news related to it",
+    "created_at": "2025-04-04T22:53:16.941470",
+    "completed_at": null,
+    "status": "active",
+    "progress": []
+  },
+  "obj_20250404225350": {
+    "objective_id": "obj_20250404225350",
+    "description": "Check nvidia current stock price and all news related to it",
+    "created_at": "2025-04-04T22:53:50.214517",
+    "completed_at": null,
+    "status": "active",
+    "progress": []
+  },
+  "obj_20250404225433": {
+    "objective_id": "obj_20250404225433",
+    "description": "Check nvidia current stock price and all news related to it",
+    "created_at": "2025-04-04T22:54:33.612020",
+    "completed_at": null,
+    "status": "active",
+    "progress": []
+  },
+  "obj_20250404225520": {
+    "objective_id": "obj_20250404225520",
+    "description": "Check nvidia current stock price and all news related to it",
+    "created_at": "2025-04-04T22:55:20.468384",
+    "completed_at": null,
+    "status": "active",
+    "progress": []
+  },
+  "obj_20250404225742": {
+    "objective_id": "obj_20250404225742",
+    "description": "Check for nvidia stock prices and any related news",
+    "created_at": "2025-04-04T22:57:42.247456",
+    "completed_at": null,
+    "status": "active",
+    "progress": []
+  },
+  "obj_20250404225928": {
+    "objective_id": "obj_20250404225928",
+    "description": "Check for nvidia stock prices and any related news",
+    "created_at": "2025-04-04T22:59:28.164060",
+    "completed_at": null,
+    "status": "active",
+    "progress": []
+  },
+  "obj_20250404230341": {
+    "objective_id": "obj_20250404230341",
+    "description": "Check for nvidia stock prices and any related news",
+    "created_at": "2025-04-04T23:03:41.108483",
+    "completed_at": null,
+    "status": "active",
+    "progress": []
+  },
+  "obj_20250404230428": {
+    "objective_id": "obj_20250404230428",
+    "description": "Check for nvidia stock prices and any related news",
+    "created_at": "2025-04-04T23:04:28.044784",
+    "completed_at": null,
+    "status": "active",
+    "progress": []
+  },
+  "obj_20250404230717": {
+    "objective_id": "obj_20250404230717",
+    "description": "Check for nvidia stock prices and any related news",
+    "created_at": "2025-04-04T23:07:17.096391",
+    "completed_at": null,
+    "status": "active",
+    "progress": [
+      {
+        "step": "Created plan plan_obj_20250404230717 with 1 tasks",
+        "status": "completed",
+        "timestamp": "2025-04-04T23:07:21.693240",
+        "metadata": {
+          "plan_id": "plan_obj_20250404230717"
+        }
+      }
+    ]
+  },
+  "obj_20250404230942": {
+    "objective_id": "obj_20250404230942",
+    "description": "Check for nvidia stock price and create a report for the relvant new regarding the stocl",
+    "created_at": "2025-04-04T23:09:42.986571",
+    "completed_at": null,
+    "status": "active",
+    "progress": [
+      {
+        "step": "Created plan plan_obj_20250404230942 with 1 tasks",
+        "status": "completed",
+        "timestamp": "2025-04-04T23:09:51.143155",
+        "metadata": {
+          "plan_id": "plan_obj_20250404230942"
+        }
+      }
+    ]
+  },
+  "obj_20250404231216": {
+    "objective_id": "obj_20250404231216",
+    "description": "Check for nvidia stock price and create a report for the relvant new regarding the stocl",
+    "created_at": "2025-04-04T23:12:16.485490",
+    "completed_at": null,
+    "status": "active",
+    "progress": [
+      {
+        "step": "Created plan plan_obj_20250404231216 with 1 tasks",
+        "status": "completed",
+        "timestamp": "2025-04-04T23:12:24.628143",
+        "metadata": {
+          "plan_id": "plan_obj_20250404231216"
+        }
+      }
+    ]
+  },
+  "obj_20250404231312": {
+    "objective_id": "obj_20250404231312",
+    "description": "Check for nvidia stock price and create a report for the relvant new regarding the stocl",
+    "created_at": "2025-04-04T23:13:12.222260",
+    "completed_at": null,
+    "status": "active",
+    "progress": [
+      {
+        "step": "Created plan plan_obj_20250404231312 with 1 tasks",
+        "status": "completed",
+        "timestamp": "2025-04-04T23:13:20.309627",
+        "metadata": {
+          "plan_id": "plan_obj_20250404231312"
+        }
+      }
+    ]
+  },
+  "obj_20250404231503": {
+    "objective_id": "obj_20250404231503",
+    "description": "Check for nvidia stock price and create a report for the relvant new regarding the stocl",
+    "created_at": "2025-04-04T23:15:03.863251",
+    "completed_at": null,
+    "status": "active",
+    "progress": [
+      {
+        "step": "Created plan plan_obj_20250404231503 with 1 tasks",
+        "status": "completed",
+        "timestamp": "2025-04-04T23:15:07.159767",
+        "metadata": {
+          "plan_id": "plan_obj_20250404231503"
+        }
+      }
+    ]
+  },
+  "obj_20250404231712": {
+    "objective_id": "obj_20250404231712",
+    "description": "Check for nvidia stock price and create a report for the relvant new regarding the stocl",
+    "created_at": "2025-04-04T23:17:12.148749",
+    "completed_at": null,
+    "status": "active",
+    "progress": [
+      {
+        "step": "Created plan plan_obj_20250404231712 with 1 tasks",
+        "status": "completed",
+        "timestamp": "2025-04-04T23:17:16.024828",
+        "metadata": {
+          "plan_id": "plan_obj_20250404231712"
+        }
+      }
+    ]
+  },
+  "obj_20250404231800": {
+    "objective_id": "obj_20250404231800",
+    "description": "Check for nvidia stock price and create a report for the relvant new regarding the stocl",
+    "created_at": "2025-04-04T23:18:00.830804",
+    "completed_at": null,
+    "status": "active",
+    "progress": [
+      {
+        "step": "Created plan plan_obj_20250404231800 with 1 tasks",
+        "status": "completed",
+        "timestamp": "2025-04-04T23:18:04.384154",
+        "metadata": {
+          "plan_id": "plan_obj_20250404231800"
+        }
+      }
+    ]
+  },
+  "obj_20250404232034": {
+    "objective_id": "obj_20250404232034",
+    "description": "Check for nvidia stock price and create a report for the relvant new regarding the stocl",
+    "created_at": "2025-04-04T23:20:34.378602",
+    "completed_at": null,
+    "status": "active",
+    "progress": [
+      {
+        "step": "Created plan plan_obj_20250404232034 with 1 tasks",
+        "status": "completed",
+        "timestamp": "2025-04-04T23:20:37.737886",
+        "metadata": {
+          "plan_id": "plan_obj_20250404232034"
+        }
+      }
+    ]
+  },
+  "obj_20250405013437": {
+    "objective_id": "obj_20250405013437",
+    "description": "^C",
+    "created_at": "2025-04-05T01:34:37.047450",
+    "completed_at": null,
+    "status": "active",
+    "progress": [
+      {
+        "step": "Created plan plan_obj_20250405013437 with 1 tasks",
+        "status": "completed",
+        "timestamp": "2025-04-05T01:34:37.938731",
+        "metadata": {
+          "plan_id": "plan_obj_20250405013437"
+        }
+      }
+    ]
+  },
+  "obj_20250405013455": {
+    "objective_id": "obj_20250405013455",
+    "description": "Search for nvidia stock and tell me major news",
+    "created_at": "2025-04-05T01:34:55.296367",
+    "completed_at": null,
+    "status": "active",
+    "progress": [
+      {
+        "step": "Created plan plan_obj_20250405013455 with 1 tasks",
+        "status": "completed",
+        "timestamp": "2025-04-05T01:34:58.612513",
+        "metadata": {
+          "plan_id": "plan_obj_20250405013455"
+        }
+      }
+    ]
+  },
+  "obj_20250405013813": {
+    "objective_id": "obj_20250405013813",
+    "description": "Search for nvidia stock and tell me major news",
+    "created_at": "2025-04-05T01:38:13.747586",
+    "completed_at": null,
+    "status": "active",
+    "progress": [
+      {
+        "step": "Created plan plan_obj_20250405013813 with 1 tasks",
+        "status": "completed",
+        "timestamp": "2025-04-05T01:38:16.532396",
+        "metadata": {
+          "plan_id": "plan_obj_20250405013813"
+        }
+      }
+    ]
+  },
+  "obj_20250405013902": {
+    "objective_id": "obj_20250405013902",
+    "description": "Search for nvidia stock and tell me major news",
+    "created_at": "2025-04-05T01:39:02.716601",
+    "completed_at": null,
+    "status": "active",
+    "progress": []
+  },
+  "obj_20250405013939": {
+    "objective_id": "obj_20250405013939",
+    "description": "Search for nvidia stock and tell me major news",
+    "created_at": "2025-04-05T01:39:39.665660",
+    "completed_at": null,
+    "status": "active",
+    "progress": []
+  },
+  "obj_20250405014027": {
+    "objective_id": "obj_20250405014027",
+    "description": "Search for nvidia stock and tell me major news",
+    "created_at": "2025-04-05T01:40:27.307176",
+    "completed_at": null,
+    "status": "active",
+    "progress": []
+  },
+  "obj_20250405014339": {
+    "objective_id": "obj_20250405014339",
+    "description": "Search nvidia stock price and the major related news",
+    "created_at": "2025-04-05T01:43:39.702716",
+    "completed_at": null,
+    "status": "active",
+    "progress": []
+  },
+  "obj_20250405014441": {
+    "objective_id": "obj_20250405014441",
+    "description": "Search nvidia stock price and the major related news",
+    "created_at": "2025-04-05T01:44:41.403865",
+    "completed_at": null,
+    "status": "active",
+    "progress": []
+  },
+  "obj_20250405014605": {
+    "objective_id": "obj_20250405014605",
+    "description": "Search nvidia stock price and the major related news",
+    "created_at": "2025-04-05T01:46:05.238392",
+    "completed_at": null,
+    "status": "active",
+    "progress": []
+  },
+  "obj_20250405015012": {
+    "objective_id": "obj_20250405015012",
+    "description": "Check nvidia stock prices and create a report on the current scondition of the stocl",
+    "created_at": "2025-04-05T01:50:12.996059",
+    "completed_at": null,
+    "status": "active",
+    "progress": []
+  },
+  "obj_20250405015109": {
+    "objective_id": "obj_20250405015109",
+    "description": "Check nvidia stock prices and create a report on the current scondition of the stocl",
+    "created_at": "2025-04-05T01:51:09.496723",
+    "completed_at": null,
+    "status": "active",
+    "progress": []
+  },
+  "obj_20250405015136": {
+    "objective_id": "obj_20250405015136",
+    "description": "Check nvidia stock prices and create a report on the current scondition of the stocl",
+    "created_at": "2025-04-05T01:51:36.028632",
+    "completed_at": null,
+    "status": "active",
+    "progress": []
+  },
+  "obj_20250405015230": {
+    "objective_id": "obj_20250405015230",
+    "description": "^C",
+    "created_at": "2025-04-05T01:52:30.147593",
+    "completed_at": null,
+    "status": "active",
+    "progress": []
+  },
+  "obj_20250405015332": {
+    "objective_id": "obj_20250405015332",
+    "description": "Check nvidia stock pices and the current status of NASDAQ Market",
+    "created_at": "2025-04-05T01:53:32.910671",
+    "completed_at": null,
+    "status": "active",
+    "progress": []
+  },
+  "obj_20250405015416": {
+    "objective_id": "obj_20250405015416",
+    "description": "Check nvidia stock pices and the current status of NASDAQ Market",
+    "created_at": "2025-04-05T01:54:16.265773",
+    "completed_at": null,
+    "status": "active",
+    "progress": []
+  },
+  "obj_20250405015459": {
+    "objective_id": "obj_20250405015459",
+    "description": "Check nvidia stock pices and the current status of NASDAQ Market",
+    "created_at": "2025-04-05T01:54:59.395738",
+    "completed_at": null,
+    "status": "active",
+    "progress": []
+  },
+  "obj_20250405015743": {
+    "objective_id": "obj_20250405015743",
+    "description": "check nvidia stock prices and create a stock market report",
+    "created_at": "2025-04-05T01:57:43.061288",
+    "completed_at": null,
+    "status": "active",
+    "progress": []
+  },
+  "obj_20250405015851": {
+    "objective_id": "obj_20250405015851",
+    "description": "check nvidia stock prices and create a stock market report",
+    "created_at": "2025-04-05T01:58:51.732139",
+    "completed_at": null,
+    "status": "active",
+    "progress": []
+  },
+  "obj_20250405015951": {
+    "objective_id": "obj_20250405015951",
+    "description": "check nvidia stock prices and create a stock market report",
+    "created_at": "2025-04-05T01:59:51.537685",
+    "completed_at": null,
+    "status": "active",
+    "progress": []
+  },
+  "obj_20250405020040": {
+    "objective_id": "obj_20250405020040",
+    "description": "check nvidia stock prices and create a stock market report",
+    "created_at": "2025-04-05T02:00:40.406539",
+    "completed_at": null,
+    "status": "active",
+    "progress": []
+  },
+  "obj_20250405020229": {
+    "objective_id": "obj_20250405020229",
+    "description": "check nvidia stock prices and create a stocl report",
+    "created_at": "2025-04-05T02:02:29.965468",
+    "completed_at": null,
+    "status": "active",
+    "progress": [
+      {
+        "step": "Created plan plan_obj_20250405020229 with 3 tasks",
+        "status": "completed",
+        "timestamp": "2025-04-05T02:02:35.943740",
+        "metadata": {
+          "plan_id": "plan_obj_20250405020229"
+        }
+      },
+      {
+        "step": "Created plan plan_obj_20250405020229 with 3 tasks",
+        "status": "completed",
+        "timestamp": "2025-04-05T02:02:36.002086",
+        "metadata": {
+          "plan_id": "plan_obj_20250405020229"
+        }
+      },
+      {
+        "step": "Created plan plan_obj_20250405020229 with 3 tasks",
+        "status": "completed",
+        "timestamp": "2025-04-05T02:02:43.074740",
+        "metadata": {
+          "plan_id": "plan_obj_20250405020229"
+        }
+      }
+    ]
+  },
+  "obj_20250405020340": {
+    "objective_id": "obj_20250405020340",
+    "description": "check nvidia stock prices and create a stocl report",
+    "created_at": "2025-04-05T02:03:40.090520",
+    "completed_at": null,
+    "status": "active",
+    "progress": []
+  },
+  "obj_20250405020508": {
+    "objective_id": "obj_20250405020508",
+    "description": "check nvidia stock prices and create a stocl report",
+    "created_at": "2025-04-05T02:05:08.820642",
+    "completed_at": null,
+    "status": "active",
+    "progress": []
+  },
+  "obj_20250405020639": {
+    "objective_id": "obj_20250405020639",
+    "description": "check for nvidia stock pices and create a report",
+    "created_at": "2025-04-05T02:06:39.252565",
+    "completed_at": null,
+    "status": "active",
+    "progress": []
+  },
+  "obj_20250405020732": {
+    "objective_id": "obj_20250405020732",
+    "description": "check for nvidia stock pices and create a report",
+    "created_at": "2025-04-05T02:07:32.774726",
+    "completed_at": null,
+    "status": "active",
+    "progress": [
+      {
+        "step": "Created plan plan_obj_20250405020732 with 3 tasks",
+        "status": "completed",
+        "timestamp": "2025-04-05T02:07:41.908688",
+        "metadata": {
+          "plan_id": "plan_obj_20250405020732"
+        }
+      }
+    ]
+  },
+  "obj_20250405020900": {
+    "objective_id": "obj_20250405020900",
+    "description": "check for nvidia stock pices and create a report",
+    "created_at": "2025-04-05T02:09:00.996983",
+    "completed_at": null,
+    "status": "active",
+    "progress": []
+  },
+  "obj_20250405021007": {
+    "objective_id": "obj_20250405021007",
+    "description": "Check nvidia stock prices and real time stock report",
+    "created_at": "2025-04-05T02:10:07.199850",
+    "completed_at": null,
+    "status": "active",
+    "progress": []
+  },
+  "obj_20250405024224": {
+    "objective_id": "obj_20250405024224",
+    "description": "Check nvidia stocks for the current price and create the report",
+    "created_at": "2025-04-05T02:42:24.336376",
+    "completed_at": null,
+    "status": "active",
+    "progress": []
+  },
+  "obj_20250405024308": {
+    "objective_id": "obj_20250405024308",
+    "description": "Check nvidia stocks for the current price and create the report",
+    "created_at": "2025-04-05T02:43:08.578723",
+    "completed_at": null,
+    "status": "active",
+    "progress": [
+      {
+        "step": "Created plan plan_obj_20250405024308 with 3 tasks",
+        "status": "completed",
+        "timestamp": "2025-04-05T02:43:12.121687",
+        "metadata": {
+          "plan_id": "plan_obj_20250405024308"
+        }
+      },
+      {
+        "step": "Created plan plan_obj_20250405024308 with 3 tasks",
+        "status": "completed",
+        "timestamp": "2025-04-05T02:43:34.419555",
+        "metadata": {
+          "plan_id": "plan_obj_20250405024308"
+        }
+      }
+    ]
+  },
+  "obj_20250405024519": {
+    "objective_id": "obj_20250405024519",
+    "description": "Check nvidia stocks for the current price and create the report",
+    "created_at": "2025-04-05T02:45:19.513624",
+    "completed_at": null,
+    "status": "active",
+    "progress": [
+      {
+        "step": "Created plan plan_obj_20250405024519 with 3 tasks",
+        "status": "completed",
+        "timestamp": "2025-04-05T02:45:23.639000",
+        "metadata": {
+          "plan_id": "plan_obj_20250405024519"
+        }
+      }
+    ]
+  },
+  "obj_20250405024709": {
+    "objective_id": "obj_20250405024709",
+    "description": "Check nvidia stock prices real time and create a trend report",
+    "created_at": "2025-04-05T02:47:09.547264",
+    "completed_at": null,
+    "status": "active",
+    "progress": [
+      {
+        "step": "Created plan plan_obj_20250405024709 with 4 tasks",
+        "status": "completed",
+        "timestamp": "2025-04-05T02:47:28.318216",
+        "metadata": {
+          "plan_id": "plan_obj_20250405024709"
+        }
+      }
+    ]
+  },
+  "obj_20250405024839": {
+    "objective_id": "obj_20250405024839",
+    "description": "Check nvidia stock prices real time and create a trend report",
+    "created_at": "2025-04-05T02:48:39.733855",
+    "completed_at": null,
+    "status": "active",
+    "progress": [
+      {
+        "step": "Created plan plan_obj_20250405024839 with 5 tasks",
+        "status": "completed",
+        "timestamp": "2025-04-05T02:48:54.438426",
+        "metadata": {
+          "plan_id": "plan_obj_20250405024839"
+        }
+      }
+    ]
+  },
+  "obj_20250405025014": {
+    "objective_id": "obj_20250405025014",
+    "description": "Execute the python script workspace_sandbox/test_script.py",
+    "created_at": "2025-04-05T02:50:14.607589",
+    "completed_at": null,
+    "status": "active",
+    "progress": [
+      {
+        "step": "Created plan plan_obj_20250405025014 with 1 tasks",
+        "status": "completed",
+        "timestamp": "2025-04-05T02:50:23.033732",
+        "metadata": {
+          "plan_id": "plan_obj_20250405025014"
+        }
+      }
+    ]
+  },
+  "obj_20250405025102": {
+    "objective_id": "obj_20250405025102",
+    "description": "Read the content of the file test_read.txt",
+    "created_at": "2025-04-05T02:51:02.166215",
+    "completed_at": null,
+    "status": "active",
+    "progress": [
+      {
+        "step": "Created plan plan_obj_20250405025102 with 1 tasks",
+        "status": "completed",
+        "timestamp": "2025-04-05T02:51:10.511835",
+        "metadata": {
+          "plan_id": "plan_obj_20250405025102"
+        }
+      }
+    ]
+  }
+}

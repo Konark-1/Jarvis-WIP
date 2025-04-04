@@ -3,13 +3,13 @@ from typing import Dict, Any, Optional, List
 from datetime import datetime
 import json
 
-from jarvis.state import JarvisState # Import the TypedDict state
+from jarvis.state import JarvisState, UserInput, ChatMessage, KnowledgeSnippet # Import state definitions
 from jarvis.llm import LLMClient
 from jarvis.planning import PlanningSystem, Plan, Task, TaskStatus
 from jarvis.execution import ExecutionSystem, ExecutionResult
-from jarvis.memory.unified_memory import UnifiedMemorySystem
-from jarvis.crew import create_planning_crew # Import crew creation function
+from jarvis.memory.unified_memory import UnifiedMemorySystem, MemoryEntry # Import MemoryEntry
 from jarvis.skills.registry import SkillRegistry # Import SkillRegistry
+from jarvis.crew import create_planning_crew # Import crew creation function
 
 logger = logging.getLogger(__name__)
 
@@ -17,12 +17,12 @@ logger = logging.getLogger(__name__)
 
 def understand_query_node(state: JarvisState, llm: LLMClient, memory: UnifiedMemorySystem) -> Dict[str, Any]:
     """Analyzes the initial query, creates an objective in memory, and updates state."""
-    query = state.get('user_input')
+    query = state.get('original_query')
     logger.info(f"NODE: understand_query_node (Query: '{query}')")
     
     if not query:
-        logger.error("User input query is missing in state.")
-        return {"error_message": "Cannot process: User input query missing.", "timestamp": datetime.now()}
+        logger.error("Original query is missing in state.")
+        return {"error_message": "Cannot process: Original query missing.", "timestamp": datetime.now()}
 
     # Simple approach: Use the original query directly as the objective description.
     # TODO: Enhance with LLM interaction to refine, clarify, or extract parameters.
@@ -30,7 +30,6 @@ def understand_query_node(state: JarvisState, llm: LLMClient, memory: UnifiedMem
     
     # Create the objective in Medium Term Memory
     objective_id = None
-    new_objective = None
     try:
         # Metadata could include query source, user info, etc. later
         objective_id = memory.medium_term.create_objective(
@@ -40,34 +39,33 @@ def understand_query_node(state: JarvisState, llm: LLMClient, memory: UnifiedMem
         if not objective_id:
              raise ValueError("Failed to create objective in MTM (returned None ID)")
         
-        # Retrieve the newly created objective object to put in the state
-        new_objective = memory.medium_term.get_objective(objective_id)
-        if not new_objective:
-             logger.error(f"Failed to retrieve newly created objective {objective_id} from MTM.")
-             return {"error_message": f"Failed to retrieve objective {objective_id} after creation.", "timestamp": datetime.now()}
-        else:
-            logger.info(f"-> Objective created & retrieved from MTM: ID={objective_id}, Description='{objective_desc}'")
+        logger.info(f"-> Objective created in MTM: ID={objective_id}, Description='{objective_desc}'")
 
     except Exception as e:
-        logger.exception(f"Failed to create/retrieve objective in Medium Term Memory: {e}")
+        logger.exception(f"Failed to create objective in Medium Term Memory: {e}")
         return {"error_message": f"Failed to store objective in memory: {e}", "timestamp": datetime.now()}
 
-    # Return the Objective object itself, not just the ID/description
+    # Return updates for keys defined in JarvisState
     return {
-        "objective": new_objective,
+        "objective_id": objective_id,
+        "objective_description": objective_desc,
         "timestamp": datetime.now()
     }
 
 def retrieve_context_node(state: JarvisState, memory: UnifiedMemorySystem) -> Dict[str, Any]:
     """Retrieves relevant context from memory based on the objective."""
     logger.info("NODE: retrieve_context_node")
-    current_objective = state.get('objective')
+    # Corrected: Access objective_description directly from state
+    objective_desc = state.get('objective_description') 
     
-    if not current_objective or not hasattr(current_objective, 'description'):
-        logger.warning("No objective object or description found in state for context retrieval.")
-        return {}
+    if not objective_desc:
+        # Check if objective_id exists, maybe description failed upstream?
+        obj_id = state.get('objective_id')
+        logger.warning(f"Objective description not found in state for context retrieval (Objective ID: {obj_id}).")
+        # Return empty context or error?
+        return {"retrieved_knowledge": [], "conversation_history": []}
         
-    objective_desc = current_objective.description
+    # objective_desc = current_objective.description # Removed old access
 
     try:
         # Retrieve relevant knowledge from LTM
@@ -75,43 +73,51 @@ def retrieve_context_node(state: JarvisState, memory: UnifiedMemorySystem) -> Di
         query = objective_desc 
         logger.debug(f"Searching memory with query: '{query}'")
         # Search LTM and STM (adjust types and k as needed)
-        search_results = memory.search_memory(
+        search_results: List[MemoryEntry] = memory.search_memory(
             query=query, 
             memory_types=["long_term", "short_term"], 
-            k_per_type=3 
+            k_per_type=3 # Consider making k configurable
         )
         
-        retrieved_knowledge_list = []
-        conversation_history_list = []
+        retrieved_knowledge_list: List[KnowledgeSnippet] = []
+        conversation_history_list: List[ChatMessage] = []
         
         for entry in search_results:
-            entry_dict = entry.model_dump() # Convert MemoryEntry to dict
-            # Basic serialization check for content/metadata
-            for key in ['content', 'metadata']:
-                if key in entry_dict and entry_dict[key] is not None:
-                    try: json.dumps(entry_dict[key])
-                    except TypeError:
-                         entry_dict[key] = str(entry_dict[key])
-                         
+            # entry is a MemoryEntry Pydantic model
             if entry.memory_type == "long_term":
-                retrieved_knowledge_list.append(entry_dict)
+                try:
+                    snippet = KnowledgeSnippet(
+                        content=str(entry.content), # Ensure content is string
+                        source=f"memory_{entry.memory_type}",
+                        score=entry.metadata.get("score"), # Assuming score might be in metadata from search
+                        metadata=entry.metadata
+                    )
+                    retrieved_knowledge_list.append(snippet)
+                except ValidationError as e:
+                    logger.warning(f"Failed to validate LTM entry as KnowledgeSnippet: {e}. Entry: {entry}")
             elif entry.memory_type == "short_term":
-                 # Format STM entry for state
-                 conv_entry = {
-                     "role": entry_dict.get('metadata', {}).get('speaker', 'unknown'),
-                     "content": entry_dict.get('content')
-                 }
-                 conversation_history_list.append(conv_entry)
-        
-        # Sort conversation history chronologically (search might not guarantee order)
-        conversation_history_list.sort(key=lambda x: x.get('timestamp', datetime.min()))
+                try:
+                     # Extract role, default if missing
+                    role = entry.metadata.get('speaker', 'unknown') 
+                    # Ensure content is string
+                    content = str(entry.content) 
+                    message = ChatMessage(role=role, content=content)
+                    # Add timestamp if needed for sorting later?
+                    # message.timestamp = entry.timestamp 
+                    conversation_history_list.append(message)
+                except ValidationError as e:
+                     logger.warning(f"Failed to validate STM entry as ChatMessage: {e}. Entry: {entry}")
+       
+        # TODO: Sort conversation history chronologically if MemorySystem doesn't guarantee order?
+        # Requires timestamp on ChatMessage model and MemoryEntry providing it reliably.
+        # conversation_history_list.sort(key=lambda x: getattr(x, 'timestamp', datetime.min()))
 
         logger.info(f"-> Retrieved {len(retrieved_knowledge_list)} knowledge items and {len(conversation_history_list)} conversation items.")
         
         # Return updates for state
         return {
-            "retrieved_knowledge": retrieved_knowledge_list,
-            "conversation_history": conversation_history_list,
+            "retrieved_knowledge": retrieved_knowledge_list, # List of KnowledgeSnippet objects
+            "conversation_history": conversation_history_list, # List of ChatMessage objects
             "timestamp": datetime.now()
         }
 
@@ -122,160 +128,184 @@ def retrieve_context_node(state: JarvisState, memory: UnifiedMemorySystem) -> Di
 
 # --- Helper function to format context for crew --- 
 # (Similar to the one previously added to _decompose_objective)
-def format_context_for_prompt(
-    context_knowledge: Optional[List[Dict[str, Any]]] = None, 
-    context_history: Optional[List[Dict[str, str]]] = None) -> str:
+def format_context_for_prompt(retrieved_knowledge: List[KnowledgeSnippet], conversation_history: List[ChatMessage]) -> str:
+    """Formats retrieved knowledge and conversation history for the planning prompt.
+       MODIFIED: Accepts Pydantic models, includes more context (last 3 msgs, top 3 snippets).
+    """
     context_str = ""
-    if context_history:
-        context_str += "Relevant Conversation History:\n"
-        for msg in context_history[-3:]:
-             context_str += f"- {msg.get('role', 'unknown')}: {msg.get('content', '')}\n"
+    if conversation_history:
+        context_str += "Recent Conversation History:\n"
+        # Take last 3 messages
+        for msg in conversation_history[-3:]:
+            context_str += f"- {msg.role}: {msg.content}\n"
         context_str += "---"
-    if context_knowledge:
+        
+    if retrieved_knowledge:
         context_str += "\nRelevant Retrieved Knowledge:\n"
-        for i, item in enumerate(context_knowledge[:3]):
-             content = item.get('content', 'N/A')
-             metadata_desc = item.get('metadata', {}).get('description', '')
-             content_preview = (str(content)[:150] + '...') if len(str(content)) > 150 else str(content)
-             context_str += f"- Item {i+1} ({metadata_desc}): {content_preview}\n"
+        # Take top 3 items
+        for i, item in enumerate(retrieved_knowledge[:3]):
+            content = item.content
+            metadata_desc = item.metadata.get('description', item.source) 
+            # Longer preview, ensure it's string
+            content_preview = (str(content)[:300] + '...') if len(str(content)) > 300 else str(content) 
+            context_str += f"- Item {i+1} ({metadata_desc}): {content_preview}\n"
         context_str += "---"
+        
+    # Add logic here later to estimate token count and truncate if necessary
+    # logger.debug(f"Formatted context token estimate: {estimate_tokens(context_str)}")
+    # MAX_CONTEXT_TOKENS = 2000 
+    # while estimate_tokens(context_str) > MAX_CONTEXT_TOKENS:
+    #    # Truncation logic (remove oldest message, shortest snippet, etc.)
+    #    pass 
+        
     return context_str
-
-# --- Crew Node Definition ---
-def run_planning_crew_node(
-    objective_description: str, context_str: str, llm_client: LLMClient, skills: SkillRegistry
-) -> list[dict]:
-    """Runs the planning crew to decompose the objective into tasks."""
-    logger.info(f"Running planning crew for objective: '{objective_description[:50]}...'")
-    tasks_list = []
-
-    try:
-        # Get the LangChain compatible LLM instance
-        crew_llm = llm_client.get_langchain_llm()
-        if not crew_llm:
-            logger.error("Could not get a valid LLM instance for the planning crew.")
-            # Fallback or raise error? For now, return empty list.
-            # Consider adding a basic LLM call fallback here if crew fails.
-            return []
-
-        # Create the planning crew, passing the LLM and SkillRegistry
-        # Note: create_planning_crew needs to be updated to accept/use skills
-        planning_crew = create_planning_crew(llm_config=crew_llm, skill_registry=skills)
-
-        # Prepare inputs for the crew's task
-        inputs = {"objective": objective_description, "context": context_str}
-        logger.debug(f"Planning crew inputs: {inputs}")
-
-        # Kick off the crew's task
-        result = planning_crew.kickoff(inputs=inputs)
-        logger.info(f"Planning crew finished. Raw result: {result}")
-
-        # Attempt to parse the result as JSON (assuming crew outputs JSON string)
-        # TODO: Add more robust parsing and validation (e.g., using Pydantic)
-        try:
-            # Assuming the result is a string containing a JSON list of tasks
-            parsed_output = json.loads(result)
-            if isinstance(parsed_output, list):
-                # Validate structure? For now, assume it's list of dicts
-                tasks_list = parsed_output
-                logger.info(f"Successfully parsed {len(tasks_list)} tasks from crew output.")
-            else:
-                logger.warning(f"Crew output was not a JSON list: {type(parsed_output)}")
-                # Attempt extraction or fallback?
-        except json.JSONDecodeError:
-            logger.error(f"Failed to decode JSON from planning crew result: {result}")
-            # Fallback: maybe try a regex or simple string split if format is known?
-        except Exception as e:
-            logger.error(f"Error processing planning crew result: {e}", exc_info=True)
-
-    except Exception as e:
-        logger.error(f"Error running planning crew: {e}", exc_info=True)
-        # Fallback mechanism if crew fails entirely?
-
-    # Ensure return type is correct even on failure
-    return tasks_list if isinstance(tasks_list, list) else []
 
 # --- Modified plan_tasks_node to use the crew node --- 
 # Placeholder for other nodes
 def plan_tasks_node(state: JarvisState, planner: PlanningSystem, llm: LLMClient, skills: SkillRegistry) -> dict:
-    """Uses the planning crew to generate a task list based on the user query and context."""
-    logger.info("Entering plan_tasks_node...")
-    current_objective = state.get("objective")
-    if not current_objective:
-        logger.error("Objective is missing from state in plan_tasks_node.")
-        # How to handle this? Maybe update state with an error or return empty plan?
-        # Returning current state might lead to loop. Let's create an empty plan with error status.
-        # Provide dummy values for required fields to satisfy Pydantic validation
-        error_plan = Plan(
-            plan_id="error_plan_missing_objective",
-            objective_id="error_obj_missing",
-            objective_description="Error: Objective missing in state",
-            tasks=[]
-        )
-        return {"plan": error_plan, "status_message": "Error: Objective missing."}
+    """Uses a direct LLM call to generate a task list based on the user query and context."""
+    logger.info("NODE: plan_tasks_node (Direct LLM Planning)")
+    objective_id = state.get("objective_id")
+    objective_description = state.get("objective_description")
+    
+    if not objective_id or not objective_description:
+        logger.error(f"Objective ID ('{objective_id}') or Description ('{objective_description}') missing from state in plan_tasks_node.")
+        return {"current_plan": None, "plan_status": "failed", "error_message": "Objective details missing for planning."}
 
-    # Ensure current_objective and its description exist before proceeding
-    if not hasattr(current_objective, 'description') or not current_objective.description:
-        logger.error(f"Objective object exists but description is missing or empty: {current_objective}")
-        # Create another error plan
-        error_plan = Plan(
-            plan_id="error_plan_missing_desc",
-            objective_id=getattr(current_objective, 'objective_id', 'error_obj_unknown'),
-            objective_description="Error: Objective description missing",
-            tasks=[]
-        )
-        return {"plan": error_plan, "status_message": "Error: Objective description missing."}
+    logger.info(f"Objective for planning: '{objective_description[:60]}...' (ID: {objective_id})")
 
-    # Now it's safe to access description
-    objective_desc = current_objective.description
-    objective_id = current_objective.objective_id # Also get the ID
+    # Format context for the planning prompt
+    retrieved_knowledge = state.get("retrieved_knowledge", [])
+    conversation_history = state.get("conversation_history", [])
+    context_str = format_context_for_prompt(retrieved_knowledge, conversation_history)
+    logger.debug(f"Context string for LLM planning:\n{context_str}")
 
-    logger.info(f"Starting planning for objective: {objective_desc}")
-
-    # Format context
-    knowledge_str = state.get("knowledge", "")
-    history_str = state.get("conversation_history", "") # Assuming history is stored as a formatted string
-    context_str = format_context_for_prompt(knowledge_str, history_str)
-
+    # Get available skill definitions
+    available_skills = skills.get_skill_definitions()
     try:
-        # Run the planning crew via the dedicated node function
-        task_dicts = run_planning_crew_node(objective_desc, context_str, llm, skills)
+        skills_json_str = json.dumps(available_skills, indent=2)
+    except Exception as e:
+        logger.error(f"Failed to serialize skill definitions: {e}")
+        skills_json_str = "[]" # Fallback to empty list
 
-        if not task_dicts:
-             logger.warning("Planning crew returned no tasks. Creating an empty plan.")
-             # Maybe add a task indicating planning failed?
-             plan = planner.create_plan(objective_desc, [])
-             return {"plan": plan, "status_message": "Planning crew failed or returned no tasks."}
+    # --- New LLM Planning Logic ---
+    SYSTEM_PROMPT = f"""
+You are an expert planning AI assistant for Jarvis. Your goal is to break down the user's objective into a sequence of actionable tasks using the provided tools (skills).
 
-        # Convert dicts to Task objects
-        tasks = []
-        for i, task_dict in enumerate(task_dicts):
-             # Basic validation: Check for 'description' key
-             if "description" not in task_dict:
-                 logger.warning(f"Task dictionary {i} missing 'description': {task_dict}. Skipping.")
-                 continue
-             # Assuming other fields might be optional or have defaults
-             tasks.append(
-                 Task(
-                     id=i + 1,  # Assign sequential IDs
-                     description=task_dict["description"],
-                     status=TaskStatus.PENDING, # Default status
-                     result=task_dict.get("result", ""), # Optional field
-                     skill=task_dict.get("skill", ""), # Optional field
-                     arguments=task_dict.get("arguments", {}) # Optional field
-                 )
-             )
+Objective: {objective_description}
 
-        # Create the plan object
-        plan = planner.create_plan(objective_desc, tasks)
-        logger.info(f"Plan created successfully with {len(plan.tasks)} tasks.")
-        return {"plan": plan, "status_message": "Plan created successfully."}
+Context:
+{context_str}
+
+Available Skills:
+{skills_json_str}
+
+Based on the objective, context, and available skills, generate a JSON list representing the plan. Each object in the list should represent a task and have the following keys:
+- "description": A clear description of the task.
+- "skill": (Optional) The name of the *most appropriate* skill from the list above to accomplish this task. If no single skill is suitable or the task requires general reasoning/synthesis, omit this key.
+- "arguments": (Optional) A dictionary of arguments required by the selected skill, inferred from the task description and context. Only include if "skill" is specified. Ensure argument names match the skill definition exactly.
+
+Return *only* the JSON list (starting with '[' and ending with ']'), without any introductory text, comments, or explanations.
+"""
+    USER_PROMPT = "Generate the task plan JSON."
+    
+    generated_tasks = [] # Initialize as empty list
+    try:
+        logger.info("Calling LLM for task planning...")
+        llm_response_str = llm.process_with_llm(
+            messages=[
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": USER_PROMPT}
+            ],
+            # Consider using a smaller model for planning if needed
+            # model="llama3-8b-8192", 
+            temperature=0.1, # Lower temperature for more deterministic planning
+            # Add response_format={'type': 'json_object'} if supported and reliable
+        )
+        logger.debug(f"LLM Raw Planning Response:\n{llm_response_str}")
+
+        # Attempt to parse the response string as JSON
+        # Clean potential markdown code fences
+        cleaned_response = llm_response_str.strip()
+        if cleaned_response.startswith("```json"):
+            cleaned_response = cleaned_response[7:]
+        if cleaned_response.startswith("```"):
+             cleaned_response = cleaned_response[3:]
+        if cleaned_response.endswith("```"):
+             cleaned_response = cleaned_response[:-3]
+        cleaned_response = cleaned_response.strip()
+
+        if cleaned_response:
+            try:
+                parsed_output = json.loads(cleaned_response)
+                if isinstance(parsed_output, list):
+                    # Basic validation: check if items are dicts
+                    if all(isinstance(item, dict) for item in parsed_output):
+                        generated_tasks = parsed_output
+                        logger.info(f"Successfully parsed {len(generated_tasks)} tasks from LLM output.")
+                    else:
+                         logger.warning("LLM output was a list, but contained non-dictionary items.")
+                elif isinstance(parsed_output, dict) and 'tasks' in parsed_output and isinstance(parsed_output['tasks'], list):
+                    # Handle cases where LLM wraps the list in a dict
+                    generated_tasks = parsed_output['tasks']
+                    logger.info(f"Successfully parsed {len(generated_tasks)} tasks from LLM output (extracted from 'tasks' key).")
+                else:
+                    logger.warning(f"LLM output was valid JSON, but not the expected list format: {type(parsed_output)}")
+            except json.JSONDecodeError as json_err:
+                logger.error(f"Failed to decode JSON from LLM planning response: {json_err}. Response: {cleaned_response}")
+            except Exception as parse_err:
+                 logger.error(f"Error processing LLM planning response after JSON parsing: {parse_err}", exc_info=True)
+        else:
+            logger.warning("LLM returned an empty response for planning.")
+
+    except Exception as llm_err:
+        logger.error(f"Error during LLM call for planning: {llm_err}", exc_info=True)
+        # Return failure state immediately if LLM call fails
+        return {"current_plan": None, "plan_status": "failed", "error_message": f"LLM planning call failed: {llm_err}"}
+    # --- End New LLM Planning Logic ---
+
+    if not generated_tasks:
+        logger.warning("LLM planning returned no valid tasks.")
+        return {"current_plan": None, "plan_status": "failed", "error_message": "LLM planner failed to generate valid tasks."}
+
+    # Convert the list of task dictionaries from the LLM into Plan and Task objects
+    try:
+        plan_id = f"plan_{objective_id}"
+        tasks_list_for_plan = []
+        for i, task_dict in enumerate(generated_tasks):
+            # Basic validation of task_dict structure
+            if not isinstance(task_dict, dict) or "description" not in task_dict:
+                logger.warning(f"Skipping invalid task structure from LLM: {task_dict}")
+                continue
+            tasks_list_for_plan.append(
+                Task(
+                    task_id=f"{plan_id}_task_{i}",
+                    description=task_dict.get("description", "No description provided."),
+                    skill=task_dict.get("skill"), # Skill name (string) or None
+                    arguments=task_dict.get("arguments", {}), # Arguments dict or empty
+                    status=TaskStatus.PENDING,
+                    metadata={"plan_id": plan_id}
+                    # TODO: Add dependency handling if LLM provides it (complex)
+                )
+            )
+
+        # Ensure at least one valid task was created
+        if not tasks_list_for_plan:
+             logger.error("LLM returned tasks, but none were valid after parsing.")
+             return {"current_plan": None, "plan_status": "failed", "error_message": "Failed to parse valid tasks from LLM output."}
+
+        new_plan = Plan(
+            plan_id=plan_id,
+            objective_id=objective_id,
+            objective_description=objective_description,
+            tasks=tasks_list_for_plan
+        )
+        logger.info(f"-> Created Plan object with {len(new_plan.tasks)} tasks from Direct LLM Planning.")
+        return {"current_plan": new_plan, "plan_status": "active", "timestamp": datetime.now()}
 
     except Exception as e:
-        logger.error(f"Error during task planning: {e}", exc_info=True)
-        # Fallback: Create an empty plan or a plan with an error task
-        error_plan = Plan(objective=objective_desc, tasks=[Task(id=1, description=f"Planning Failed: {e}", status=TaskStatus.FAILED)])
-        return {"plan": error_plan, "status_message": f"Error during planning: {e}"}
+        logger.error(f"Failed to convert LLM output to Plan/Task objects: {e}", exc_info=True)
+        return {"current_plan": None, "plan_status": "failed", "error_message": f"Failed to process generated tasks: {e}"}
 
 def get_next_task_node(state: JarvisState, planner: PlanningSystem) -> Dict[str, Any]:
     """Gets the next pending task from the current plan in the state."""
@@ -384,42 +414,42 @@ def execute_tool_node(state: JarvisState, executor: ExecutionSystem) -> Dict[str
         result: ExecutionResult = executor.execute_task(current_task)
         logger.info(f"-> Task {current_task.task_id} execution result: Success={result.success}")
 
-        # ExecutionResult is Pydantic, convert to dict for state
-        last_exec_result_dict = result.model_dump()
-        
-        # Basic serialization check for potentially complex fields (output/metadata)
-        for key in ['output', 'metadata']:
-             if key in last_exec_result_dict and last_exec_result_dict[key] is not None:
-                 try:
-                     json.dumps(last_exec_result_dict[key])
-                 except TypeError:
-                     logger.warning(f"{key.capitalize()} for task {result.task_id} not JSON serializable, converting to string.")
-                     last_exec_result_dict[key] = str(last_exec_result_dict[key])
-
         history = state.get("execution_history", []) or []
-        history.append(last_exec_result_dict)
+        # Ensure history contains ExecutionResult objects if it already exists
+        # (This might be needed if state somehow got inconsistent objects)
+        if history and not isinstance(history[0], ExecutionResult):
+             logger.warning("Execution history contained non-ExecutionResult objects. Reinitializing.")
+             history = [] # Or attempt conversion if possible
+             
+        history.append(result) # Append the ExecutionResult object
 
         return {
-            "last_execution_result": last_exec_result_dict,
+            "last_execution_result": result, # Return the object
             "execution_history": history,
             "timestamp": datetime.now()
         }
         
     except Exception as e:
         logger.exception(f"Error executing task {current_task.task_id}: {e}")
-        failed_exec_result = {
-             "task_id": current_task.task_id,
-             "success": False,
-             "output": None,
-             "error": f"Node-level execution error: {e}",
-             "execution_time": 0.0,
-             "metadata": {"executed_by": "graph_node_error"}
-        }
+        # <<< MODIFIED: Create ExecutionResult object for error case >>>
+        failed_exec_result = ExecutionResult(
+             task_id=current_task.task_id,
+             success=False,
+             output=None,
+             error=f"Node-level execution error: {e}",
+             execution_time=0.0, # Or calculate time if possible
+             metadata={"executed_by": "graph_node_error"}
+        )
         history = state.get("execution_history", []) or []
-        history.append(failed_exec_result)
+        # Ensure history contains ExecutionResult objects
+        if history and not isinstance(history[0], ExecutionResult):
+             logger.warning("Execution history contained non-ExecutionResult objects. Reinitializing.")
+             history = []
+             
+        history.append(failed_exec_result) # Append the object
         return {
             "error_message": f"Failed to execute task {current_task.task_id}: {e}", 
-            "last_execution_result": failed_exec_result,
+            "last_execution_result": failed_exec_result, # Return the object
             "execution_history": history,
             "timestamp": datetime.now()
         }
@@ -428,7 +458,7 @@ def update_plan_node(state: JarvisState, planner: PlanningSystem) -> Dict[str, A
     """Updates the plan status in the state based on the last execution result."""
     logger.info("NODE: update_plan_node")
 
-    last_result = state.get('last_execution_result')
+    last_result = state.get('last_execution_result') # Now expects ExecutionResult object
     current_plan = state.get('current_plan')
 
     if not last_result:
@@ -455,10 +485,10 @@ def update_plan_node(state: JarvisState, planner: PlanningSystem) -> Dict[str, A
         return {"error_message": "Invalid plan object type in state.", "timestamp": datetime.now()}
 
     plan_id = current_plan.plan_id
-    task_id = last_result.get('task_id')
-    success = last_result.get('success')
-    error = last_result.get('error')
-    output = last_result.get('output')
+    task_id = last_result.task_id
+    success = last_result.success
+    error = last_result.error
+    output = last_result.output
 
     if task_id is None or success is None:
          logger.error(f"Invalid execution result format: {last_result}")
@@ -551,7 +581,7 @@ def update_plan_node(state: JarvisState, planner: PlanningSystem) -> Dict[str, A
 # --- Conditional Edge Functions ---
 
 def should_continue_condition(state: JarvisState) -> str:
-    """Determines if the plan execution loop should continue."""
+    """Determines the next step based on the plan status."""
     logger.info("CONDITION: should_continue_condition")
     plan_status = state.get("plan_status")
     error_message = state.get("error_message")
@@ -591,15 +621,27 @@ def task_dispatch_condition(state: JarvisState) -> str:
 
 # --- Placeholder Nodes for End States ---
 
-def handle_error_node(state: JarvisState) -> Dict[str, Any]:
-    """Handles errors encountered during graph execution."""
-    logger.error(f"NODE: handle_error_node (Error: '{state.get('error_message')}')")
-    # Potentially generate a final error response
-    final_response = f"An error occurred: {state.get('error_message', 'Unknown error')}"
-    return {"final_response": final_response, "timestamp": datetime.now()}
+def handle_error_node(state: JarvisState, llm: LLMClient) -> Dict[str, Any]:
+    """Handles errors encountered during graph execution by synthesizing an error response."""
+    error_message = state.get('error_message', "Unknown error")
+    logger.info(f"NODE: handle_error_node: {error_message}")
+    
+    # Leverage the synthesis logic to create a user-facing error message
+    logger.info("Synthesizing final error response...")
+    synthesis_result = synthesize_final_response_node(state, llm)
+    final_response = synthesis_result.get("final_response", f"An error occurred: {error_message}")
+
+    # Ensure the error message itself is also preserved in the state if needed
+    return {
+        "error_message": error_message, # Keep original error
+        "final_response": final_response, # Provide synthesized response
+        "timestamp": datetime.now()
+        }
 
 def handle_plan_completion_node(state: JarvisState) -> Dict[str, Any]:
     """Handles the completion (successful or failed) of a plan."""
+    # NOTE: This node is currently bypassed by conditional edges going directly
+    # to synthesize_final_response_node. It can be removed or repurposed.
     logger.info(f"NODE: handle_plan_completion_node (Status: '{state.get('plan_status')}')")
     plan_status = state.get("plan_status", "Unknown")
     final_response = f"Plan execution finished with status: {plan_status}."
@@ -613,35 +655,60 @@ def handle_plan_completion_node(state: JarvisState) -> Dict[str, Any]:
 # --- Add a simple synthesis node placeholder ---
 # This might be called from handle_plan_completion_node or be a separate final step
 def synthesize_final_response_node(state: JarvisState, llm: LLMClient) -> Dict[str, Any]:
-    """Synthesizes the final response based on execution history."""
+    """Synthesizes the final response based on objective, results, and errors."""
     logger.info("NODE: synthesize_final_response_node")
     
-    objective = state.get("objective_description", "Unknown objective")
-    history = state.get("execution_history", [])
-    
-    if not history:
-        return {"final_response": "No execution history found to synthesize."} 
+    objective = state.get('objective_description', 'No objective specified.')
+    task_results = state.get('execution_history', [])
+    error_message = state.get('error_message')
 
-    try:
-        context = f"Original Objective: {objective}\n\nExecution Results:\n"
-        for i, result in enumerate(history[-5:]): # Use last 5 results for brevity
-            task_desc = result.get('task_description', f'Task {result.get("task_id")}') # Need to ensure task desc is in result metadata
-            status = "Success" if result.get('success') else "Failure"
-            output = result.get('output') or result.get('error') or "No output/error recorded."
-            context += f"\n--- Task {i+1}: {task_desc} ({status}) ---\n{output}\n"
-            
-        system_prompt = "You are Jarvis, summarizing the results of a completed plan. Review the provided objective and execution results. Generate a final, comprehensive response for the user based ONLY on these results. Present the information clearly and concisely. Focus on answering the user's original goal." 
-        
-        final_response = llm.process_with_llm(
-             prompt=f"{context}\n\nSynthesize the final response for the user:",
-             system_prompt=system_prompt,
-             temperature=0.6,
-             max_tokens=1500 
-         )
-        return {"final_response": final_response}
+    # --- Construct Prompt --- 
+    prompt_lines = [
+        "Objective:",
+        objective,
+        "\n---",
+        "Execution Summary:"
+    ]
+
+    if task_results:
+        for i, result in enumerate(task_results[-5:]): # Use last 5 results for brevity
+            task_desc = result.get('task', {}).get('description', f'Task {i+1}')
+            outcome = "Success" if result.get('success') else "Failure"
+            result_data = result.get('output') or result.get('error') or "No output/error recorded."
+            # Truncate long results
+            result_preview = (str(result_data)[:200] + '...') if len(str(result_data)) > 200 else str(result_data)
+            prompt_lines.append(f"- Task: {task_desc}\n  - Outcome: {outcome}\n  - Result: {result_preview}")
+    else:
+        prompt_lines.append("(No tasks were executed or results available)")
+
+    if error_message:
+        prompt_lines.append("\n---")
+        prompt_lines.append(f"Error Encountered: {error_message}")
+
+    prompt_lines.append("\n---")
+    prompt_lines.append("Instruction: Based on the objective and the execution summary (including any errors), generate a concise final response for the user.")
     
+    final_prompt = "\n".join(prompt_lines)
+    logger.debug(f"Final synthesis prompt:\n{final_prompt}")
+
+    # --- Call LLM --- 
+    try:
+        final_response = llm.process_with_llm(
+            prompt=final_prompt,
+            # provider=..., # Optional: Specify provider if needed
+            # model=...,    # Optional: Specify model if needed
+            max_tokens=500, # Adjust as needed
+            temperature=0.5 # Adjust as needed
+        )
+        logger.info(f"-> Synthesized final response: '{final_response[:100]}...'")
+        
     except Exception as e:
-        logger.exception(f"Error during final synthesis: {e}")
-        return {"final_response": f"Error synthesizing final report: {e}"}
+        logger.error(f"Failed to synthesize final response using LLM: {e}", exc_info=True)
+        final_response = f"Error: Could not generate the final summary. Details: {e}"
+        # Update error message in state as well?
+        # return {"final_response": final_response, "error_message": final_response, "timestamp": datetime.now()} 
+
+    # --- Update State --- 
+    return {"final_response": final_response, "timestamp": datetime.now()}
 
 # ... other nodes ... 

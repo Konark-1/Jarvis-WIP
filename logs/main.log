@@ -13520,3 +13520,7 @@ For troubleshooting, visit: https://python.langchain.com/docs/troubleshooting/er
 2025-04-04 21:11:18 - main - INFO - Graph Event: Node 'timestamp' executed.
 2025-04-04 21:11:18 - main - INFO - LangGraph execution finished.
 2025-04-04 21:14:11 - main - INFO - KeyboardInterrupt detected. Exiting.
+2025-04-05 02:59:12 - main - INFO - Environment variables loaded (if .env exists). Settings will override.
+2025-04-05 02:59:12 - main - ERROR - Missing required API key configurations (check .env or environment variables): GROQ_API_KEY, TAVILY_API_KEY
+2025-04-05 03:00:36 - main - INFO - Environment variables loaded by dotenv (if .env exists) before settings initialization.
+2025-04-05 03:00:36 - main - ERROR - Missing required API key configurations (check .env or environment variables): GROQ_API_KEY, TAVILY_API_KEY

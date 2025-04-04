@@ -27,16 +27,16 @@ if TYPE_CHECKING:
 from .llm import LLMError # <-- ADDED Import
 
 # Local Task definition for cases where full import isn't desired/possible at runtime
-class Task(BaseModel):
-    task_id: str
-    description: str
-    status: str = "pending"
-    dependencies: List[str] = Field(default_factory=list)
-    created_at: datetime = Field(default_factory=datetime.now)
-    completed_at: Optional[datetime] = None
-    error_count: int = 0
-    max_retries: int = 3
-    metadata: Dict[str, Any] = Field(default_factory=dict)
+# class Task(BaseModel):
+#     task_id: str
+#     description: str
+#     status: str = "pending"
+#     dependencies: List[str] = Field(default_factory=list)
+#     created_at: datetime = Field(default_factory=datetime.now)
+#     completed_at: Optional[datetime] = None
+#     error_count: int = 0
+#     max_retries: int = 3
+#     metadata: Dict[str, Any] = Field(default_factory=dict)
 
 # --- Pydantic Model for Structured LLM Output (Skill Parsing) ---
 class ParsedSkillCall(BaseModel):
@@ -117,7 +117,7 @@ class ExecutionSystem(BaseModel):
         # Initialize strategies after core components are initialized by Pydantic
         self._load_execution_strategies()
     
-    def execute_task(self, task: Task) -> ExecutionResult:
+    def execute_task(self, task: 'Task') -> ExecutionResult:
         """Execute a task with error recovery, attempting skill dispatch first."""
         start_time = time.time()
         self.logger.info(f"Executing task {task.task_id}: '{task.description}'")
@@ -254,7 +254,12 @@ class ExecutionSystem(BaseModel):
                 Analyze the execution failure and provide a diagnosis and suggestion.
                 """
                 
-                diagnosis = self.llm.process_with_llm(prompt, system_prompt, temperature=0.4, max_tokens=150).strip()
+                diagnosis = self.llm.process_with_llm(
+                    prompt=prompt, 
+                    system_prompt=system_prompt, 
+                    temperature=0.4, 
+                    max_tokens=150
+                ).strip()
             except Exception as diag_err:
                 self.logger.error(f"LLM diagnosis for task {task.task_id} failed: {diag_err}")
         return diagnosis
@@ -301,48 +306,33 @@ class ExecutionSystem(BaseModel):
         return self.strategies.get(strategy_name, default_strategy)
     
     def _execute_with_strategy(self, task: 'Task', strategy: ExecutionStrategy) -> ExecutionResult:
-        """Execute a task using a specific strategy (internal attempt logic)."""
+        """Execute a task using a specific strategy, prioritizing explicit skill calls."""
         start_time = time.time()
-        skill_name = None
         try:
-            # --- PRIORITY CHECK: Handle Synthesis Tasks FIRST ---
-            task_desc_lower = task.description.lower()
-            synthesis_keywords = ["synthesize", "summarize", "report", "compile", "present", "finalize", "combine", "consolidate", "review results"]
-            is_synthesis_task = any(keyword in task_desc_lower for keyword in synthesis_keywords)
+            # --- PRIORITY 1: Explicit Skill Call --- 
+            explicit_skill_name = getattr(task, 'skill', None)
+            explicit_args = getattr(task, 'arguments', None)
+            # --- DEBUG LOG --- 
+            self.logger.info(f"DEBUG: Checking explicit skill - Name='{explicit_skill_name}', Type={type(explicit_skill_name)}, Args='{explicit_args}', ArgsType={type(explicit_args)}, RegistryPresent={self.skill_registry is not None}")
+            # --- END DEBUG LOG ---
 
-            if is_synthesis_task and self.planning_system:
-                try:
-                    self.logger.info(f"Task '{task.task_id}' identified as synthesis task based on description. Executing internal synthesis logic...")
-                    synthesis_result: ExecutionResult = self._synthesize_results(task)
-                    return synthesis_result # Return directly if synthesis is handled
-                except Exception as synth_err:
-                    error_msg = f"Internal synthesis execution failed for task {task.task_id}: {synth_err}"
-                    self.logger.error(error_msg, exc_info=True)
-                    # Return failure if synthesis itself errored
-                    return ExecutionResult(task_id=task.task_id, success=False, output=None, error=error_msg, execution_time=time.time()-start_time)
-            
-            # --- If NOT a synthesis task, proceed with Skill Dispatch Attempt ---
-            parsed_result = self._parse_task_for_skill(task)
-
-            # Check if parsing returned a valid skill and params
-            if parsed_result:
-                skill_name, params = parsed_result # Unpack only if not None
-            else:
-                skill_name = None # Explicitly set to None
-                params = None
-
-            if skill_name and params is not None and self.skill_registry:
-                skill = self.skill_registry.get_skill(skill_name)
+            if explicit_skill_name and isinstance(explicit_args, dict) and self.skill_registry:
+                skill = self.skill_registry.get_skill(explicit_skill_name)
+                # --- DEBUG LOG --- 
+                self.logger.info(f"DEBUG: Explicit skill condition TRUE. Skill found: {skill is not None}")
+                # --- END DEBUG LOG ---
                 if skill:
-                    self.logger.info(f"Attempting to execute task '{task.task_id}' using skill: '{skill_name}'")
-                    validation_error = skill.validate_parameters(params) # Note: validate_parameters might modify params (e.g., type conversion)
+                    self.logger.info(f"Task '{task.task_id}' specifies skill '{explicit_skill_name}'. Attempting direct execution.")
+                    params = explicit_args # Use provided arguments directly
+                    
+                    # Validate parameters
+                    validation_error = skill.validate_parameters(params) 
                     if validation_error:
-                        error_msg = f"Parameter validation failed for skill '{skill_name}': {validation_error}"
+                        error_msg = f"Parameter validation failed for explicit skill '{explicit_skill_name}': {validation_error}"
                         self.logger.error(error_msg)
-                        # Don't immediately fail execution, let LLM fallback handle it maybe?
-                        # Or return failure directly:
                         return ExecutionResult(task_id=task.task_id, success=False, output=None, error=error_msg, execution_time=time.time()-start_time)
-
+                    
+                    # Execute the skill
                     try:
                         skill_result: SkillResult = skill.execute(**params)
                         exec_time = time.time() - start_time
@@ -352,55 +342,85 @@ class ExecutionSystem(BaseModel):
                             output=skill_result.data or skill_result.message,
                             error=skill_result.error,
                             execution_time=exec_time,
-                            metadata={'executed_by': 'skill', 'skill_name': skill_name}
+                            metadata={'executed_by': 'explicit_skill', 'skill_name': explicit_skill_name}
                         )
                     except Exception as skill_exec_err:
-                        error_msg = f"Skill '{skill_name}' execution failed: {skill_exec_err}"
+                        error_msg = f"Explicit skill '{explicit_skill_name}' execution failed: {skill_exec_err}"
                         self.logger.error(error_msg, exc_info=True)
                         return ExecutionResult(task_id=task.task_id, success=False, output=None, error=error_msg, execution_time=time.time()-start_time)
                 else:
-                    self.logger.warning(f"Parsed skill '{skill_name}' not found in registry.")
+                    # Skill specified but not found in registry - this is an error
+                    error_msg = f"Explicitly specified skill '{explicit_skill_name}' not found in registry."
+                    self.logger.error(error_msg)
+                    return ExecutionResult(task_id=task.task_id, success=False, output=None, error=error_msg, execution_time=time.time()-start_time)
+            
+            # --- DEBUG LOG --- 
+            self.logger.warning(f"DEBUG: Explicit skill condition FALSE. Name='{explicit_skill_name}', ArgsType={type(explicit_args)}, RegistryPresent={self.skill_registry is not None}")
+            # --- END DEBUG LOG ---
+            
+            # --- PRIORITY 2: Synthesis Task Check (if no explicit skill) ---
+            task_desc_lower = task.description.lower()
+            synthesis_keywords = ["synthesize", "summarize", "report", "compile", "present", "finalize", "combine", "consolidate", "review results"]
+            is_synthesis_task = any(keyword in task_desc_lower for keyword in synthesis_keywords)
+
+            if is_synthesis_task and self.planning_system:
+                try:
+                    self.logger.info(f"Task '{task.task_id}' identified as synthesis task (no explicit skill). Executing internal synthesis logic...")
+                    synthesis_result: ExecutionResult = self._synthesize_results(task)
+                    return synthesis_result # Return directly if synthesis is handled
+                except Exception as synth_err:
+                    error_msg = f"Internal synthesis execution failed for task {task.task_id}: {synth_err}"
+                    self.logger.error(error_msg, exc_info=True)
+                    return ExecutionResult(task_id=task.task_id, success=False, output=None, error=error_msg, execution_time=time.time()-start_time)
+            
+            # --- PRIORITY 3: LLM Skill Parsing Attempt (if no explicit skill & not synthesis) ---
+            parsed_result = self._parse_task_for_skill(task)
+            skill_name_parsed = None
+            params_parsed = None
+            if parsed_result:
+                skill_name_parsed, params_parsed = parsed_result
+
+            if skill_name_parsed and params_parsed is not None and self.skill_registry:
+                skill = self.skill_registry.get_skill(skill_name_parsed)
+                if skill:
+                    self.logger.info(f"Attempting to execute task '{task.task_id}' using LLM-parsed skill: '{skill_name_parsed}'")
+                    # Validate parameters parsed by LLM
+                    validation_error = skill.validate_parameters(params_parsed)
+                    if validation_error:
+                        error_msg = f"Parameter validation failed for LLM-parsed skill '{skill_name_parsed}': {validation_error}"
+                        self.logger.error(error_msg)
+                        return ExecutionResult(task_id=task.task_id, success=False, output=None, error=error_msg, execution_time=time.time()-start_time)
+
+                    try:
+                        skill_result: SkillResult = skill.execute(**params_parsed)
+                        exec_time = time.time() - start_time
+                        return ExecutionResult(
+                            task_id=task.task_id,
+                            success=skill_result.success,
+                            output=skill_result.data or skill_result.message,
+                            error=skill_result.error,
+                            execution_time=exec_time,
+                            metadata={'executed_by': 'parsed_skill', 'skill_name': skill_name_parsed}
+                        )
+                    except Exception as skill_exec_err:
+                        error_msg = f"LLM-parsed skill '{skill_name_parsed}' execution failed: {skill_exec_err}"
+                        self.logger.error(error_msg, exc_info=True)
+                        return ExecutionResult(task_id=task.task_id, success=False, output=None, error=error_msg, execution_time=time.time()-start_time)
+                else:
+                    self.logger.warning(f"LLM parsed skill '{skill_name_parsed}' not found in registry.")
                     # Fall through if skill not in registry
 
-            # --- Handle cases where no skill was parsed by the LLM ---
-            elif not skill_name:
-                task_desc_lower = task.description.lower()
-                # More comprehensive keywords for synthesis/final reporting
-                synthesis_keywords = ["synthesize", "summarize", "report", "compile", "present", "finalize", "combine", "consolidate", "review results"]
-                # Check if it looks like a synthesis task AND planning system is available
-                is_synthesis_task = any(keyword in task_desc_lower for keyword in synthesis_keywords)
-
-                if is_synthesis_task and self.planning_system:
-                    try:
-                        self.logger.info(f"Task '{task.task_id}' identified as synthesis task based on description. Executing internal synthesis logic...")
-                        # Directly call the internal synthesis method
-                        synthesis_result: ExecutionResult = self._synthesize_results(task)
-                        # Return the result obtained from the synthesis method
-                        return synthesis_result
-                    except Exception as synth_err:
-                         # Handle errors during the synthesis process itself
-                         error_msg = f"Internal synthesis execution failed for task {task.task_id}: {synth_err}"
-                         self.logger.error(error_msg, exc_info=True)
-                         return ExecutionResult(task_id=task.task_id, success=False, output=None, error=error_msg, execution_time=time.time()-start_time)
-                else:
-                    # If not a synthesis task or planning system unavailable, treat as internal step
-                    self.logger.info(f"No suitable skill identified by LLM for task '{task.task_id}' ('{task.description}') and not identified as a synthesis task. Marking as completed internal step.")
-                    exec_time = time.time() - start_time
-                    return ExecutionResult(
-                        task_id=task.task_id,
-                        success=True, # Mark as success as it's an expected internal step
-                        output="Internal step completed (no direct action/skill identified).",
-                        error=None,
-                        execution_time=exec_time,
-                        metadata={'executed_by': 'internal'} # Mark execution type
-                    )
-
-            # --- Fallback Error Handling ---
-            # If code reaches here, it means something went wrong earlier
-            # e.g., skill parsed but not found, or parameter validation failed and wasn't caught cleanly above.
-            error_msg = f"Execution failed for task {task.task_id}. Could not execute skill '{skill_name}' or handle as internal/synthesis step."
-            self.logger.error(error_msg)
-            return ExecutionResult(task_id=task.task_id, success=False, output=None, error=error_msg, execution_time=time.time()-start_time)
+            # --- PRIORITY 4: Handle as Internal Step --- 
+            self.logger.info(f"No explicit or parsed skill identified for task '{task.task_id}' ('{task.description}') and not identified as a synthesis task. Marking as completed internal step.")
+            exec_time = time.time() - start_time
+            return ExecutionResult(
+                task_id=task.task_id,
+                success=True, # Mark as success as it's an expected internal step
+                output="Internal step completed (no direct action/skill identified).",
+                error=None,
+                execution_time=exec_time,
+                metadata={'executed_by': 'internal'} # Mark execution type
+            )
 
         except Exception as strategy_exec_err:
              # Catch unexpected errors within the _execute_with_strategy scope

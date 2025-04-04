@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import Dict, Any
+from typing import Dict, Any, List, Optional
 
 # Assuming usage of Tavily for web search, as often used with CrewAI/LangChain
 # Ensure 'tavily-python' is installed (pip install tavily-python)
@@ -9,70 +9,113 @@ try:
 except ImportError:
     TavilyClient = None # Handle optional dependency
 
-# Potential Base class import (if defined)
-# from .base import Skill
+# Import base class and result model
+from .base import Skill, SkillResult
+from jarvis.memory.unified_memory import MemoryEntry
+from jarvis.state import JarvisState
+from jarvis.constants import MAX_RETRIEVED_KNOWLEDGE_ITEMS
+# from jarvis.config import settings # <<< REMOVE top-level import
 
 logger = logging.getLogger(__name__)
 
-# class WebSearchSkill(Skill):
-class WebSearchSkill:
+class WebSearchSkill(Skill):
     """A skill to perform web searches using the Tavily API."""
 
-    name = "web_search"
-    description = "Performs a web search for a given query using the Tavily API and returns the results."
+    # Use a class variable for the client to avoid re-initialization
+    # This assumes API key doesn't change during runtime
+    tavily_client: Optional[TavilyClient] = None
+    api_key_status: str = "Not Checked"
 
-    def __init__(self):
-        """Initializes the skill, checking for the Tavily API key."""
-        self.api_key = os.getenv("TAVILY_API_KEY")
-        self.client = None
-        if not self.api_key:
-            logger.warning("TAVILY_API_KEY environment variable not found. WebSearchSkill will be unavailable.")
-        elif TavilyClient is None:
-             logger.warning("'tavily-python' library not installed. WebSearchSkill will be unavailable. Run 'pip install tavily-python'")
+    def __init__(self, tavily_client: Optional[TavilyClient] = None):
+        """Initializes the Tavily client if not already done."""
+        # <<< ADDED: Import settings inside __init__ >>>
+        from jarvis.config import settings 
+        
+        # Initialize Tavily client, potentially using settings
+        api_key = settings.tavily.api_key
+        if not api_key:
+            logger.warning("Tavily API key not found in settings. WebSearchSkill will be disabled.")
         else:
             try:
-                self.client = TavilyClient(api_key=self.api_key)
-                logger.info("TavilyClient initialized successfully for WebSearchSkill.")
+                WebSearchSkill.tavily_client = TavilyClient(api_key=api_key)
+                WebSearchSkill.api_key_status = "Initialized"
+                logger.info("Tavily client initialized successfully.")
             except Exception as e:
-                logger.error(f"Failed to initialize TavilyClient: {e}", exc_info=True)
-                self.client = None # Ensure client is None if init fails
+                logger.error(f"Failed to initialize Tavily client: {e}", exc_info=True)
+                WebSearchSkill.api_key_status = f"Initialization Error: {e}"
+        else:
+            # Log status if already attempted initialization
+             logger.debug(f"Tavily client status: {WebSearchSkill.api_key_status}")
 
-    def is_available(self) -> bool:
-        """Checks if the skill can be used (API key and library available)."""
-        return self.client is not None
+    @property
+    def name(self) -> str:
+        return "web_search"
 
-    def execute(self, query: str, max_results: int = 5, **kwargs: Any) -> str:
+    @property
+    def description(self) -> str:
+        return "Searches the web using Tavily API to answer questions or find information. Use this when you need up-to-date information or knowledge beyond your internal data."
+
+    @property
+    def parameters(self) -> List[Dict[str, Any]]:
+        return [
+            {"name": "query", "type": "string", "required": True, "description": "The search query string."},
+            {"name": "max_results", "type": "integer", "required": False, "default": 5, "description": "Maximum number of search results to return."},
+            {"name": "search_depth", "type": "string", "required": False, "default": "basic", "description": "Search depth ('basic' or 'advanced'). Advanced costs more."}
+            # Add other parameters supported by TavilyClient.search if needed
+        ]
+
+    def execute(self, **kwargs: Any) -> SkillResult:
         """Executes a web search for the given query.
 
         Args:
-            query: The search query string.
-            max_results: The maximum number of search results to return.
-            **kwargs: Additional keyword arguments (ignored for now, but allows flexibility).
+            **kwargs: Must include 'query'. Can include 'max_results' (default 5).
 
         Returns:
-            A string containing the search results, or an error message.
+            A SkillResult object containing the search results or an error.
         """
-        if not self.is_available():
-            return "Error: WebSearchSkill is unavailable. Check TAVILY_API_KEY and tavily-python installation."
+        if WebSearchSkill.api_key_status == "Missing":
+            return SkillResult(success=False, error="WebSearchSkill is unavailable. Check TAVILY_API_KEY and tavily-python installation.")
 
+        # Use base class validation
+        validation_error = self.validate_parameters(kwargs)
+        if validation_error:
+            return SkillResult(success=False, error=f"Parameter validation failed: {validation_error}")
+
+        query = kwargs.get('query')
+        max_results = kwargs.get('max_results', 5)
+        search_depth = kwargs.get('search_depth', 'basic')
+
+        # Redundant check, but safe
         if not query:
-            return "Error: No search query provided."
+            return SkillResult(success=False, error="No search query provided.")
 
         try:
-            logger.info(f"Performing Tavily web search for query: '{query}'")
+            logger.info(f"Performing Tavily web search for query: '{query}', max_results={max_results}, depth={search_depth}")
             # Using search method which returns a dictionary
-            response = self.client.search(query=query, search_depth="basic", max_results=max_results)
-            # Extract results or format the whole response? Let's format relevant parts.
-            results_str = f"Search results for '{query}':\n"
-            if 'results' in response and response['results']:
-                for i, result in enumerate(response['results']):
-                    results_str += f"{i+1}. Title: {result.get('title', 'N/A')}\n   URL: {result.get('url', 'N/A')}\n   Content Snippet: {result.get('content', 'N/A')[:200]}...\n"
-            else:
-                results_str += "No results found."
+            response = WebSearchSkill.tavily_client.search(
+                query=query,
+                search_depth=search_depth,
+                max_results=max_results,
+                # Add other parameters from kwargs if needed, e.g.:
+                # include_answer=kwargs.get('include_answer', False),
+                # include_raw_content=kwargs.get('include_raw_content', False),
+                # include_images=kwargs.get('include_images', False)
+            )
 
-            return results_str
+            # Format results
+            results_list = []
+            if 'results' in response and response['results']:
+                for result in response['results']:
+                    results_list.append({
+                        "title": result.get('title', 'N/A'),
+                        "url": result.get('url', 'N/A'),
+                        "content": result.get('content', 'N/A')
+                    })
+
+            message = f"Found {len(results_list)} results for query '{query}'."
+            return SkillResult(success=True, message=message, data={'query': query, 'results': results_list})
 
         except Exception as e:
             error_msg = f"Error during Tavily web search: {e}"
             logger.error(error_msg, exc_info=True)
-            return error_msg 
+            return SkillResult(success=False, error=error_msg) 
